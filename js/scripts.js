@@ -1,3 +1,9 @@
+var tableLen = 10;
+var tableHeaders =['22-06', '06-14', '14-22'];
+var monthNamesShort = ['jan','feb','mar','apr','mai','jūn','jūl','aug','sep','okt','nov','dec'];
+var machineCount = 12;
+var board = [];
+
 $( document ).ready(function() 
 {
 	$('.popupDatepicker').datepick({dateFormat: 'yyyy/mm/dd'});
@@ -39,24 +45,12 @@ $( document ).ready(function()
 	    if(prevLeft != currentLeft) { // horizontall scroll
 	        prevLeft = currentLeft;
 	        var prevOffset =$('.left-header').offset();
-	        console.log(prevOffset);
 	        $('.left-header').offset({top: prevOffset.top, left: initColOffset.left});
 	        //console.log("I scrolled horizontally.");
 	    }
 	});
 
 	//////////////////////////////////////////////////////
-	
-
-	function repeat(pattern, count) {
-	  if (count < 1) return '';
-	  var result = '';
-	  while (count > 1) {
-	      if (count & 1) result += pattern;
-	      count >>= 1, pattern += pattern;
-	  }
-	  return result + pattern;
-	}
 
   	var getDates = function(startDate, endDate) {
 	  	var dates = [],
@@ -74,47 +68,50 @@ $( document ).ready(function()
 		return dates;
 	};
 
-
-  var tableLen = 10;
-  var tableHeaders =['22-06', '06-14', '14-22'];
-  var monthNamesShort = ['jan','feb','mar','apr','mai','jūn','jūl','aug','sep','okt','nov','dec'];
-  var machineCount = 25;
-
 	function drawTable(startDate, endDate)
 	{
 		var dates = getDates(new Date(startDate), new Date(endDate));
 		var header_time_html = '';
 		var header_day_html = '';
 
-		dates.forEach(function(d) {	// timeline header
-			for (var i = 0; i < tableHeaders.length; i++) {
+		dates.forEach(function(d) // timeline header
+		{	
+			for (var i = 0; i < tableHeaders.length; i++) { // time
 				header_time_html += '<td class="redips-mark dark">'+tableHeaders[i]+'</td>';
 			};
 			var dateStr = d.getDate()  + "." + monthNamesShort[d.getMonth()] + "  " + d.getFullYear();
-			header_day_html += '<td class="redips-mark dark" colspan="3">'+dateStr+'</td>';
+			header_day_html += '<td class="redips-mark dark" colspan="3">'+dateStr+'</td>'; //date
 		});
 		$('.table1-header .header-time').html('<td class="redips-mark blank"></td>'+header_time_html);
 		$('.table1-header .header-day').html('<td class="redips-mark blank"></td>'+header_day_html);
 
 
+		board = [];
 		var left_header_html = '';
 		var table2_html = '';
 
 		for (var i = 0; i < machineCount; i++) {	// table cells
+
+			var cellLen = dates.length*3;
+			board.push( Array.apply(null, Array(cellLen)).map(function () {}) );
+
 	  		left_header_html += '<tr><th class="redips-mark dark">'+(i+1)+'</th></tr>';
-
 	  		table2_html += '<tr>';
-	  		var l = dates.length*3;
 
-	  		for (var j = 0; j < l; j++) {
-	    		table2_html += '<td></td>';
+	  		var data_counter = 0;
+	  		for (var j = 0; j < cellLen; j++) {
+	  			data_counter = (j > 0 && j % 3 == 0)? ++data_counter : data_counter;
+	  			var cur_date = dates[data_counter];
+	  			var cur_date_formated = cur_date.getDate()+'-'+(cur_date.getMonth()+1)+'-'+cur_date.getFullYear()+'/'+i+'/'+j%3;
+	  			//console.log(cur_date_formated);
+	    		table2_html += '<td name="'+cur_date_formated+'"></td>';
 	  		};
 	  		table2_html += '</tr>';
 		};
 		$('.left-header').html(left_header_html);
 		$('#table2 tbody').html(table2_html);
 	}
-
+	//drawTable("2015/10/29", "2015/11/1");
 	$('#gen-table-bttn').click(function() { 
 		var startDate = $('[name="start"]').val();
 		var endDate = $('[name="end"]').val();
@@ -157,6 +154,7 @@ redipsInit = function () {
 			msg;	// message
 		// find table of target cell
 		tbl = rd.findParent('TABLE', targetCell);
+		console.log(targetCell.getAttribute('name'));
 		// test if table belongs to scrollable container
 		if (tbl.sca !== undefined) {
 			// every table has defined scrollable container (if table belongs to scrollable container)

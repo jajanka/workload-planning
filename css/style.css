@@ -23,7 +23,7 @@ body {
 		/* make it visible */
 		//border: 2px dashed SteelBlue;
 		width: 100%;
-		height: 600px;
+		height: 500px;
 		padding: 3px;
 	}
 
@@ -160,7 +160,7 @@ div#redips-drag table td,th {
 	background-color: #e0e0e0;
 }
 .table1-header{
-	float: left; 
+	//float: left; 
 	z-index: 1; 
 	margin-left: 1px !important;
 }
@@ -168,6 +168,10 @@ div#redips-drag table td,th {
 	float:left; 
 	margin-top: -1px;
 }
+.table-container{
+	float:left;
+}
+
 .table1-header .header-day td{
 	background-color: #8DB4E3;
 	color: white !important;
