@@ -1,0 +1,110 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="author" content="Janis Mateuss"/>
+		<meta name="description" content="Planning"/>
+		<meta name="viewport" content="width=device-width, user-scalable=no"/><!-- "position: fixed" fix for Android 2.2+ -->
+		<link rel="stylesheet" href="css/style.css" type="text/css" media="screen"/>
+		<link rel="stylesheet" media="screen" href="bootstrap/css/bootstrap.min.css">
+    	<link href="datepicker/css/datepicker.css" rel="stylesheet" media="screen">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		<script src="bootstrap/js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="datepicker/js/bootstrap-datepicker.js" charset="UTF-8"></script>
+		<script type="text/javascript" src="js/redis/redips-drag-min.js"></script>
+		<script type="text/javascript" src="js/scripts.js"></script>
+		<title>Plāns</title>
+	</head>
+	<body>
+		<nav class="navbar navbar-default navbar-fluid-top" role="navigation">
+		<div class="container-fluid">
+			<a class="navbar-brand" href="index.html">Sakums</a>
+			<p class="navbar-text navbar-right">...</p>
+		</div>
+		</nav>
+
+	
+
+
+		<div id="main_container">
+			<!-- tables inside this DIV could have draggable content -->
+			<form class="form-inline">
+			     <div class="form-group">
+	                <div class="input-daterange input-group" id="datepicker">
+	                	<span class="input-group-addon">no</span>
+	                    <input id="datepickerFrom" type="text" class="input-small form-control" name="start" /> 
+	                    <span class="input-group-addon">līdz</span>
+	                    <input id="datepickerFrom" type="text" class="input-small form-control" name="end" />
+	                </div>
+	            </div>
+			  <button type="submit" class="btn btn-primary">Parādīt</button>
+			</form>
+
+			<div id="redips-drag">
+				<!-- right container -->
+				<div id="right">
+
+					<table class="table1-header">	
+					 	<tr class="header-day">
+				            <td class="redips-mark blank"></td>
+				        </tr>				  
+				        <tr class="header-time">
+				            <td class="redips-mark blank"></td>
+				        </tr>
+				       
+
+					</table>
+					<table class="table-container" style="float:left;">
+						<tr>
+						<td class="redips-mark dark">
+							<table class="left-header">
+							</table>
+						</td>
+						<td class="redips-mark dark">
+							<table id="table2">
+								<colgroup>
+									<col width="70"/>
+								</colgroup>
+								<tbody>
+								</tbody>
+							</table>
+						</td>
+						</tr>
+					</table>
+				</div><!-- right container -->
+
+				<div id="botttom">
+					<table id="table-temp">
+						<colgroup>
+							<col width="70"/>
+							<col width="70"/>
+						</colgroup>
+						<tbody>
+							<tr>
+								<td></td>
+								<td class="upper_right"></td>
+							</tr>
+							<tr>
+								<td><div id="x" class="redips-drag blue">B</div></td>
+								<th></th>
+							</tr>
+							<tr>
+								<td></td>
+								<th></th>
+							</tr>
+							<tr>
+								<td class="lower_left"></td>
+								<th></th>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+			</div><!-- drag container -->
+			<!-- needed for cloning DIV elements -->
+			<div id="redips_clone"></div>
+			<!-- message -->
+			<div id="message">Clone element with SHIFT key</div>
+		</div><!-- main container -->
+	</body>
+</html>

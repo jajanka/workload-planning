@@ -1,0 +1,179 @@
+/*
+
+Darko Bunic
+http://www.redips.net/
+May, 2010.
+
+*/
+
+body {
+	font-family: arial;
+	margin: 0px; /* for IE6 / IE7 */
+}
+
+/* drag container */
+#main_container {
+	margin: auto;
+	width: 100%;
+	padding-left: 70px;
+	padding-right: 70px;
+}
+	/* container for left and right div */
+	#redips-drag {
+		/* make it visible */
+		//border: 2px dashed SteelBlue;
+		width: 100%;
+		height: 600px;
+		padding: 3px;
+	}
+
+
+		/* container for the right table */
+		#main_container #right {
+			width: 100%;
+			height: 90%;
+			/* make it visible */
+			border: 7px solid SlateGray;
+
+			background-color: #eee;
+		}
+
+
+		/* make left and right DIV container scrollable */
+		#main_container #left,#right {
+			/*  http://www.howtocreate.co.uk/tutorials/javascript/browserspecific (Element position with scrolling offsets)
+			make sure that every element with an overflow of anything other than "visible" also has a position
+			style set to something other than the default "static". This way, they will all appear in the offsetParent
+			chain, and can be easily subtracted in the same loop that adds the offsetLeft and offsetTop. */
+			overflow: auto;
+			position: relative;
+			margin: auto;
+		}
+
+
+
+/* drag objects (DIV inside table cells) */
+.redips-drag {
+	cursor: move;
+	margin: auto;
+	z-index: 10;
+	background-color: white;
+	text-align: center;
+	font-size: 10pt; /* needed for cloned object */
+	width: 60px;
+	height: 16px;
+	line-height: 12px !important;
+}
+
+
+/* tables */
+div#redips-drag table {
+	background-color: #eee;
+	border-collapse: collapse;
+	/* center tables */
+	margin: 0px auto;
+}
+		/* timetable */
+		div#redips-drag #table2 {
+			/* align table to the right */
+			margin-left: auto;
+			//width: 430px;
+		}
+
+
+/* table cells */
+div#redips-drag table td,th {
+	border-style: double;
+	height: 20px;
+	min-width: 70px;
+	text-align: center !important;
+	font-size: 10pt;
+	//line-height: 12px !important;
+}
+
+		/* td */
+		div#redips-drag table td {
+			border-width: 0px 1px 1px 0px;
+			border-color: #DDC5B5;
+			font-weight: normal;
+		}
+
+		/* th */
+		div#redips-drag table th {
+			border-width: 1px 0px 0px 1px;
+			border-color: #DDC5B5;
+			font-weight: normal;
+		}
+		
+		/* upper right cell */
+		div#redips-drag table .upper_right {
+			border-width: 0px;
+		}
+
+		/* lower left cell */
+		div#redips-drag table .lower_left {
+			border-width: 0px;
+		}
+
+
+
+/* last row and last column without border */
+.noborder {
+	border-width: 0px;
+}
+
+/* green objects */
+.blue {
+	border: 1px solid CornflowerBlue;
+}
+
+
+/* blank cells (upper left corner) */
+.blank {
+	background-color: #EEEEEE !important;
+	border-color: #EEEEEE !important; 
+}
+
+
+/* append here cloned object before placing to the target table cell */
+#redips_clone {
+	/* make redips_clone div visible */
+	/* border: 1px solid red; */
+	height: 10px;
+	width: 100px;
+}
+
+/* message line */
+#message {
+	color: white;
+	background-color: #aaa;
+	text-align: center;
+	/* top margin is made with unvisible redips_clone DIV */
+	/* margin-top: 10px; */
+}
+
+/* dark cells (first column and table header) */
+.dark {
+	color: #444;
+	background-color: #e0e0e0;
+}
+.table1-header{
+	float: left; 
+	z-index: 1; 
+	margin-left: 1px !important;
+}
+.left-header{
+	float:left; 
+	margin-top: -1px;
+}
+.table1-header .header-day td{
+	background-color: #8DB4E3;
+	color: white !important;
+	font-size: 12pt !important;
+	font-weight: bold !important;
+}
+
+.table1-header .header-time td{
+	background-color: #808080;
+	color: white !important;
+}
