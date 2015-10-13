@@ -82,10 +82,12 @@ div#redips-drag table {
 
 
 /* table cells */
+.table1-header td, .table-container td, .table-temp td,
+.table1-header th, .table-container th, .table-temp th
+{ min-width: 70px; }
 div#redips-drag table td,th {
 	border-style: double;
 	height: 20px;
-	min-width: 70px;
 	text-align: center !important;
 	font-size: 10pt;
 	//line-height: 12px !important;

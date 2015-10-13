@@ -1,12 +1,15 @@
 $( document ).ready(function() 
 {
+	$('.popupDatepicker').datepick({dateFormat: 'yyyy/mm/dd'});
+
+
 	// Scroll. Fixed vertical and horizontal header
 	////////////////////////////////////////////////////////
 	var initHeaderOffset = $('.table1-header').offset();
 	var initColOffset = $('.left-header').offset();
 
 	console.log(initHeaderOffset);
-	setTimeout(function(){ 
+	setTimeout(function(){ //
 		initHeaderOffset = $('.table1-header').offset();
 		console.log(initHeaderOffset); 
 	}, 500);
@@ -31,59 +34,99 @@ $( document ).ready(function()
 	        prevTop = currentTop;
 	        var prevOffset =$('.table1-header').offset();
 	        $('.table1-header').offset({top: initHeaderOffset.top, left: prevOffset.left});
-	        console.log("I scrolled vertically.");
+	        //console.log("I scrolled vertically.");
 	    }
 	    if(prevLeft != currentLeft) { // horizontall scroll
 	        prevLeft = currentLeft;
 	        var prevOffset =$('.left-header').offset();
 	        console.log(prevOffset);
 	        $('.left-header').offset({top: prevOffset.top, left: initColOffset.left});
-	        console.log("I scrolled horizontally.");
+	        //console.log("I scrolled horizontally.");
 	    }
 	});
 
 	//////////////////////////////////////////////////////
 	
 
-  function repeat(pattern, count) {
-    if (count < 1) return '';
-    var result = '';
-    while (count > 1) {
-        if (count & 1) result += pattern;
-        count >>= 1, pattern += pattern;
-    }
-    return result + pattern;
-  }
+	function repeat(pattern, count) {
+	  if (count < 1) return '';
+	  var result = '';
+	  while (count > 1) {
+	      if (count & 1) result += pattern;
+	      count >>= 1, pattern += pattern;
+	  }
+	  return result + pattern;
+	}
 
-  var tableLen = 30;
+  	var getDates = function(startDate, endDate) {
+	  	var dates = [],
+	      	currentDate = startDate,
+	      	addDays = function(days) {
+	        	var date = new Date(this.valueOf());
+	        	date.setDate(date.getDate() + days);
+	        	return date;
+	      	};
+
+	 	while (currentDate <= endDate) {
+	    	dates.push(currentDate);
+	    	currentDate = addDays.call(currentDate, 1);
+	  	}
+		return dates;
+	};
+
+
+  var tableLen = 10;
   var tableHeaders =['22-06', '06-14', '14-22'];
-  var curHeader = 0;
-  var machineCount = 20;
-  var totalDays = 1;
+  var monthNamesShort = ['jan','feb','mar','apr','mai','jūn','jūl','aug','sep','okt','nov','dec'];
+  var machineCount = 25;
 
-  for (var i = 0; i < tableLen; i++) { // time headers
-    $('.table1-header .header-time').append('<td class="redips-mark dark">'+tableHeaders[curHeader]+'</td>');
-    $('#table2 colgroup').append('<col width="70"/>');
-    if (curHeader == 0){
-    	$('.table1-header .header-day').append('<td class="redips-mark dark" colspan="3">'+totalDays+'.okt</td>');
-    }
-    curHeader++;
-    if (curHeader > 2){
-    	curHeader = 0;
-    	totalDays++;
-    }
-  };
+	function drawTable(startDate, endDate)
+	{
+		var dates = getDates(new Date(startDate), new Date(endDate));
+		var header_time_html = '';
+		var header_day_html = '';
 
-  for (var i = 0; i < machineCount; i++) {
-  	$('.left-header').append('<tr><th class="redips-mark dark">'+(i+1)+'</th></tr>');
-  	if (i==3)
-  		$('#table2 tbody').append('<tr><td><div id="x" class="redips-drag blue">FTG201A</div></td>'+repeat('<td></td>',tableLen-1)+'</tr>');
-  		//$('#table2 tbody').append('<tr><td><div id="x" class="redips-drag blue">C</div></td>'+repeat('<td><div id="x" class="redips-drag blue">C</div></td>',tableLen-1)+'<tr>');
-  	else
-  		//$('#table2 tbody').append('<tr><td><div id="x" class="redips-drag blue">C</div></td>'+repeat('<td><div id="x" class="redips-drag blue">C</div></td>',tableLen-1)+'<tr>');
-    	$('#table2 tbody').append('<tr>'+repeat('<td></td>',tableLen)+'</tr>');
+		dates.forEach(function(d) {	// timeline header
+			for (var i = 0; i < tableHeaders.length; i++) {
+				header_time_html += '<td class="redips-mark dark">'+tableHeaders[i]+'</td>';
+			};
+			var dateStr = d.getDate()  + "." + monthNamesShort[d.getMonth()] + "  " + d.getFullYear();
+			header_day_html += '<td class="redips-mark dark" colspan="3">'+dateStr+'</td>';
+		});
+		$('.table1-header .header-time').html('<td class="redips-mark blank"></td>'+header_time_html);
+		$('.table1-header .header-day').html('<td class="redips-mark blank"></td>'+header_day_html);
 
-  };
+
+		var left_header_html = '';
+		var table2_html = '';
+
+		for (var i = 0; i < machineCount; i++) {	// table cells
+	  		left_header_html += '<tr><th class="redips-mark dark">'+(i+1)+'</th></tr>';
+
+	  		table2_html += '<tr>';
+	  		var l = dates.length*3;
+
+	  		for (var j = 0; j < l; j++) {
+	    		table2_html += '<td></td>';
+	  		};
+	  		table2_html += '</tr>';
+		};
+		$('.left-header').html(left_header_html);
+		$('#table2 tbody').html(table2_html);
+	}
+
+	$('#gen-table-bttn').click(function() { 
+		var startDate = $('[name="start"]').val();
+		var endDate = $('[name="end"]').val();
+    	drawTable(startDate, endDate);
+    });
+	
+
+	// Usage
+	var dates = getDates(new Date("2015/02/25"), new Date("2015/3/2"));                                                                                                           
+	dates.forEach(function(d) {
+	  //console.log(d.getDate()  + "/" + (d.getMonth()+1) + "/" + d.getFullYear());
+	});
 
 });
 

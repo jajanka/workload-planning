@@ -7,10 +7,12 @@
 		<meta name="viewport" content="width=device-width, user-scalable=no"/><!-- "position: fixed" fix for Android 2.2+ -->
 		<link rel="stylesheet" href="css/style.css" type="text/css" media="screen"/>
 		<link rel="stylesheet" media="screen" href="bootstrap/css/bootstrap.min.css">
-    	<link href="datepicker/css/datepicker.css" rel="stylesheet" media="screen">
+    	<link href="datepicker/jquery.datepick.css" rel="stylesheet" media="screen">
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 		<script src="bootstrap/js/bootstrap.min.js"></script>
-		<script type="text/javascript" src="datepicker/js/bootstrap-datepicker.js" charset="UTF-8"></script>
+		<script type="text/javascript" src="datepicker/jquery.plugin.js"></script>
+		<script type="text/javascript" src="datepicker/jquery.datepick.js"></script>
+		<script type="text/javascript" src="datepicker/jquery.datepick-lv.js"></script>
 		<script type="text/javascript" src="js/redis/redips-drag-min.js"></script>
 		<script type="text/javascript" src="js/scripts.js"></script>
 		<title>Plāns</title>
@@ -23,37 +25,37 @@
 		</div>
 		</nav>
 
-	
-
 
 		<div id="main_container">
 			<!-- tables inside this DIV could have draggable content -->
-			<form class="form-inline">
+			<div class="form-inline">
 			     <div class="form-group">
 	                <div class="input-daterange input-group" id="datepicker">
 	                	<span class="input-group-addon">no</span>
-	                    <input id="datepickerFrom" type="text" class="input-small form-control" name="start" /> 
+	                    <input id="datepickerFrom" type="text" class="input-small form-control popupDatepicker" name="start" /> 
 	                    <span class="input-group-addon">līdz</span>
-	                    <input id="datepickerFrom" type="text" class="input-small form-control" name="end" />
+	                    <input id="datepickerFrom" type="text" class="input-small form-control popupDatepicker" name="end" />
 	                </div>
 	            </div>
-			  <button type="submit" class="btn btn-primary">Parādīt</button>
-			</form>
+			  <button type="button" class="btn btn-primary" id="gen-table-bttn">Parādīt</button>
+			</div>
+
 
 			<div id="redips-drag">
 				<!-- right container -->
+
 				<div id="right">
+
 
 					<table class="table1-header">	
 					 	<tr class="header-day">
-				            <td class="redips-mark blank"></td>
+				            <!-- <td class="redips-mark blank"></td> -->
 				        </tr>				  
 				        <tr class="header-time">
-				            <td class="redips-mark blank"></td>
+				            <!-- <td class="redips-mark blank"></td> -->
 				        </tr>
-				       
-
 					</table>
+
 					<table class="table-container" style="float:left;">
 						<tr>
 						<td class="redips-mark dark">
@@ -73,6 +75,15 @@
 					</table>
 				</div><!-- right container -->
 
+				<div id="trash" style="float: left;" >
+					<table id="table-trash">
+						<tr>
+							<td class="redips-trash" style="width: 60px; height: 50px; background-color: #6495ED; color: #fff">
+							Trash</td>
+						</tr>
+					</table>
+				</div>
+
 				<div id="botttom">
 					<table id="table-temp">
 						<colgroup>
@@ -81,7 +92,7 @@
 						</colgroup>
 						<tbody>
 							<tr>
-								<td></td>
+								<td>T</td>
 								<td class="upper_right"></td>
 							</tr>
 							<tr>
