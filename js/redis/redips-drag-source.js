@@ -3087,7 +3087,7 @@ REDIPS.drag = (function () {
 								// prepare query string
 								query += pname + '[]=' + cn.id + '_' + r + '_' + c + '&';
 								// push values for DIV element as Array to the Array
-								JSONobj.push([cn.id, r, c]);
+								JSONobj.push([cn.id, r, c,]);
 							}
 						}
 					}
