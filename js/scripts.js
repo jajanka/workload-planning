@@ -2,7 +2,19 @@ var tableLen = 10;
 var tableHeaders =['22-06', '06-14', '14-22'];
 var monthNamesShort = ['jan','feb','mar','apr','mai','jūn','jūl','aug','sep','okt','nov','dec'];
 var machineCount = 12;
-var board = [];
+var loadedTiles = {};
+var addedTiles = {};
+var deletedTiles = {};
+
+
+$(document).ajaxStop(function(){
+    console.debug("ajaxStop");
+    $("#ajax_loader").hide();
+ });
+ $(document).ajaxStart(function(){
+     console.debug("ajaxStart");
+     $("#ajax_loader").show();
+ });
 
 $( document ).ready(function() 
 {
@@ -13,22 +25,6 @@ $( document ).ready(function()
 	////////////////////////////////////////////////////////
 	var initHeaderOffset = $('.table1-header').offset();
 	var initColOffset = $('.left-header').offset();
-
-	/*console.log(initHeaderOffset);
-	setTimeout(function(){ //
-		initHeaderOffset = $('.table1-header').offset();
-		console.log(initHeaderOffset); 
-	}, 500);
-
-	console.log(initColOffset);
-	setTimeout(function(){ 
-		initColOffset = $('.left-header').offset();
-		console.log(initColOffset); 
-	}, 500);*/
-
-
-	//initHeaderOffset.top += 10;
-	//console.log(initHeaderOffset);
 	
 	var prevTop = 0;
 	var prevLeft = 0;
@@ -123,7 +119,37 @@ $( document ).ready(function()
 	$('#gen-table-bttn').click(function() { 
 		var startDate = $('[name="start"]').val();
 		var endDate = $('[name="end"]').val();
-    	drawTable(startDate, endDate);
+		// if start date is less or equal to end date the draw table
+		if (new Date(startDate) <= new Date(endDate)){
+
+	    	drawTable(startDate, endDate);
+	    	// replace all '/' in date to '-'. It's for postgres date format
+	    	startDate = startDate.replace(/\//g, '-');
+			endDate = endDate.replace(/\//g, '-');
+
+	    	$.post( "php/load.php", {startDate: startDate, endDate: endDate})
+    		// when post is finished
+    		.done(function( data ) {
+    			// parse received php data to JSON
+    			var jsonData = '';
+    			try {
+    				jsonData = jQuery.parseJSON(data);
+    			}
+    			catch (e) {}
+    			// if json is parsed
+    			if (jsonData != ''){
+	    			// iterate over JSON array
+	    			jsonData.forEach(function(plan) {
+	    				// make id for tile
+	    				td_name = plan.p_date+'/'+plan.machine+'/'+plan.e_shift;
+	    				// update td witch have attr name with drag tile
+	    				$('[name="'+td_name+'"]').html('<div id="'+td_name+'" class="redips-drag blue" product="'+plan.product+'" '+
+	    					'style="border-style: solid; cursor: move;">'+plan.product+'</div>')
+	    			});
+	    			REDIPS.drag.init();
+    			}
+			});
+		}
     });
 
 
@@ -132,6 +158,7 @@ $( document ).ready(function()
 		var q = $('#quantity').val();
     	drawProductTable(p, q);
     	REDIPS.drag.init();
+    	deletedTiles = {};
     });
 
 });
@@ -232,37 +259,13 @@ redips.init = function () {
 		// display message
 		document.getElementById('message').innerHTML = msg;
 	};
-	// event handler invoked after DIV element is cloned - called from REDIPS.drag.move_object()
+	rd.event.deleted = function (cloned) {
+		if (!cloned){
+			deletedTiles[rd.obj.id] = true;
+			console.log(deletedTiles);
+		}
+	};
 };
-
-/**
- * Function moves element to the random position. Generated position must be different then current position.
- */
-redips.move = function () {
-	var id = 'x',	// id of drag element
-		rowIndex,	// row index (random number from 0 to 6)
-		cellIndex,	// cell index (random number from 0 to 6)
-		pos;		// current position as array (returned from get_position method)
-	// set current position for DIV element with defined id
-	pos = REDIPS.drag.getPosition(id);
-	// generate random position (must be different then current position)
-	/*do {
-		rowIndex = Math.floor(Math.random() * 7);	// from 0 to 6
-		cellIndex = Math.floor(Math.random() * 7);	// from 0 to 6
-	} while (pos[1] === rowIndex && pos[2] === cellIndex);*/
-	// disable "Move" button
-	//redips.buttonEnable(false);
-	// move object to the random position
-	REDIPS.drag.moveObject({
-		id: id,								// id of object to move
-		clone: false,				// clone option (if set to true then DIV element will be cloned)
-		overwrite: true,		// overwrite target cell (if set to true, then content in target cell will be overwritten)
-		target: [3, 1, 1],	// target position
-		//callback: redips.buttonEnable		// function to call after animation is over
-		//callback: redips.move				// try to comment upper line and uncomment this line (refresh page and click on "Move" button)
-	});
-};
-
 
 // XMLHttp request object
 redips.initXMLHttpClient = function () {
@@ -295,17 +298,15 @@ redips.initXMLHttpClient = function () {
 redips.save = function () {
 	// declare local variables
 	var frm,			// form reference inside component (it should be only one form)
-		JSONobj = [["2015-10-29/7/1","FUX666",7,1],["2015-10-30/9/1","FUX666",9,4]],	// prepare JSON object
-		json,			// json converted to the string
-		component,		// component object
-		div,			// current DIV element
-		pos,			// component position
-		i;				// loop variable
-
+		JSONobj = JSON.parse(REDIPS.drag.saveContent('table2', 'json')),	// prepare JSON object
+		json;			// json converted to the string
+	console.log(JSONobj);
 	// prepare query string in JSON format (only if array isn't empty)
 	if (JSONobj.length > 0) {
 		json = JSON.stringify(JSONobj);
 	}
+	console.log(json);
+	console.log(deletedTiles);
 	// open asynchronus request (POST method)
 	redips.request.open('POST', 'php/save.php', true);
 	// set content type for POST method

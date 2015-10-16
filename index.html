@@ -25,34 +25,34 @@
 		</div>
 		</nav>
 
-
 		<div id="main_container">
 			<!-- tables inside this DIV could have draggable content -->
-			<div class="form-inline">
+			<div class="form-inline" style="margin-left: 5%"> <!-- style="max-width: 1000px; margin: auto;" --> 
 			     <div class="form-group">
-	                <div class="input-daterange input-group" id="datepicker">
+	                <div class="input-daterange input-group col-xs-4" id="datepicker">
 	                	<span class="input-group-addon">no</span>
 	                    <input id="datepickerFrom" type="text" class="input-small form-control popupDatepicker" name="start" /> 
 	                    <span class="input-group-addon">līdz</span>
 	                    <input id="datepickerFrom" type="text" class="input-small form-control popupDatepicker" name="end" />
 	                </div>
+	                <button type="button" class="btn btn-primary" id="gen-table-bttn">Parādīt</button>
+
+		             <div class="form-inline" style="float:right; margin-left: 20px;">
+						<input id="product" type="text" class="input-small form-control" placeholder="Produkts" />
+			            <input id="quantity" type="number" min="0" step="1" class="input-small form-control" placeholder="Kg" />
+					  <button type="button" class="btn btn-primary" id="gen-prod-bttn">Labi</button>
+					</div>
+
 	            </div>
-			  <button type="button" class="btn btn-primary" id="gen-table-bttn">Parādīt</button>
-
-				<div class="form-inline" style="float:right;">
-					<input id="product" type="text" class="input-small form-control" placeholder="Produkts" />
-		            <input id="quantity" type="number" min="0" step="1" class="input-small form-control" placeholder="Kg" />
-				  <button type="button" class="btn btn-primary" id="gen-prod-bttn">Labi</button>
-				</div>
-
 			</div>
-
-
 
 			<div id="redips-drag">
 				<!-- right container -->
 
 				<div id="right">
+					<div id='ajax_loader' style="width: 100%; height: 100%; background-color: #EEEEEE; display: none; position: absolute; z-index: 10;">
+					    <img src="css/images/ring-alt.gif" style="display: block; margin: auto; position: relative; top: 50%; transform: translateY(-50%);"></img>
+					</div>
 
 
 					<table class="table1-header">	
@@ -83,7 +83,7 @@
 					</table>
 				</div><!-- right container -->
 
-				<div id="trash" style="float: left;" >
+				<div id="trash" style="float: left; margin-left: 5%" >
 					<table id="table-trash">
 						<tr>
 							<td class="redips-trash" style="width: 60px; height: 50px; background-color: #6495ED; color: #fff">
