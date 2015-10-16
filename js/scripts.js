@@ -6,13 +6,15 @@ var loadedTiles = {};
 var addedTiles = {};
 var deletedTiles = {};
 
-
+// use: when post/get data then ajax gif loader shows
 $(document).ajaxStop(function(){
     console.debug("ajaxStop");
-    $("#ajax_loader").hide();
+    $("#ajax_loader img").hide();
+    $("#ajax_loader").fadeOut( 200 );
  });
  $(document).ajaxStart(function(){
      console.debug("ajaxStart");
+     $("#ajax_loader img").show();
      $("#ajax_loader").show();
  });
 
@@ -117,6 +119,9 @@ $( document ).ready(function()
 	drawTable("2015/10/29", "2015/11/2");
 
 	$('#gen-table-bttn').click(function() { 
+		deletedTiles = {};
+    	loadedTiles = {};
+    	addedTiles = {};
 		var startDate = $('[name="start"]').val();
 		var endDate = $('[name="end"]').val();
 		// if start date is less or equal to end date the draw table
@@ -145,6 +150,8 @@ $( document ).ready(function()
 	    				// update td witch have attr name with drag tile
 	    				$('[name="'+td_name+'"]').html('<div id="'+td_name+'" class="redips-drag blue" product="'+plan.product+'" '+
 	    					'style="border-style: solid; cursor: move;">'+plan.product+'</div>')
+	    				// add objects to loadedTiles
+	    				loadedTiles[td_name] = plan.product;
 	    			});
 	    			REDIPS.drag.init();
     			}
@@ -158,7 +165,6 @@ $( document ).ready(function()
 		var q = $('#quantity').val();
     	drawProductTable(p, q);
     	REDIPS.drag.init();
-    	deletedTiles = {};
     });
 
 });
@@ -216,8 +222,8 @@ var redips = {};
 redips.init = function () {
 	// reference to the REDIPS.drag lib
 	var rd = REDIPS.drag;
-	// create XMLHttp request object
-	redips.request = redips.initXMLHttpClient();
+	// boolean if cloned
+	redips.is_cloned = 0;
 	// initialization
 	rd.init();
 	// dragged elements can be placed to the empty cells only
@@ -231,101 +237,78 @@ redips.init = function () {
 			msg;	// message
 		// find table of target cell
 		tbl = rd.findParent('TABLE', targetCell);
-		//targetCell.getElementsByTagName('div')[0].setAttribute("product", "FTG201");
+		console.log(targetCell.getElementsByTagName('div')[0].getAttribute("product"));
+		// previous cell name 
+		var prevName = targetCell.getElementsByTagName('div')[0].id;
+		var prevProduct = targetCell.getElementsByTagName('div')[0].getAttribute("product");
+
 		targetCell.getElementsByTagName('div')[0].id = targetCell.getAttribute('name'); //getAttribute('name')
-		console.log(targetCell.getElementsByTagName('div')[0]); //getElementsByTagName('div')[0]
-		// test if table belongs to scrollable container
-		if (tbl.sca !== undefined) {
-			// every table has defined scrollable container (if table belongs to scrollable container)
-			// scrollable container has reference to the DIV container and DIV container has Id :)
-			id = tbl.sca.div.id;
-			// prepare message according to container Id
-			// here can be called handler_dropped for scrollable containers
-			switch (id) {
-			case 'left':
-				msg = 'Left container';
-				break;
-			case 'right':
-				msg = 'Right container';
-				break;
-			default:
-				msg = 'Container without Id';
-			}
+		console.log(prevName); //getElementsByTagName('div')[0]
+		console.log(targetCell.getElementsByTagName('div')[0]);
+
+		// if dropping in same cell as started to drop
+		if (prevName == targetCell.getAttribute('name')){
+
 		}
-		// table does not belong to any container
+		// if loaded tile is moved and not cloned
+		else if (prevName in loadedTiles && !(prevName in addedTiles) && !redips.is_cloned) {
+			console.log('LoadedTile');
+			// mark this loded tile pos as deleted becouse it is moved
+			deletedTiles[prevName] = prevProduct;
+			// new tile added
+			addedTiles[targetCell.getAttribute('name')] = prevProduct;
+		}
+		// if loaded tile is cloned
+		else if (prevName in loadedTiles && !(prevName in addedTiles) && redips.is_cloned) {
+			addedTiles[targetCell.getAttribute('name')] = prevProduct;
+		}
 		else {
-			msg = 'Table does not belong to any container!';
+			// tile move to new cell. Delete previous tile pos if it's in added.
+			delete addedTiles[prevName];
+			// add tiles to addedTiles
+			addedTiles[targetCell.getAttribute('name')] = prevProduct;
+			// when add tile then delete it form deleteTiles
+			delete deletedTiles[targetCell.getAttribute('name')];
 		}
-		// display message
-		document.getElementById('message').innerHTML = msg;
+		console.log(redips.is_cloned);
 	};
+	// deletion event when cell moved to trash
 	rd.event.deleted = function (cloned) {
 		if (!cloned){
-			deletedTiles[rd.obj.id] = true;
+			delete addedTiles[rd.obj.id];
+			// if this cell is from database
+			if (rd.obj.id in loadedTiles) {
+				// add it to array
+				deletedTiles[rd.obj.id] = loadedTiles[rd.obj.id];
+			}
 			console.log(deletedTiles);
 		}
 	};
-};
-
-// XMLHttp request object
-redips.initXMLHttpClient = function () {
-	var XMLHTTP_IDS,
-		xmlhttp,
-		success = false,
-		i;
-	// Mozilla/Chrome/Safari/IE7/IE8 (normal browsers)
-	try {
-		xmlhttp = new XMLHttpRequest(); 
+	rd.event.clicked = function (currentCell) {
+		redips.is_cloned = false;
+	};
+	rd.event.cloned = function (clonedElement) {
+		redips.is_cloned = true;
+		console.log('cloned');
 	}
-	// IE (?!)
-	catch (e1) {
-		XMLHTTP_IDS = [ 'MSXML2.XMLHTTP.5.0', 'MSXML2.XMLHTTP.4.0',
-						'MSXML2.XMLHTTP.3.0', 'MSXML2.XMLHTTP', 'Microsoft.XMLHTTP' ];
-		for (i = 0; i < XMLHTTP_IDS.length && !success; i++) {
-			try {
-				success = true;
-				xmlhttp = new ActiveXObject(XMLHTTP_IDS[i]);
-			}
-			catch (e2) {}
-		}
-		if (!success) {
-			throw new Error('Unable to create XMLHttpRequest!');
-		}
-	}
-	return xmlhttp;
 };
 
 redips.save = function () {
 	// declare local variables
-	var frm,			// form reference inside component (it should be only one form)
-		JSONobj = JSON.parse(REDIPS.drag.saveContent('table2', 'json')),	// prepare JSON object
-		json;			// json converted to the string
-	console.log(JSONobj);
-	// prepare query string in JSON format (only if array isn't empty)
-	if (JSONobj.length > 0) {
-		json = JSON.stringify(JSONobj);
-	}
-	console.log(json);
-	console.log(deletedTiles);
-	// open asynchronus request (POST method)
-	redips.request.open('POST', 'php/save.php', true);
-	// set content type for POST method
-	redips.request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-	// the onreadystatechange event is triggered every time the readyState changes
-	redips.request.onreadystatechange = function () {
-		//  request finished and response is ready (set innerHTML of dropped DIV element
-		if (redips.request.readyState === 4) {
-			if (redips.request.status === 200) {
-				message.innerHTML = redips.request.responseText;
-				console.log(redips.request.responseText);
-			}
-			// if request status isn't OK
-			else {
-				message.innerHTML = 'Error: [' + redips.request.status + '] ' + redips.request.statusText;
-			}
-	    }
-	};
-	redips.request.send('json=' + json); // send POST request
+	var	JSONobjNew = addedTiles,	// prepare JSON object
+		JSONobjDel = deletedTiles;
+
+	console.log(JSON.stringify(addedTiles));
+
+	$.post( "php/save.php", {upsert: JSON.stringify(JSONobjNew), del: JSON.stringify(JSONobjDel)})
+	// when post is finished
+	.done(function( data ) {
+		console.log('psuccess');
+	})
+	.fail( function( data ) {
+	    console.log('pfail');
+	    console.log(data);
+	});
 };
 
 
@@ -336,3 +319,4 @@ if (window.addEventListener) {
 else if (window.attachEvent) {
 	window.attachEvent('onload', redips.init);
 }
+function p(){ console.log(loadedTiles); console.log(addedTiles); console.log(deletedTiles); }
