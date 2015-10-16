@@ -95,8 +95,10 @@ $( document ).ready(function()
 			// push in board array of length of
 			board.push( Array.apply(null, Array(cellLen)).map(function () {}) );
 
-	  		left_header_html += '<tr><th class="redips-mark dark">'+(i+1)+'</th></tr>';
+			checkBox_html = '<label><input type="checkbox" name="machineCheck" value="'+(i+1)+'">'+(i+1)+'</label>';
+	  		left_header_html += '<tr><th class="redips-mark dark">'+checkBox_html+'</th></tr>';
 	  		table2_html += '<tr>';
+
 	  		// counts to 3
 	  		var data_counter = 0;
 	  		for (var j = 0; j < cellLen; j++) {
@@ -166,6 +168,16 @@ $( document ).ready(function()
     	drawProductTable(p, q);
     	REDIPS.drag.init();
     });
+
+    $('.left-header').on('change', ':checkbox', function () {
+	    if ($(this).is(':checked')) {
+	    	$( "#table2 tbody tr:nth-child("+$(this).val()+") td").attr('style',  'background-color:#e3e3e3');
+	        console.log($(this).val() + ' is now checked');
+	    } else {
+	    	$( "#table2 tbody tr:nth-child("+$(this).val()+") td").attr('style',  'background-color:#eee');
+	        console.log($(this).val() + ' is now unchecked');
+	    }
+	});
 
 });
 
