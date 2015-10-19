@@ -55,6 +55,13 @@ body {
 
 /* drag objects (DIV inside table cells) */
 .redips-drag {
+	-webkit-touch-callout: none; /* to disable text select*/
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
 	cursor: move;
 	margin: auto;
 	z-index: 10;

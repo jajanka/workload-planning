@@ -6,6 +6,8 @@ var loadedTiles = {};
 var addedTiles = {};
 var deletedTiles = {};
 var markedMachines = {};
+var lastFilledProducts = [];
+var markedShift = 1;
 
 // use: when post/get data then ajax gif loader shows
 $(document).ajaxStop(function(){
@@ -23,21 +25,18 @@ $( document ).ready(function()
 {
 	// Button-checkbox
 	/////////////////////////////////////
+
 	function initBttnCheckbox() {
-		$('.button-checkbox').each(function () {
+
+		$('.button-checkbox-time').each(function () {
 
 	        // Settings
 	        var $widget = $(this),
 	            $button = $widget.find('button'),
 	            $checkbox = $widget.find('input:checkbox'),
 	            color = $button.data('color'),
-	            settings = {
-	                on: {
-	                    icon: 'glyphicon glyphicon-check'
-	                },
-	                off: {
-	                    icon: 'glyphicon glyphicon-unchecked'
-	                }
+	            settings = { on: {icon: 'glyphicon glyphicon-check' },
+	                off: { icon: 'glyphicon glyphicon-unchecked' }
 	            };
 
 	        // Event Handlers
@@ -47,48 +46,50 @@ $( document ).ready(function()
 	            updateDisplay(true);
 	        });
 	        $checkbox.on('change', function () {
-	            updateDisplay();
+	            //updateDisplay();
 	        });
-
 	        // Actions
 	        function updateDisplay(clicked) {
 	            var isChecked = $checkbox.is(':checked');
-
 	            // Set the button's state
 	            $button.data('state', (isChecked) ? "on" : "off");
 
 	            // Set the button's icon
-	            $button.find('.state-icon')
-	                .removeClass()
-	                .addClass('state-icon ' + settings[$button.data('state')].icon);
+	            $button.find('.state-icon').removeClass().addClass('state-icon ' + settings[$button.data('state')].icon);
 
 	            // Update the button's color
 	            if (isChecked) {
-	                $button
-	                    .removeClass('btn-default')
-	                    .addClass('btn-' + color + ' active');
-	               // get toggled bttn-checkbox number. It's machine number
-	               var toggledChkBox = $button.context.getElementsByTagName('button')[0].childNodes[2].textContent;
-	               // color row with this number
-	               $( "#table2 tbody tr:nth-child("+toggledChkBox+") td").attr('style',  'background-color:#e3e3e3');
-	               markedMachines[toggledChkBox] = true;
-	               console.log(markedMachines);
+	                $button.removeClass('btn-default').addClass('btn-' + color + ' active');
+	                // get index of pressed bttn-chkbox cell
+	                markedShift = $widget.parent().index();
+			        // on click disable all remaining bttn-chkbox. allows only one active bttn-chkbox
+			        console.log(markedShift);
+			        if ( $button.hasClass('active') ) {
+			        	// iterate over bttn-chkbox time
+			        	$('.button-checkbox-time').each(function () {
+					        // Settings
+					        var $widget2 = $(this),
+						        $button2 = $widget2.find('button');
+						    // if button in not active then disable it
+					        if ( !($button2.hasClass('active')) ) {
+					        	$button2.addClass('disabled');
+				        	}
+				        });
+			        }
 	            }
 	            else {
-	                $button
-	                    .removeClass('btn-' + color + ' active')
-	                    .addClass('btn-default');
+	                $button.removeClass('btn-' + color + ' active').addClass('btn-default');
 	                if (clicked == true) {
-		               // get toggled bttn-checkbox number. It's machine number
-		               var toggledChkBox = $button.context.getElementsByTagName('button')[0].childNodes[2].textContent;
-		               // color row with this number
-		            	$( "#table2 tbody tr:nth-child("+toggledChkBox+") td").attr('style',  'background-color:#eeeeee');
-		            	delete markedMachines[toggledChkBox];
-		                console.log(markedMachines);  
-		            }
-	            }
+	                	markedShift = 1;
+				        $('.button-checkbox-time').each(function () {
+				        	var $widget2 = $(this),
+						        $button2 = $widget2.find('button');
+				        	$button2.removeClass('disabled');
+				        });
+		           	}
+		        }
 	        }
-
+	        // $( "#table2 tbody tr:nth-child(2) td:nth-child(456)").index()
 	        // Initialization
 	        function init() {
 
@@ -100,6 +101,76 @@ $( document ).ready(function()
 	            }
 	        }
 	        init();
+	    });
+	
+
+		$('.button-checkbox').each(function () {
+
+	        // Settings
+	        var $widget = $(this),
+	            $button = $widget.find('button'),
+	            $checkbox = $widget.find('input:checkbox'),
+	            color = $button.data('color'),
+	            settings = { on: {icon: 'glyphicon glyphicon-check' },
+	                off: { icon: 'glyphicon glyphicon-unchecked' }
+	            };
+
+	        // Event Handlers
+	        $button.on('click', function () {
+	            $checkbox.prop('checked', !$checkbox.is(':checked'));
+	            $checkbox.triggerHandler('change');
+	            updateDisplay2(true);
+	        });
+	        $checkbox.on('change', function () {
+	            updateDisplay2();
+	        });
+
+	        // Actions
+	        function updateDisplay2(clicked) {
+	            var isChecked = $checkbox.is(':checked');
+
+	            // Set the button's state
+	            $button.data('state', (isChecked) ? "on" : "off");
+
+	            // Set the button's icon
+	            $button.find('.state-icon').removeClass().addClass('state-icon ' + settings[$button.data('state')].icon);
+
+	            // Update the button's color
+	            if (isChecked) {
+	                $button.removeClass('btn-default').addClass('btn-' + color + ' active');
+
+	                // get toggled bttn-checkbox number. It's machine number
+	                var toggledChkBox = $button.context.getElementsByTagName('button')[0].childNodes[2].textContent;
+	                // color row with this number
+	                $( "#table2 tbody tr:nth-child("+toggledChkBox+") td").attr('style',  'background-color:#e3e3e3');
+	                markedMachines[toggledChkBox] = true;
+	                console.log(markedMachines);
+	            }
+	            else {
+	                $button.removeClass('btn-' + color + ' active').addClass('btn-default');
+
+	                if (clicked == true) {
+		               // get toggled bttn-checkbox number. It's machine number
+		               var toggledChkBox = $button.context.getElementsByTagName('button')[0].childNodes[2].textContent;
+		               // color row with this number
+		            	$( "#table2 tbody tr:nth-child("+toggledChkBox+") td").attr('style',  'background-color:#eeeeee');
+		            	delete markedMachines[toggledChkBox];
+		                console.log(markedMachines);  
+		            }
+	            }
+	        }
+	        // $( "#table2 tbody tr:nth-child(2) td:nth-child(456)").index()
+	        // Initialization
+	        function init2() {
+
+	            updateDisplay2();
+
+	            // Inject the icon if applicable
+	            if ($button.find('.state-icon').length == 0) {
+	                $button.prepend('<i class="state-icon ' + settings[$button.data('state')].icon + '"></i> ');
+	            }
+	        }
+	        init2();
 	    });
 	}
 
@@ -164,7 +235,11 @@ $( document ).ready(function()
 		dates.forEach(function(d) // timeline header
 		{	
 			for (var i = 0; i < tableHeaders.length; i++) { // time
-				header_time_html += '<td class="redips-mark dark">'+tableHeaders[i]+'</td>';
+			checkBox_html = '<span class="button-checkbox-time">'+
+		        '<button style="width:100%;" type="button" class="btn btn-xs" data-color="success">'+tableHeaders[i]+'</button>'+
+		        '<input type="checkbox" class="hidden" unchecked />'+
+		    	'</span>';
+				header_time_html += '<td class="redips-mark dark">'+checkBox_html+'</td>';
 			};
 			var dateStr = d.getDate()  + "." + monthNamesShort[d.getMonth()] + "  " + d.getFullYear();
 			header_day_html += '<td class="redips-mark dark" colspan="3">'+dateStr+' '+d.getDay()+'</td>'; //date
@@ -208,12 +283,15 @@ $( document ).ready(function()
 		};
 		$('.left-header').html(left_header_html);
 		$('#table2 tbody').html(table2_html);
+		// update bttn-checkboxes
 		initBttnCheckbox();
 	}
 
 	drawTable("2015/10/29", "2015/11/2");
 
 	$('#gen-table-bttn').click(function() { 
+		markedMachines = {};
+		markedShift = 1;
 		deletedTiles = {};
     	loadedTiles = {};
     	addedTiles = {};
@@ -259,8 +337,16 @@ $( document ).ready(function()
 		var p = $('#product').val();
 		var q = $('#quantity').val();
     	//drawProductTable(p, q);
-    	fillProducts(p,q)
+    	lastFilledProducts = fillProducts(p, markedShift, q);
     	REDIPS.drag.init();
+    	console.log(lastFilledProducts);
+    });
+
+    $('#undo-gen-prod-bttn').click(function() { 
+    	console.log('asd');
+    	for (var i = 0; i < lastFilledProducts.length; i++) {
+    		$('[name="'+lastFilledProducts[i]+'"]').html('');
+    	};
     });
 
 });
@@ -305,18 +391,18 @@ function save(type) {
 	console.log(table_content);
 }
 
-function fillProducts(product, count) {
+function fillProducts(product, start, count) {
 	// row column length
 	var column_count = document.getElementById('table2').rows[0].cells.length;
-	var count_check = 0, is_valid = false;
-	for (var i = 1; i <= column_count; i++) {
+	var count_check = 0, 
+		is_valid = false;
+		filledProd = [];
+	for (var i = start; i <= column_count; i++) {
 		for (var key in markedMachines) {
 		    if (markedMachines.hasOwnProperty(key)) {
-		    	console.log(231);
 				var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
 				if (td_html[0].innerHTML.trim().length == 0) {
 					count_check++;
-					console.log(count_check);
 				}
 			if (count_check >= count) { is_valid = true; break; }
 		    }
@@ -328,7 +414,7 @@ function fillProducts(product, count) {
 	// if products can be filled in table
 	if (is_valid) {
 		// iterate over columns
-		for (var i = 1; i < column_count; i++) {
+		for (var i = start; i < column_count; i++) {
 			// for each marked machine in left header column
 			for (var key in markedMachines) {
 				// js lagging fix
@@ -340,6 +426,8 @@ function fillProducts(product, count) {
 						// put a product in cell
 						td_html.html('<div id="'+td_html.attr("name")+'" class="redips-drag blue" product="'+product+'">'+product+'</div');
 						addedTiles[td_html.attr("name")] = product;
+						// add to last filled products
+						filledProd.push(td_html.attr("name"));
 						count--;
 					}
 			    }
@@ -348,6 +436,7 @@ function fillProducts(product, count) {
 			if (0 >= count) { break; }
 		};
 	}
+	return filledProd;
 }
 
 /*jslint white: true, browser: true, undef: true, nomen: true, eqeqeq: true, plusplus: false, bitwise: true, regexp: true, strict: true, newcap: true, immed: true, maxerr: 14 */
