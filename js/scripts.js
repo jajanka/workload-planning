@@ -5,6 +5,7 @@ var machineCount = 12;
 var loadedTiles = {};
 var addedTiles = {};
 var deletedTiles = {};
+var markedMachines = {};
 
 // use: when post/get data then ajax gif loader shows
 $(document).ajaxStop(function(){
@@ -20,6 +21,91 @@ $(document).ajaxStop(function(){
 
 $( document ).ready(function() 
 {
+	// Button-checkbox
+	/////////////////////////////////////
+	function initBttnCheckbox() {
+		$('.button-checkbox').each(function () {
+
+	        // Settings
+	        var $widget = $(this),
+	            $button = $widget.find('button'),
+	            $checkbox = $widget.find('input:checkbox'),
+	            color = $button.data('color'),
+	            settings = {
+	                on: {
+	                    icon: 'glyphicon glyphicon-check'
+	                },
+	                off: {
+	                    icon: 'glyphicon glyphicon-unchecked'
+	                }
+	            };
+
+	        // Event Handlers
+	        $button.on('click', function () {
+	            $checkbox.prop('checked', !$checkbox.is(':checked'));
+	            $checkbox.triggerHandler('change');
+	            updateDisplay(true);
+	        });
+	        $checkbox.on('change', function () {
+	            updateDisplay();
+	        });
+
+	        // Actions
+	        function updateDisplay(clicked) {
+	            var isChecked = $checkbox.is(':checked');
+
+	            // Set the button's state
+	            $button.data('state', (isChecked) ? "on" : "off");
+
+	            // Set the button's icon
+	            $button.find('.state-icon')
+	                .removeClass()
+	                .addClass('state-icon ' + settings[$button.data('state')].icon);
+
+	            // Update the button's color
+	            if (isChecked) {
+	                $button
+	                    .removeClass('btn-default')
+	                    .addClass('btn-' + color + ' active');
+	               // get toggled bttn-checkbox number. It's machine number
+	               var toggledChkBox = $button.context.getElementsByTagName('button')[0].childNodes[2].textContent;
+	               // color row with this number
+	               $( "#table2 tbody tr:nth-child("+toggledChkBox+") td").attr('style',  'background-color:#e3e3e3');
+	               markedMachines[toggledChkBox] = true;
+	               console.log(markedMachines);
+	            }
+	            else {
+	                $button
+	                    .removeClass('btn-' + color + ' active')
+	                    .addClass('btn-default');
+	                if (clicked == true) {
+		               // get toggled bttn-checkbox number. It's machine number
+		               var toggledChkBox = $button.context.getElementsByTagName('button')[0].childNodes[2].textContent;
+		               // color row with this number
+		            	$( "#table2 tbody tr:nth-child("+toggledChkBox+") td").attr('style',  'background-color:#eeeeee');
+		            	delete markedMachines[toggledChkBox];
+		                console.log(markedMachines);  
+		            }
+	            }
+	        }
+
+	        // Initialization
+	        function init() {
+
+	            updateDisplay();
+
+	            // Inject the icon if applicable
+	            if ($button.find('.state-icon').length == 0) {
+	                $button.prepend('<i class="state-icon ' + settings[$button.data('state')].icon + '"></i> ');
+	            }
+	        }
+	        init();
+	    });
+	}
+
+	// End button-checkbox
+	/////////////////////////////////////////////////////////
+	
 	$('.popupDatepicker').datepick({dateFormat: 'yyyy/mm/dd'});
 
 
@@ -66,6 +152,9 @@ $( document ).ready(function()
 		return dates;
 	};
 
+	// add leading zero function
+	function pad(n){return n<10 ? '0'+n : n}
+
 	function drawTable(startDate, endDate)
 	{
 		var dates = getDates(new Date(startDate), new Date(endDate));
@@ -78,14 +167,14 @@ $( document ).ready(function()
 				header_time_html += '<td class="redips-mark dark">'+tableHeaders[i]+'</td>';
 			};
 			var dateStr = d.getDate()  + "." + monthNamesShort[d.getMonth()] + "  " + d.getFullYear();
-			header_day_html += '<td class="redips-mark dark" colspan="3">'+dateStr+'</td>'; //date
+			header_day_html += '<td class="redips-mark dark" colspan="3">'+dateStr+' '+d.getDay()+'</td>'; //date
 		});
 		$('.table1-header .header-time').html('<td class="redips-mark blank"></td>'+header_time_html);
 		$('.table1-header .header-day').html('<td class="redips-mark blank"></td>'+header_day_html);
 
 
 		board = [];
-		var left_header_html = ''; //left statuc column header
+		var left_header_html = ''; //left static column header
 		var table2_html = '';	// table cells
 
 		// generate table cells
@@ -95,7 +184,10 @@ $( document ).ready(function()
 			// push in board array of length of
 			board.push( Array.apply(null, Array(cellLen)).map(function () {}) );
 
-			checkBox_html = '<label><input type="checkbox" name="machineCheck" value="'+(i+1)+'">'+(i+1)+'</label>';
+			checkBox_html = '<span class="button-checkbox">'+
+				        '<button style="width:100%;" type="button" class="btn btn-xs" data-color="success">'+(i+1)+'</button>'+
+				        '<input type="checkbox" class="hidden" unchecked />'+
+				    	'</span>';
 	  		left_header_html += '<tr><th class="redips-mark dark">'+checkBox_html+'</th></tr>';
 	  		table2_html += '<tr>';
 
@@ -107,7 +199,7 @@ $( document ).ready(function()
 	  			// iterate through dates
 	  			var cur_date = dates[data_counter];
 	  			// make td name with date from array
-	  			var cur_date_formated = cur_date.getFullYear()+'-'+(cur_date.getMonth()+1)+'-'+cur_date.getDate()+'/'+i+'/'+j%3;
+	  			var cur_date_formated = cur_date.getFullYear()+'-'+pad((cur_date.getMonth()+1))+'-'+pad(cur_date.getDate())+'/'+i+'/'+j%3;
 	  			//console.log(cur_date_formated);
 	    		table2_html += '<td name="'+cur_date_formated+'"></td>';
 	  			// table2_html += '<td name="'+cur_date_formated+'"><div id="'+j+'" class="redips-drag blue" product="FTG123">'+j+'</div></td>';
@@ -116,6 +208,7 @@ $( document ).ready(function()
 		};
 		$('.left-header').html(left_header_html);
 		$('#table2 tbody').html(table2_html);
+		initBttnCheckbox();
 	}
 
 	drawTable("2015/10/29", "2015/11/2");
@@ -165,19 +258,10 @@ $( document ).ready(function()
 	$('#gen-prod-bttn').click(function() { 
 		var p = $('#product').val();
 		var q = $('#quantity').val();
-    	drawProductTable(p, q);
+    	//drawProductTable(p, q);
+    	fillProducts(p,q)
     	REDIPS.drag.init();
     });
-
-    $('.left-header').on('change', ':checkbox', function () {
-	    if ($(this).is(':checked')) {
-	    	$( "#table2 tbody tr:nth-child("+$(this).val()+") td").attr('style',  'background-color:#e3e3e3');
-	        console.log($(this).val() + ' is now checked');
-	    } else {
-	    	$( "#table2 tbody tr:nth-child("+$(this).val()+") td").attr('style',  'background-color:#eee');
-	        console.log($(this).val() + ' is now unchecked');
-	    }
-	});
 
 });
 
@@ -219,6 +303,51 @@ function save(type) {
 	// prepare table content of first table in JSON format or as plain query string (depends on value of "type" variable)
 	table_content = REDIPS.drag.saveContent('table2', 'json');
 	console.log(table_content);
+}
+
+function fillProducts(product, count) {
+	// row column length
+	var column_count = document.getElementById('table2').rows[0].cells.length;
+	var count_check = 0, is_valid = false;
+	for (var i = 1; i <= column_count; i++) {
+		for (var key in markedMachines) {
+		    if (markedMachines.hasOwnProperty(key)) {
+		    	console.log(231);
+				var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
+				if (td_html[0].innerHTML.trim().length == 0) {
+					count_check++;
+					console.log(count_check);
+				}
+			if (count_check >= count) { is_valid = true; break; }
+		    }
+		}
+		if (count_check >= count) { is_valid = true; break; }
+	}
+	console.log(is_valid);
+
+	// if products can be filled in table
+	if (is_valid) {
+		// iterate over columns
+		for (var i = 1; i < column_count; i++) {
+			// for each marked machine in left header column
+			for (var key in markedMachines) {
+				// js lagging fix
+			    if (markedMachines.hasOwnProperty(key)) {
+			    	// get cell
+					var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
+					// if inner html in cell is empty
+					if (td_html[0].innerHTML.trim().length == 0) {
+						// put a product in cell
+						td_html.html('<div id="'+td_html.attr("name")+'" class="redips-drag blue" product="'+product+'">'+product+'</div');
+						addedTiles[td_html.attr("name")] = product;
+						count--;
+					}
+			    }
+			    if (0 >= count) { break; } // if all products placed
+			}
+			if (0 >= count) { break; }
+		};
+	}
 }
 
 /*jslint white: true, browser: true, undef: true, nomen: true, eqeqeq: true, plusplus: false, bitwise: true, regexp: true, strict: true, newcap: true, immed: true, maxerr: 14 */
