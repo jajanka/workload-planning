@@ -289,6 +289,10 @@ $( document ).ready(function()
 
 	drawTable("2015/10/29", "2015/11/2");
 
+	/* ################################################
+	###################### EVENTS #######################
+	*/
+
 	$('#gen-table-bttn').click(function() { 
 		markedMachines = {};
 		markedShift = 1;
@@ -349,6 +353,60 @@ $( document ).ready(function()
     	};
     });
 
+	//// Rectangle draw, marking products
+	///////////////////////// 
+	var mouseStillDown = false;
+	var start_x = 0, start_y = 0;
+
+	function drawRect(e) {
+		// if draw cube right down
+		if (e.pageY - start_y >= 0 && e.pageX - start_x >= 0) {
+    		$(".rect").css({position:"absolute", width: e.pageX-start_x, height: e.pageY-start_y, left:start_x, top:start_y});
+    	}
+    	// draw cube left up
+    	else if (e.pageY - start_y < 0 && e.pageX - start_x < 0) {
+    		$(".rect").css({position:"absolute", width: start_x-e.pageX, height: start_y-e.pageY, left:e.pageX, top:e.pageY});
+    	}
+    	// draw cube left down
+    	else if (e.pageX - start_x < 0) {
+    		$(".rect").css({position:"absolute", width: start_x-e.pageX, height: e.pageY-start_y, left:e.pageX});
+    	}
+    	// draw right up
+    	else if (e.pageY - start_y < 0) {
+    		$(".rect").css({position:"absolute", width: e.pageX-start_x, height: start_y-e.pageY, top:e.pageY});
+    	}
+    	console.log($(".rect").offset());
+	}
+
+	$("#table2").mousemove(function(e) { // move rect on mousemove over table2
+	    if (mouseStillDown) {
+	    	drawRect(e);
+	    }
+	});
+	$(".rect").mousemove(function(e) {  // move rect when mouse is over shown rect
+	    if (mouseStillDown){
+	    	drawRect(e);
+	    }
+	});
+
+	$("#table2").mousedown(function(e) {
+	    mouseStillDown = true;
+	    start_x = e.pageX, start_y = e.pageY;
+	    $(".rect").css({position:"absolute", left:e.pageX, top:e.pageY, width:1, height: 1})
+	});
+	$(".rect").mousedown(function(e) {
+	    mouseStillDown = true;
+	    start_x = e.pageX, start_y = e.pageY;
+	    $(".rect").css({position:"absolute", left:e.pageX, top:e.pageY, width:1, height: 1})
+	});
+
+	$("body").mouseup(function(e) {
+	    mouseStillDown = false;
+	});
+
+	/* ####################### END OF EVENTS #############################
+		#################################################################
+	*/ 
 });
 
 function drawProductTable(productName, productCount)
