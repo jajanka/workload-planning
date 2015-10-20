@@ -33,7 +33,7 @@ body {
 		/* make it visible */
 		//border: 2px dashed SteelBlue;
 		width: 100%;
-		height:470px;
+		height:670px;
 		padding: 3px;
 	}
 
@@ -60,6 +60,7 @@ body {
 			position: relative;
 			margin: auto;
 		}
+		#right{margin-top: 10px;}
 
 
 
@@ -147,6 +148,11 @@ div#redips-drag table td,th {
 	border-color: #EEEEEE !important; 
 }
 
+.marked {
+	border: 2px solid CornflowerBlue;
+	width: 65px;
+	background-color: white;
+}
 
 /* append here cloned object before placing to the target table cell */
 #redips_clone {
@@ -194,17 +200,6 @@ div#redips-drag table td,th {
 	margin-left: 5%;
 	margin-top: 3px;
 }
-.rect {
-  position: absolute;
-  border: 2px solid rgba(199, 25, 9, 0.64);
-  -webkit-user-select: none;  /* Chrome all / Safari all */
-  -moz-user-select: none;     /* Firefox all */
-  -ms-user-select: none;      /* IE 10+ */
-
-  /* No support for these yet, use at own risk */
-  -o-user-select: none;
-  user-select: none;  
-}
 
 .footer {
   //position: absolute;
@@ -222,7 +217,23 @@ div#redips-drag table td,th {
 .container-fluid {
 	background-color: white;
 }
-.page-header {
+.page-date-header {
 	text-align: center;
 	margin-top: 0px !important;
+	background-color: #B5FFAB;
+	margin-bottom: 15px;
+	margin-left: -15px;
+	margin-right: -15px;
+	margin-top: 15px;
+	font-size: 16px;
+}
+.modal-backdrop {
+   background-color: red;
+}
+.modal-backdrop {
+   background-color: transparent !important;
+}
+.modal-dialog {
+    margin-top: 0% !important;
+    float: left !important;
 }

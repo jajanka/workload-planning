@@ -1,13 +1,21 @@
 var tableLen = 10;
 var tableHeaders =['22-06', '06-14', '14-22'];
 var monthNamesShort = ['jan','feb','mar','apr','mai','jūn','jūl','aug','sep','okt','nov','dec'];
-var machineCount = 12;
-var loadedTiles = {};
-var addedTiles = {};
-var deletedTiles = {};
-var markedMachines = {};
-var lastFilledProducts = [];
-var markedShift = 1;
+var machineCount = 21;
+
+var loadedTiles = {}; // loaded products from DB
+var addedTiles = {}; // new placed products in table
+var deletedTiles = {}; // deleted products from table that were load from DB
+
+var markedMachines = {}; // marked machines where to place products
+var markedShift = 1; // marked employee shift
+
+var lastFilledProducts = []; // used to undo last placed products
+
+var newMarkedCells = {}; // all td or cells marked
+var oldMarkedCells = {}; // one event previous: all td or cells marked
+
+var markedProducts = {};
 
 // use: when post/get data then ajax gif loader shows
 $(document).ajaxStop(function(){
@@ -327,14 +335,18 @@ $( document ).ready(function()
     	addedTiles = {};
 		var startDate = $('[name="start"]').val();
 		var endDate = $('[name="end"]').val();
+		var sd = new Date(startDate), ed = new Date(endDate);
 		// if start date is less or equal to end date the draw table
-		if (new Date(startDate) <= new Date(endDate)){
+		if (sd <= ed){
 
 	    	drawTable(startDate, endDate);
 	    	// replace all '/' in date to '-'. It's for postgres date format
 	    	startDate = startDate.replace(/\//g, '-');
 			endDate = endDate.replace(/\//g, '-');
 			loadTable(startDate, endDate);
+			var start_date_formated = sd.getDate()+'.'+monthNamesShort[sd.getMonth()]+'. '+sd.getFullYear();
+			var end_date_formated = ed.getDate()+'.'+monthNamesShort[ed.getMonth()]+'. '+ed.getFullYear();
+			$('.page-date-header p').html(start_date_formated+' - '+end_date_formated);
 		}
 		else {
 			showError('Nav korekti ievadīts datums.');
@@ -363,8 +375,6 @@ $( document ).ready(function()
 	var mouseStillDown = false,
 		start_x = 0, start_y = 0,
 		start_row = 1, start_col = 1,
-		newMarkedCells = {},
-		oldMarkedCells = {},
 		old_row = 0, old_col = 0;
 
 	function markCells(r1, r2, c1, c2, old_r, old_c, e) {
@@ -395,22 +405,18 @@ $( document ).ready(function()
 		
 		// if draw cube right down
 		if (e.pageY - start_y >= 0 && e.pageX - start_x >= 0) {
-    		$(".rect").css({position:"absolute", width: e.pageX-start_x, height: e.pageY-start_y, left:start_x, top:start_y});
     		markCells(start_row, e.target.parentNode.rowIndex+1, start_col, e.target.cellIndex+1, old_r, old_c, e);
     	}
     	// draw cube left up
     	else if (e.pageY - start_y < 0 && e.pageX - start_x < 0) {
-    		$(".rect").css({position:"absolute", width: start_x-e.pageX, height: start_y-e.pageY, left:e.pageX, top:e.pageY});
     		markCells(e.target.parentNode.rowIndex+1, start_row, e.target.cellIndex+1, start_col, old_r, old_c, e);
     	}
     	// draw cube left down
     	else if (e.pageX - start_x <= 0) {
-    		$(".rect").css({position:"absolute", width: start_x-e.pageX, height: e.pageY-start_y, left:e.pageX});
     		markCells(start_row, e.target.parentNode.rowIndex+1, e.target.cellIndex+1, start_col, old_r, old_c, e);
     	}
     	// draw right up
     	else if (e.pageY - start_y <= 0) {
-    		$(".rect").css({position:"absolute", width: e.pageX-start_x, height: start_y-e.pageY, top:e.pageY});
     		markCells(e.target.parentNode.rowIndex+1, start_row, start_col, e.target.cellIndex+1, old_r, old_c, e);
     	}
     	// unmark old cells
@@ -422,6 +428,8 @@ $( document ).ready(function()
 				}
 			};
 		};
+		if ((Object.keys(newMarkedCells).length < 1) ) {newMarkedCells = oldMarkedCells;}
+		console.log(newMarkedCells);
 	}
 
 	$("#table2").mousemove(function(e) { // move rect on mousemove over table2
@@ -429,29 +437,71 @@ $( document ).ready(function()
 	    	drawRect(e, old_row, old_col);
 	    }
 	});
-	$(".rect").mousemove(function(e) {  // move rect when mouse is over shown rect
-	    if (mouseStillDown){
-	    	drawRect(e, old_row, old_col);
-	    }
-	});
 
 	$("#table2").mousedown(function(e) {
+		for (var key in newMarkedCells) {
+		    if (newMarkedCells.hasOwnProperty(key)) {
+		    	// .attr('style',  'background-color:#e3e3e3');
+		    	if ($('[name="'+key+'"]')[0].innerHTML.trim() != '') {
+		    		$('[name="'+key+'"] div').removeClass('marked');
+		    		//console.log($('[name="'+key+'"]')[0].innerHTML);
+		    	}
+		    }
+		}
+		newMarkedCells = {};
 	    mouseStillDown = true;
 	    start_x = e.pageX, start_y = e.pageY;
 	    start_row = e.target.parentNode.rowIndex+1, start_col = e.target.cellIndex+1;
-	    $(".rect").css({position:"absolute", left:e.pageX, top:e.pageY, width:1, height: 1})
 	});
 	
-	$(".rect").mousedown(function(e) {
-	    mouseStillDown = true;
-	    start_x = e.pageX, start_y = e.pageY;
-	    start_row = e.target.parentNode.rowIndex+1, start_col = e.target.cellIndex+1;
-	    $(".rect").css({position:"absolute", left:e.pageX, top:e.pageY, width:1, height: 1})
-	});
 
 	$("body").mouseup(function(e) {
-	    mouseStillDown = false;
+		console.log(newMarkedCells);
+	    if (mouseStillDown && Object.keys(newMarkedCells).length > 0) {
+		    getMarkedProducts();
+	    	for (var key in newMarkedCells) {
+	    		// id new marked cell not in old then unmark it
+			    if (newMarkedCells.hasOwnProperty(key)) {
+					$('[name="'+key+'"]').css('background-color', '#EEEEEE' );
+				}
+			};
+			$('.modal-dialog').attr('style','left: '+e.clientX+'px; top: '+e.clientY+'px;');
+			//$('.modal-dialog').attr('style','top: '+e.pageY+'px;');
+			console.log(e.pageY);
+			//$('#marked-modal').css('background-color', '#EEEEEE' );
+			$('#marked-modal').modal('show');
+
+		}
+		mouseStillDown = false;
 	});
+
+	$('#delete-marked-bttn').click(function() { 
+    	console.log('Asd');
+    	for (var key in newMarkedCells) {
+    		// id new marked cell not in old then unmark it
+		    if (newMarkedCells.hasOwnProperty(key)) {
+				$('[name="'+key+'"]')[0].innerHTML = ' ';
+			}
+		};
+		newMarkedCells = {};	
+    });
+
+   	$('#cancel-marked-bttn').click(function() { 
+		for (var key in newMarkedCells) {
+		    if (newMarkedCells.hasOwnProperty(key)) {
+		    	// .attr('style',  'background-color:#e3e3e3');
+		    	if ($('[name="'+key+'"]')[0].innerHTML.trim() != '') {
+		    		$('[name="'+key+'"] div').removeClass('marked');
+		    		//console.log($('[name="'+key+'"]')[0].innerHTML);
+		    	}
+		    }
+		}
+		newMarkedCells = {};
+    });
+
+    $('#move-marked-bttn').click(function() { 
+		newMarkedCells = {};	
+    });
 
 	/* ####################### END OF EVENTS #############################
 		#################################################################
@@ -504,7 +554,7 @@ function fillProducts(product, start, count) {
 	var count_check = 0, 
 		is_valid = false;
 		filledProd = [];
-	for (var i = start; i <= column_count; i++) {
+	for (var i = start; i <= column_count; i++) { // counts empty cell in marked machines. starting from marked e shift
 		for (var key in markedMachines) {
 		    if (markedMachines.hasOwnProperty(key)) {
 				var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
@@ -521,7 +571,7 @@ function fillProducts(product, start, count) {
 	// if products can be filled in table
 	if (is_valid) {
 		// iterate over columns
-		for (var i = start; i < column_count; i++) {
+		for (var i = start; i <= column_count; i++) {
 			// for each marked machine in left header column
 			for (var key in markedMachines) {
 				// js lagging fix
@@ -543,11 +593,27 @@ function fillProducts(product, start, count) {
 			if (0 >= count) { break; }
 		};
 	}
+	else{
+		showError('Nepietiek vietas tabulā (max '+count_check+')');
+	}
 	return filledProd;
 }
 
+function getMarkedProducts() {
+	markedProducts = {};
+	for (var key in newMarkedCells) {
+	    if (newMarkedCells.hasOwnProperty(key)) {
+	    	// .attr('style',  'background-color:#e3e3e3');
+	    	if ($('[name="'+key+'"]')[0].innerHTML.trim() != '') {
+	    		$('[name="'+key+'"] div').addClass('marked');
+	    		//console.log($('[name="'+key+'"]')[0].innerHTML);
+	    	}
+	    }
+	}
+}
+
 function showError(text) {
-	$('#message').prepend('<div class="alert alert-danger fade in" role="alert" style="display: none;">'+
+	$('#message').prepend('<div class="alert alert-danger fade in" role="alert" style="display: none; margin-top: 5px;">'+
 		'<a href="#" class="close" data-dismiss="alert">&times;</a>'+
 		'<strong>Kļūda!</strong> '+text+'</div>');
 	$(".alert").fadeIn(25);

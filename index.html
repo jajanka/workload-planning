@@ -53,12 +53,10 @@
 	  </div><!-- /.container-fluid -->
 	</nav>
 
-		<div class="rect" style="width: 1px; height: 1px; z-index: 0;"></div>
-
 		<div class="container">
-
-			<div class="page-header">
-			  <h3>3.okt. 2015 - 1.nov. 2016</h3>
+  <!-- <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#marked-modal">Open Modal</button> -->
+			<div class="page-date-header">
+			  <p>28.okt. 2015 - 1.nov. 2016</p>
 			</div>
 			<!-- tables inside this DIV could have draggable content -->
 			<div class="form-inline" style="margin-left: 5%; margin-top: -12px;"> <!-- style="max-width: 1000px; margin: auto;" --> 
@@ -80,7 +78,7 @@
 
 	            </div>
 			</div>
-
+			<div id="message"></div>
 			<div id="redips-drag">
 				<!-- right container -->
 
@@ -142,12 +140,28 @@
 			<!-- needed for cloning DIV elements -->
 			<!-- <div id="redips_clone"></div> -->
 			<!-- message -->
-			<div id="message"></div>
+			
+		<!-- Modal -->
+	    <div class="modal fade in" id="marked-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	        <div class="modal-dialog modal-sm">
+	            <div class="modal-content">
+	            
+	                <div class="modal-header">
+	                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	                    
+	                    <button type="button" class="btn btn-success" data-dismiss="modal" id="move-marked-bttn">Pārvietot</button>
+	                    <button type="button" class="btn btn-danger" data-dismiss="modal" id="delete-marked-bttn">Izdzēst</button>
+	                    <button type="button" class="btn btn-default" data-dismiss="modal" id="cancel-marked-bttn">Atcelt</button>
+	                </div>
+	                
+	            </div>
+	        </div>
+	    </div>
+
 		</div><!-- main container -->
 
 	<footer class="footer">
-      © 2015 - Jānis Mateuss
-      
+      © 2015 - Jānis Mateuss  
 	</footer>
 	</body>
 </html>
