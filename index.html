@@ -18,18 +18,50 @@
 		<title>Plāns</title>
 	</head>
 	<body>
-		<nav class="navbar navbar-default navbar-fluid-top" role="navigation">
-		<div class="container-fluid">
-			<a class="navbar-brand" href="index.html">Sakums</a>
-			<p class="navbar-text navbar-right">...</p>
-		</div>
-		</nav>
 
-		<div class="rect" style="width: 1px; height: 1px; z-index: 1;"></div>
+	<nav class="navbar navbar-default">
+	  <div class="container-fluid">
+	    <!-- Brand and toggle get grouped for better mobile display -->
+	    <div class="navbar-header">
+	      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+	        <span class="sr-only">Toggle navigation</span>
+	        <span class="icon-bar"></span>
+	        <span class="icon-bar"></span>
+	        <span class="icon-bar"></span>
+	      </button>
+	      <a class="navbar-brand" href="#">Sakums</a>
+	    </div>
 
-		<div id="main_container">
+	    <!-- Collect the nav links, forms, and other content for toggling -->
+	    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+		    <ul class="nav navbar-nav">
+		    	<li><a href="#"></a></li>	
+		    </ul>
+	      <ul class="nav navbar-nav navbar-right">
+	        <li class="dropdown">
+	          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-user"></span>Admin <span class="caret"></span></a>
+	          <ul class="dropdown-menu">
+	            <li><a href="#">Action</a></li>
+	            <li><a href="#">Another action</a></li>
+	            <li><a href="#">Something else here</a></li>
+	            <li role="separator" class="divider"></li>
+	            <li><a href="#">Separated link</a></li>
+	          </ul>
+	        </li>
+	      </ul>
+	    </div><!-- /.navbar-collapse -->
+	  </div><!-- /.container-fluid -->
+	</nav>
+
+		<div class="rect" style="width: 1px; height: 1px; z-index: 0;"></div>
+
+		<div class="container">
+
+			<div class="page-header">
+			  <h3>3.okt. 2015 - 1.nov. 2016</h3>
+			</div>
 			<!-- tables inside this DIV could have draggable content -->
-			<div class="form-inline" style="margin-left: 5%"> <!-- style="max-width: 1000px; margin: auto;" --> 
+			<div class="form-inline" style="margin-left: 5%; margin-top: -12px;"> <!-- style="max-width: 1000px; margin: auto;" --> 
 			     <div class="form-group">
 	                <div class="input-daterange input-group col-xs-4" id="datepicker">
 	                	<span class="input-group-addon">no</span>
@@ -87,7 +119,7 @@
 					</table>
 				</div><!-- right container -->
 
-				<div id="trash" style="float: left; margin-left: 5%" >
+				<div id="trash">
 					<table id="table-trash">
 						<tr>
 							<td class="redips-trash" style="width: 60px; height: 50px; background-color: #6495ED; color: #fff">
@@ -108,9 +140,14 @@
 
 			</div><!-- drag container -->
 			<!-- needed for cloning DIV elements -->
-			<div id="redips_clone"></div>
+			<!-- <div id="redips_clone"></div> -->
 			<!-- message -->
-			<div id="message">Clone element with SHIFT key</div>
+			<div id="message"></div>
 		</div><!-- main container -->
+
+	<footer class="footer">
+      © 2015 - Jānis Mateuss
+      
+	</footer>
 	</body>
 </html>

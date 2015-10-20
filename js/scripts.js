@@ -89,7 +89,6 @@ $( document ).ready(function()
 		           	}
 		        }
 	        }
-	        // $( "#table2 tbody tr:nth-child(2) td:nth-child(456)").index()
 	        // Initialization
 	        function init() {
 
@@ -103,7 +102,6 @@ $( document ).ready(function()
 	        init();
 	    });
 	
-
 		$('.button-checkbox').each(function () {
 
 	        // Settings
@@ -287,7 +285,35 @@ $( document ).ready(function()
 		initBttnCheckbox();
 	}
 
-	drawTable("2015/10/29", "2015/11/2");
+	function loadTable(startD, endD) {
+		$.post( "php/load.php", {startDate: startD, endDate: endD})
+		// when post is finished
+		.done(function( data ) {
+			// parse received php data to JSON
+			var jsonData = '';
+			try {
+				jsonData = jQuery.parseJSON(data);
+			}
+			catch (e) {}
+			// if json is parsed
+			if (jsonData != ''){
+    			// iterate over JSON array
+    			jsonData.forEach(function(plan) {
+    				// make id for tile
+    				td_name = plan.p_date+'/'+plan.machine+'/'+plan.e_shift;
+    				// update td witch have attr name with drag tile
+    				$('[name="'+td_name+'"]').html('<div id="'+td_name+'" class="redips-drag blue" product="'+plan.product+'" '+
+    					'style="border-style: solid; cursor: move;">'+plan.product+'</div>')
+    				// add objects to loadedTiles
+    				loadedTiles[td_name] = plan.product;
+    			});
+    			REDIPS.drag.init();
+			}
+		});
+	}
+
+	drawTable("2015/10/28", "2015/11/2");
+	loadTable("2015/10/28", "2015/11/2");
 
 	/* ################################################
 	###################### EVENTS #######################
@@ -308,31 +334,10 @@ $( document ).ready(function()
 	    	// replace all '/' in date to '-'. It's for postgres date format
 	    	startDate = startDate.replace(/\//g, '-');
 			endDate = endDate.replace(/\//g, '-');
-
-	    	$.post( "php/load.php", {startDate: startDate, endDate: endDate})
-    		// when post is finished
-    		.done(function( data ) {
-    			// parse received php data to JSON
-    			var jsonData = '';
-    			try {
-    				jsonData = jQuery.parseJSON(data);
-    			}
-    			catch (e) {}
-    			// if json is parsed
-    			if (jsonData != ''){
-	    			// iterate over JSON array
-	    			jsonData.forEach(function(plan) {
-	    				// make id for tile
-	    				td_name = plan.p_date+'/'+plan.machine+'/'+plan.e_shift;
-	    				// update td witch have attr name with drag tile
-	    				$('[name="'+td_name+'"]').html('<div id="'+td_name+'" class="redips-drag blue" product="'+plan.product+'" '+
-	    					'style="border-style: solid; cursor: move;">'+plan.product+'</div>')
-	    				// add objects to loadedTiles
-	    				loadedTiles[td_name] = plan.product;
-	    			});
-	    			REDIPS.drag.init();
-    			}
-			});
+			loadTable(startDate, endDate);
+		}
+		else {
+			showError('Nav korekti ievadīts datums.');
 		}
     });
 
@@ -355,48 +360,92 @@ $( document ).ready(function()
 
 	//// Rectangle draw, marking products
 	///////////////////////// 
-	var mouseStillDown = false;
-	var start_x = 0, start_y = 0;
+	var mouseStillDown = false,
+		start_x = 0, start_y = 0,
+		start_row = 1, start_col = 1,
+		newMarkedCells = {},
+		oldMarkedCells = {},
+		old_row = 0, old_col = 0;
 
-	function drawRect(e) {
+	function markCells(r1, r2, c1, c2, old_r, old_c, e) {
+		// new cell indexes
+		old_row = e.target.parentNode.rowIndex+1;
+		old_col = e.target.cellIndex+1;
+
+		if ( (old_r != old_row || old_c != old_col) ) {
+		// for each row
+		    for (var i = r1; i <= r2; i++) {
+		    	// for each column
+				for (var j = c1; j <= c2; j++) {
+					// get cell
+					var td_html = $( "#table2 tbody tr:nth-child("+i+") td:nth-child("+j+")");
+					td_html.css('background-color', '#D93600' );
+					newMarkedCells[td_html.attr("name")] = true;
+				}
+			}
+		}
+	}
+
+	function drawRect(e, old_r, old_c) {
+		// if old new marked cells is not empty then pass it to new marked cells
+		if (Object.keys(newMarkedCells).length > 0) 
+			oldMarkedCells = newMarkedCells;
+		newMarkedCells = {};
+		// if column or row is changed
+		
 		// if draw cube right down
 		if (e.pageY - start_y >= 0 && e.pageX - start_x >= 0) {
     		$(".rect").css({position:"absolute", width: e.pageX-start_x, height: e.pageY-start_y, left:start_x, top:start_y});
+    		markCells(start_row, e.target.parentNode.rowIndex+1, start_col, e.target.cellIndex+1, old_r, old_c, e);
     	}
     	// draw cube left up
     	else if (e.pageY - start_y < 0 && e.pageX - start_x < 0) {
     		$(".rect").css({position:"absolute", width: start_x-e.pageX, height: start_y-e.pageY, left:e.pageX, top:e.pageY});
+    		markCells(e.target.parentNode.rowIndex+1, start_row, e.target.cellIndex+1, start_col, old_r, old_c, e);
     	}
     	// draw cube left down
-    	else if (e.pageX - start_x < 0) {
+    	else if (e.pageX - start_x <= 0) {
     		$(".rect").css({position:"absolute", width: start_x-e.pageX, height: e.pageY-start_y, left:e.pageX});
+    		markCells(start_row, e.target.parentNode.rowIndex+1, e.target.cellIndex+1, start_col, old_r, old_c, e);
     	}
     	// draw right up
-    	else if (e.pageY - start_y < 0) {
+    	else if (e.pageY - start_y <= 0) {
     		$(".rect").css({position:"absolute", width: e.pageX-start_x, height: start_y-e.pageY, top:e.pageY});
+    		markCells(e.target.parentNode.rowIndex+1, start_row, start_col, e.target.cellIndex+1, old_r, old_c, e);
     	}
-    	console.log($(".rect").offset());
+    	// unmark old cells
+    	if (Object.keys(newMarkedCells).length > 0) {
+	    	for (var key in oldMarkedCells) {
+	    		// id new marked cell not in old then unmark it
+			    if (oldMarkedCells.hasOwnProperty(key) && !(key in newMarkedCells)) {
+					$('[name="'+key+'"]').css('background-color', '#EEEEEE' );
+				}
+			};
+		};
 	}
 
 	$("#table2").mousemove(function(e) { // move rect on mousemove over table2
 	    if (mouseStillDown) {
-	    	drawRect(e);
+	    	drawRect(e, old_row, old_col);
 	    }
 	});
 	$(".rect").mousemove(function(e) {  // move rect when mouse is over shown rect
 	    if (mouseStillDown){
-	    	drawRect(e);
+	    	drawRect(e, old_row, old_col);
 	    }
 	});
 
 	$("#table2").mousedown(function(e) {
 	    mouseStillDown = true;
 	    start_x = e.pageX, start_y = e.pageY;
+	    start_row = e.target.parentNode.rowIndex+1, start_col = e.target.cellIndex+1;
 	    $(".rect").css({position:"absolute", left:e.pageX, top:e.pageY, width:1, height: 1})
 	});
+	
 	$(".rect").mousedown(function(e) {
 	    mouseStillDown = true;
 	    start_x = e.pageX, start_y = e.pageY;
+	    start_row = e.target.parentNode.rowIndex+1, start_col = e.target.cellIndex+1;
 	    $(".rect").css({position:"absolute", left:e.pageX, top:e.pageY, width:1, height: 1})
 	});
 
@@ -497,6 +546,14 @@ function fillProducts(product, start, count) {
 	return filledProd;
 }
 
+function showError(text) {
+	$('#message').prepend('<div class="alert alert-danger fade in" role="alert" style="display: none;">'+
+		'<a href="#" class="close" data-dismiss="alert">&times;</a>'+
+		'<strong>Kļūda!</strong> '+text+'</div>');
+	$(".alert").fadeIn(25);
+	setTimeout(function(){ $('.alert').alert('close'); }, 5000);
+
+}
 /*jslint white: true, browser: true, undef: true, nomen: true, eqeqeq: true, plusplus: false, bitwise: true, regexp: true, strict: true, newcap: true, immed: true, maxerr: 14 */
 /*global window: false, REDIPS: true */
 

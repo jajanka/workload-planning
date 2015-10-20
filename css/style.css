@@ -9,6 +9,7 @@ May, 2010.
 body {
 	font-family: arial;
 	margin: 0px; /* for IE6 / IE7 */
+	background-color: #F8F8F8 !important; /* e2e2e2 */
 	-webkit-touch-callout: none; /* to disable text select*/
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -18,27 +19,30 @@ body {
 }
 
 /* drag container */
-#main_container {
+.container {
+	border: 1px solid #e7e7e7;
+	background-color: #fff !important;
 	margin: auto;
-	width: 100%;
-	padding-left: 70px;
-	padding-right: 70px;
+	width: 90%;
+	//padding-top: 20px;
+	padding-left: 40px;
+	padding-right: 40px;
 }
 	/* container for left and right div */
 	#redips-drag {
 		/* make it visible */
 		//border: 2px dashed SteelBlue;
 		width: 100%;
-		height:510px;
+		height:470px;
 		padding: 3px;
 	}
 
 
 		/* container for the right table */
-		#main_container #right {
+		.container #right {
 			max-width: 1600px;
 			width: 100%;
-			height: 80%;
+			height: 85%;
 			/* make it visible */
 			border: 7px solid SlateGray;
 
@@ -47,7 +51,7 @@ body {
 
 
 		/* make left and right DIV container scrollable */
-		#main_container #left,#right {
+		.container #left,#right {
 			/*  http://www.howtocreate.co.uk/tutorials/javascript/browserspecific (Element position with scrolling offsets)
 			make sure that every element with an overflow of anything other than "visible" also has a position
 			style set to something other than the default "static". This way, they will all appear in the offsetParent
@@ -152,15 +156,6 @@ div#redips-drag table td,th {
 	width: 100px;
 }
 
-/* message line */
-#message {
-	color: white;
-	background-color: #aaa;
-	text-align: center;
-	/* top margin is made with unvisible redips_clone DIV */
-	/* margin-top: 10px; */
-}
-
 /* dark cells (first column and table header) */
 .dark {
 	color: #444;
@@ -194,7 +189,11 @@ div#redips-drag table td,th {
 	background-color: #808080;
 	color: white !important;
 }
-
+#trash {
+	float: left; 
+	margin-left: 5%;
+	margin-top: 3px;
+}
 .rect {
   position: absolute;
   border: 2px solid rgba(199, 25, 9, 0.64);
@@ -205,4 +204,25 @@ div#redips-drag table td,th {
   /* No support for these yet, use at own risk */
   -o-user-select: none;
   user-select: none;  
+}
+
+.footer {
+  //position: absolute;
+  padding-top: 20px;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  background-color: #F8F8F8;
+  text-align: center;
+  color: #A77F8B;
+  //border-top: 1px solid #E7E7E7;
+}
+
+.container-fluid {
+	background-color: white;
+}
+.page-header {
+	text-align: center;
+	margin-top: 0px !important;
 }
