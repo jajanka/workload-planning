@@ -283,7 +283,6 @@ $( document ).ready(function()
 	  			var cur_date_formated = cur_date.getFullYear()+'-'+pad((cur_date.getMonth()+1))+'-'+pad(cur_date.getDate())+'/'+i+'/'+j%3;
 	  			//console.log(cur_date_formated);
 	    		table2_html += '<td name="'+cur_date_formated+'"></td>';
-	  			// table2_html += '<td name="'+cur_date_formated+'"><div id="'+j+'" class="redips-drag blue" product="FTG123">'+j+'</div></td>';
 	  		};
 	  		table2_html += '</tr>';
 		};
