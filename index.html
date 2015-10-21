@@ -41,11 +41,11 @@
 	        <li class="dropdown">
 	          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-user"></span>Admin <span class="caret"></span></a>
 	          <ul class="dropdown-menu">
-	            <li><a href="#">Action</a></li>
-	            <li><a href="#">Another action</a></li>
-	            <li><a href="#">Something else here</a></li>
+	            <li><a href="#">Produkti</a></li>
+	            <li><a href="#">Brīvdienas</a></li>
+	            <li><a href="#">...</a></li>
 	            <li role="separator" class="divider"></li>
-	            <li><a href="#">Separated link</a></li>
+	            <li><a href="#">...</a></li>
 	          </ul>
 	        </li>
 	      </ul>
@@ -142,16 +142,16 @@
 			<!-- message -->
 			
 		<!-- Modal -->
-	    <div class="modal fade in" id="marked-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	    <div class="modal" id="marked-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 	        <div class="modal-dialog modal-sm">
 	            <div class="modal-content">
 	            
 	                <div class="modal-header">
 	                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
 	                    
-	                    <button type="button" class="btn btn-success" data-dismiss="modal" id="move-marked-bttn">Pārvietot</button>
-	                    <button type="button" class="btn btn-danger" data-dismiss="modal" id="delete-marked-bttn">Izdzēst</button>
-	                    <button type="button" class="btn btn-default" data-dismiss="modal" id="cancel-marked-bttn">Atcelt</button>
+	                    <button type="button" class="btn btn-success" data-dismiss="modal" id="move-marked-bttn" data-toggle="tooltip" title="Pārvietot"><span class="glyphicon glyphicon-fullscreen"></span></button>
+	                    <button type="button" class="btn btn-danger" data-dismiss="modal" id="delete-marked-bttn" data-toggle="tooltip" title="Izdzēst"><span class="glyphicon glyphicon-remove"></span></button>
+	                    <button type="button" class="btn btn-default" data-dismiss="modal" id="cancel-marked-bttn" data-toggle="tooltip" title="Atcelt"><span class="glyphicon glyphicon-ban-circle"></span></button>
 	                </div>
 	                
 	            </div>

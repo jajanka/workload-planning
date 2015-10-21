@@ -17,6 +17,8 @@ var oldMarkedCells = {}; // one event previous: all td or cells marked
 
 var markedProducts = {};
 
+var Move = {};
+
 // use: when post/get data then ajax gif loader shows
 $(document).ajaxStop(function(){
     console.debug("ajaxStop");
@@ -31,6 +33,9 @@ $(document).ajaxStop(function(){
 
 $( document ).ready(function() 
 {
+	// Init tooltip
+	$('[data-toggle="tooltip"]').tooltip(); 
+
 	// Button-checkbox
 	/////////////////////////////////////
 
@@ -310,7 +315,7 @@ $( document ).ready(function()
     				td_name = plan.p_date+'/'+plan.machine+'/'+plan.e_shift;
     				// update td witch have attr name with drag tile
     				$('[name="'+td_name+'"]').html('<div id="'+td_name+'" class="redips-drag blue" product="'+plan.product+'" '+
-    					'style="border-style: solid; cursor: move;">'+plan.product+'</div>')
+    					'style="border-style: solid; cursor: move;">'+plan.product+'</div>');
     				// add objects to loadedTiles
     				loadedTiles[td_name] = plan.product;
     			});
@@ -318,7 +323,9 @@ $( document ).ready(function()
 			}
 		});
 	}
-
+	function showWelcome() {
+		console.log('20-23');
+	}
 	drawTable("2015/10/28", "2015/11/2");
 	loadTable("2015/10/28", "2015/11/2");
 
@@ -371,20 +378,20 @@ $( document ).ready(function()
 
 	//// Rectangle draw, marking products
 	///////////////////////// 
-	var mouseStillDown = false,
-		start_x = 0, start_y = 0,
-		start_row = 1, start_col = 1,
-		old_row = 0, old_col = 0,
-		move_products = false,
-		modal_action = false;
-		marked_td_index = []; // when mark products and press to move them, this holds one pos of one marked product
+	Move.mouseStillDown = false,
+	Move.start_x = 0, Move.start_y = 0,
+	Move.start_row = 1, Move.start_col = 1,
+	Move.old_row = 0, Move.old_col = 0,
+	Move.move_products = {'start':false, 'move':false},
+	Move.modal_action = false;
+	Move.move_start_mouse_pos = []; // first mouse pos when start to move multiply products
 
 	function markCells(r1, r2, c1, c2, old_r, old_c, e) {
 		// new cell indexes
-		old_row = e.target.parentNode.rowIndex+1;
-		old_col = e.target.cellIndex+1;
+		Move.old_row = e.target.parentNode.rowIndex+1;
+		Move.old_col = e.target.cellIndex+1;
 
-		if ( (old_r != old_row || old_c != old_col) ) {
+		if ( (old_r != Move.old_row || old_c != Move.old_col) ) {
 		// for each row
 		    for (var i = r1; i <= r2; i++) {
 		    	// for each column
@@ -406,20 +413,20 @@ $( document ).ready(function()
 		// if column or row is changed
 		
 		// if draw cube right down
-		if (e.pageY - start_y >= 0 && e.pageX - start_x >= 0) {
-    		markCells(start_row, e.target.parentNode.rowIndex+1, start_col, e.target.cellIndex+1, old_r, old_c, e);
+		if (e.pageY - Move.start_y >= 0 && e.pageX - Move.start_x >= 0) {
+    		markCells(Move.start_row, e.target.parentNode.rowIndex+1, Move.start_col, e.target.cellIndex+1, old_r, old_c, e);
     	}
     	// draw cube left up
-    	else if (e.pageY - start_y < 0 && e.pageX - start_x < 0) {
-    		markCells(e.target.parentNode.rowIndex+1, start_row, e.target.cellIndex+1, start_col, old_r, old_c, e);
+    	else if (e.pageY - Move.start_y < 0 && e.pageX - Move.start_x < 0) {
+    		markCells(e.target.parentNode.rowIndex+1, Move.start_row, e.target.cellIndex+1, Move.start_col, old_r, old_c, e);
     	}
     	// draw cube left down
-    	else if (e.pageX - start_x <= 0) {
-    		markCells(start_row, e.target.parentNode.rowIndex+1, e.target.cellIndex+1, start_col, old_r, old_c, e);
+    	else if (e.pageX - Move.start_x <= 0) {
+    		markCells(Move.start_row, e.target.parentNode.rowIndex+1, e.target.cellIndex+1, Move.start_col, old_r, old_c, e);
     	}
     	// draw right up
-    	else if (e.pageY - start_y <= 0) {
-    		markCells(e.target.parentNode.rowIndex+1, start_row, start_col, e.target.cellIndex+1, old_r, old_c, e);
+    	else if (e.pageY - Move.start_y <= 0) {
+    		markCells(e.target.parentNode.rowIndex+1, Move.start_row, Move.start_col, e.target.cellIndex+1, old_r, old_c, e);
     	}
     	// unmark old cells
     	if (Object.keys(newMarkedCells).length > 0) {
@@ -431,39 +438,47 @@ $( document ).ready(function()
 			};
 		};
 		if ((Object.keys(newMarkedCells).length < 1) ) {newMarkedCells = oldMarkedCells;}
-		console.log(newMarkedCells);
+		//console.log(newMarkedCells);
 	}
 
+	var prevMovePosProduct = [];
 	$("#table2").mousemove(function(e) { // move rect on mousemove over table2
-	    if (mouseStillDown) {
-	    	drawRect(e, old_row, old_col);
-	    }
-	    if (move_products){
-			for (var key in newMarkedCells) {
-			    if (newMarkedCells.hasOwnProperty(key)) {
+		//console.log(Move.move_products['start']);
+		//console.log(Move.move_products['move']);
+		//console.log(markedProducts);
+		//console.log(e.target.tagName);
+	    if (Move.move_products['start'] && Move.move_products['move']) {
+	    	prevNewPosProd = [];
+	    	// unhighlight previous cells when moving products
+	    	for (var i = prevMovePosProduct.length - 1; i >= 0; i--) {
+	    		prevMovePosProduct[i].css('background-color', '#EEE' );
+	    	};
+	    	// highligt cells on moving products
+			for (var key in markedProducts) {
+			    if (markedProducts.hasOwnProperty(key)) {
+			    	//console.log('markedProducts'+key);
 			    	// .attr('style',  'background-color:#e3e3e3');
-			    	if ($('[name="'+key+'"]')[0].innerHTML.trim() != '') {
+			    		var row,col;
+			    		if (e.target.tagName == "TD") {
+			    			row = markedProducts[key].r - (Move.start_row - e.target.parentNode.rowIndex)+1;
+			    			col = markedProducts[key].c - (Move.start_col - e.target.cellIndex) + 1;
+			    		} else {
+			    			row = markedProducts[key].r - (Move.start_row - e.target.parentElement.parentNode.rowIndex)+1;
+			    			col = markedProducts[key].c - (Move.start_col - e.target.parentElement.cellIndex) + 1;
+			    		}
+			    		markedProducts[key].rEnd = row;
+			    		markedProducts[key].cEnd = col;
+			    		//console.log('Row:'+row+' '+key);
+			    		//console.log("Col:"+col+' '+key);
 
-			    		var row = marked_td_index[0];
-			    		var col = marked_td_index[1];
-			    		console.log(row);
-			    		console.log(col);
-
-			    		nrow = row + ( (e.target.parentNode.rowIndex+1) - row );
-			    		console.log(row+' + '+ '('+(e.target.parentNode.rowIndex+1)+' - '+row+')');
-
-			    		ncol = col + ( (e.target.cellIndex+1) - col );
-			    		//console.log('End: '+row);
-
-			    		var td_html = $( "#table2 tbody tr:nth-child("+nrow+") td:nth-child("+ncol+")");
-
-						//td_html.css('background-color', '#D93600' );
-				    	console.log('n' + nrow);
-				    	console.log('n' + ncol);
-				    	//onsole.log(Object.keys(newMarkedCells).length);
-				    }
+			    		var td_html = $( "#table2 tbody tr:nth-child("+row+") td:nth-child("+col+")");
+						td_html.css('background-color', '#D93600' );
+						prevMovePosProduct.push(td_html);   
 			    }
 			}
+	    }
+	    else if (Move.mouseStillDown) {
+	    	drawRect(e, Move.old_row, Move.old_col);
 	    }
 	});
 
@@ -477,35 +492,64 @@ $( document ).ready(function()
 		    	}
 		    }
 		}
-		newMarkedCells = {};
-	    mouseStillDown = true;
-	    start_x = e.pageX, start_y = e.pageY;
-	    start_row = e.target.parentNode.rowIndex+1, start_col = e.target.cellIndex+1;
-	    move_products = false;
+	    Move.mouseStillDown = true;
+	    Move.start_x = e.pageX, Move.start_y = e.pageY;
+	    Move.start_row = e.target.parentNode.rowIndex+1, Move.start_col = e.target.cellIndex+1;
+	    // if button pressed to move products, then on mouse down start to move products
+	    if (Move.move_products['start']) {
+	    	Move.move_products['move'] = true;
+		}
+		else{
+			newMarkedCells = {};
+		}
+		console.log(123);
 	});
 	
 
 	$("body").mouseup(function(e) {
 		//console.log(newMarkedCells);
-	    if (mouseStillDown && Object.keys(newMarkedCells).length > 0) {
-	    	$('.modal-dialog').attr('style','left: '+e.clientX+'px; top: '+e.clientY+'px;');
-			//$('.modal-dialog').attr('style','top: '+e.pageY+'px;');
-			console.log(e.pageY);
-			//$('#marked-modal').css('background-color', '#EEEEEE' );
-			$('#marked-modal').modal('show');
-		    getMarkedProducts();
+	    if (Move.mouseStillDown && Object.keys(newMarkedCells).length > 0) {
+			if (!Move.move_products['move']){
+				$('.modal-dialog').attr('style','left: '+e.clientX+'px; top: '+e.clientY+'px;');
+				$('#marked-modal').modal('show');
+		    	getMarkedProducts();
+			}
 	    	for (var key in newMarkedCells) {
-	    		// id new marked cell not in old then unmark it
+	    		// if new marked cell not in old then unmark it
 			    if (newMarkedCells.hasOwnProperty(key)) {
 					$('[name="'+key+'"]').css('background-color', '#EEEEEE' );
 				}
 			};
 		}
-		mouseStillDown = false;
+		// if released mouse when moving many products, then apply new pos, palce products in new pos
+		// this need two loops becouse in case when u drop on cell that is in marked prodcuts then it disapeer
+		if (Move.move_products['start'] && Move.move_products['move']) {
+			for (var key in markedProducts) {
+			    if (markedProducts.hasOwnProperty(key)) {
+					// old product place. remove all prev products
+					var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].r+") td:nth-child("+markedProducts[key].c+")");
+					td_html.css('background-color', '#EEE' );
+					td_html.html(''); 
+			    }
+			}
+			for (var key in markedProducts) {
+			    if (markedProducts.hasOwnProperty(key)) {
+		    		// new product place. place new products in cells
+		    		var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")");
+					td_html.css('background-color', '#EEE' );
+					td_html.html('<div id="'+key+'" class="redips-drag blue" product="'+markedProducts[key].product+'">'+markedProducts[key].product+'</div');
+			    }
+			}
+			REDIPS.drag.init();
+
+		}
+
+		Move.mouseStillDown = false;
+		Move.move_products['start'] = false; Move.move_products['move'] = false;
 	});
 
 	$('#delete-marked-bttn').click(function() { 
-    	modal_action = true;
+    	Move.modal_action = true;
     	for (var key in newMarkedCells) {
     		// id new marked cell not in old then unmark it
 		    if (newMarkedCells.hasOwnProperty(key)) {
@@ -516,7 +560,7 @@ $( document ).ready(function()
     });
 
    	$('#marked-modal').on('hidden.bs.modal', function () {
-   		if (!modal_action) {
+   		if (!Move.modal_action) {
 			for (var key in newMarkedCells) {
 			    if (newMarkedCells.hasOwnProperty(key)) {
 			    	// .attr('style',  'background-color:#e3e3e3');
@@ -526,24 +570,20 @@ $( document ).ready(function()
 			    	}
 			    }
 			}
-			newMarkedCells = {};
+			if (!Move.move_products['start']) { 
+				console.log('#marked-modal');
+				newMarkedCells = {};
+			}
 		}
-		modal_action = false;
+		Move.modal_action = false;
     });
 
-    $('#move-marked-bttn').click(function() { 
-    	modal_action = true;
-    	move_products = true;
-   		for (var key in newMarkedCells) {
-		    if (newMarkedCells.hasOwnProperty(key)) {
-		    	// .attr('style',  'background-color:#e3e3e3');
-		    	if ($('[name="'+key+'"]')[0].innerHTML.trim() != '') {
-		    		marked_td_index.push($('[name="'+key+'"]')[0].parentNode.rowIndex+1, $('[name="'+key+'"]')[0].cellIndex+1);
-		    		//console.log($('[name="'+key+'"]')[0].innerHTML);
-		    	}
-		    }
-		}
+    $('#move-marked-bttn').click(function(e) { 
+    	Move.modal_action = true; // true if modal is not canceled
+    	Move.move_products['start'] = true;
     });
+
+   	$(".redips-drag").on('mouseover', function() { console.log('ws'); });
 
 	/* ####################### END OF EVENTS #############################
 		#################################################################
@@ -648,7 +688,13 @@ function getMarkedProducts() {
 	    	// .attr('style',  'background-color:#e3e3e3');
 	    	if ($('[name="'+key+'"]')[0].innerHTML.trim() != '') {
 	    		$('[name="'+key+'"] div').addClass('marked');
-	    		//console.log($('[name="'+key+'"]')[0].innerHTML);
+	    		markedProducts[key] = {'r': $('[name="'+key+'"]')[0].parentNode.rowIndex+1, 
+	    								'c': $('[name="'+key+'"]')[0].cellIndex+1,
+	    								'rEnd': $('[name="'+key+'"]')[0].parentNode.rowIndex+1, 
+	    								'cEnd': $('[name="'+key+'"]')[0].cellIndex+1,
+	    								'product': $('[name="'+key+'"] div').attr('product')
+	    								};
+	    		//console.log($('[name="'+key+'"] div').attr('product'));
 	    	}
 	    }
 	}
@@ -738,6 +784,23 @@ redips.init = function () {
 		}
 	};
 	rd.event.clicked = function (currentCell) {
+		console.log(currentCell.parentNode.rowIndex);
+		if (Move.move_products['start']) {
+			Move.move_products['move'] = true;
+			Move.start_row = currentCell.parentNode.rowIndex+1;
+			Move.start_col = currentCell.cellIndex+1;
+			temp_obj = rd.obj;
+			console.log($(temp_obj).attr('product'));
+			rd.deleteObject(rd.obj);
+			// update td witch have attr name with drag tile
+			$('[name="'+$(temp_obj).attr('id')+'"]').html('<div id="'+$(temp_obj).attr('id')+'" class="redips-drag blue" product="'+$(temp_obj).attr('product')+ '">'+$(temp_obj).attr('product')+'</div>');
+			REDIPS.drag.init();
+		}
+		
+		console.log(Move.move_products['start']);
+		console.log($(currentCell).context.cellIndex);
+		//REDIPS.drag.init();
+		// .context.cellIndex
 		redips.is_cloned = false;
 	};
 	rd.event.cloned = function (clonedElement) {
