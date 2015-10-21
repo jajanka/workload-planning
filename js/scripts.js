@@ -784,16 +784,17 @@ redips.init = function () {
 		}
 	};
 	rd.event.clicked = function (currentCell) {
-		console.log(currentCell.parentNode.rowIndex);
+		console.log($(currentCell).attr('name'));
 		if (Move.move_products['start']) {
 			Move.move_products['move'] = true;
 			Move.start_row = currentCell.parentNode.rowIndex+1;
 			Move.start_col = currentCell.cellIndex+1;
+			//make copy of product
 			temp_obj = rd.obj;
-			console.log($(temp_obj).attr('product'));
+			// delete product
 			rd.deleteObject(rd.obj);
-			// update td witch have attr name with drag tile
-			$('[name="'+$(temp_obj).attr('id')+'"]').html('<div id="'+$(temp_obj).attr('id')+'" class="redips-drag blue" product="'+$(temp_obj).attr('product')+ '">'+$(temp_obj).attr('product')+'</div>');
+			// make product in same place to allow drag marked products when start click is on product not on table
+			$(currentCell).html('<div id="'+$(currentCell).attr('name')+'" class="redips-drag blue" product="'+$(temp_obj).attr('product')+ '">'+$(temp_obj).attr('product')+'</div>');
 			REDIPS.drag.init();
 		}
 		
