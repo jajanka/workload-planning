@@ -397,6 +397,7 @@ $( document ).ready(function()
 					var td_html = $( "#table2 tbody tr:nth-child("+i+") td:nth-child("+j+")");
 					td_html.css('background-color', '#D93600' );
 					newMarkedCells[td_html.attr("name")] = {'r':td_html[0].parentNode.rowIndex+1, 'c':td_html[0].cellIndex+1};
+					// highlight product if cell have product in it
 					if (td_html.children() != []) {
 						td_html.children().addClass('marked');
 					}
@@ -444,7 +445,12 @@ $( document ).ready(function()
 	    	for (var key in oldMarkedCells) {
 	    		// id new marked cell not in old then unmark it
 			    if (oldMarkedCells.hasOwnProperty(key) && !(key in newMarkedCells)) {
-					$('[name="'+key+'"]').css('background-color', '#EEEEEE' );
+			    	var td_html = $('[name="'+key+'"]');
+					td_html.css('background-color', '#EEEEEE' );
+					// unhighlight product
+		    		if (td_html.children() != []) {
+						td_html.children().removeClass('marked');
+					}
 				}
 			};
 		};
@@ -453,20 +459,21 @@ $( document ).ready(function()
 	}
 
 	var prevMovePosProduct = [];
-	$("#table2").mousemove(function(e) { // move rect on mousemove over table2 for 
+	$("#table2").mousemove(function(e) { // move rect on mousemove over table2
 	    if (Move.move_products['start'] && Move.move_products['move']) {
+	    	//////////////////////////////////////////////////
+	    	// MOVING ALREADY MARKED PRODUCTS!!
+	    	//////////////////////////////////////////////////
 	    	prevNewPosProd = [];
 	    	// unhighlight previous cells when moving products
 	    	for (var i = prevMovePosProduct.length - 1; i >= 0; i--) {
 	    		prevMovePosProduct[i].css('background-color', '#EEE' );
+   				// unhighlight product
 	    		if (prevMovePosProduct[i].children() != []) {
 					prevMovePosProduct[i].children().removeClass('marked');
 				}
 	    	};
 	    	// highligt cells on moving products
-	    	//////////////////////////////////////////////////
-	    	// MOVING ALREADY MARKED PRODUCTS!!
-	    	//////////////////////////////////////////////////
 			for (var key in markedProducts) { 
 			    if (markedProducts.hasOwnProperty(key)) {
 			    	//console.log('markedProducts'+key);
@@ -487,6 +494,10 @@ $( document ).ready(function()
 			    		var td_html = $( "#table2 tbody tr:nth-child("+row+") td:nth-child("+col+")");
 			    		console.log("#table2 tbody tr:nth-child("+row+") td:nth-child("+col+")");
 						td_html.css('background-color', '#D93600' );
+						// highlight product
+			    		if (td_html.children() != []) {
+							td_html.children().addClass('marked');
+						}
 						prevMovePosProduct.push(td_html);   
 			    }
 			}
