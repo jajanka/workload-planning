@@ -381,7 +381,8 @@ $( document ).ready(function()
 	Move.old_row = 0, Move.old_col = 0,
 	Move.move_products = {'start':false, 'move':false},
 	Move.modal_action = false;
-	Move.move_start_mouse_pos = []; // first mouse pos when start to move multiply products
+	Move.move_start_mouse_pos = [], // first mouse pos when start to move multiply products
+	Move.mProdCountInRow = {};
 
 	function markCells(r1, r2, c1, c2, old_r, old_c, e) {
 		// new cell indexes
@@ -464,7 +465,6 @@ $( document ).ready(function()
 	    	//////////////////////////////////////////////////
 	    	// MOVING ALREADY MARKED PRODUCTS!!
 	    	//////////////////////////////////////////////////
-	    	prevNewPosProd = [];
 	    	// unhighlight previous cells when moving products
 	    	for (var i = prevMovePosProduct.length - 1; i >= 0; i--) {
 	    		prevMovePosProduct[i].css('background-color', '#EEE' );
@@ -473,6 +473,7 @@ $( document ).ready(function()
 					prevMovePosProduct[i].children().removeClass('marked');
 				}
 	    	};
+	    	prevMovePosProduct = [];
 	    	// highligt cells on moving products
 			for (var key in markedProducts) { 
 			    if (markedProducts.hasOwnProperty(key)) {
@@ -508,7 +509,7 @@ $( document ).ready(function()
 	});
 
 	$("#table2").mousedown(function(e) {
-		console.log('mousedown');
+		// unhighlight marked products
 		for (var key in newMarkedCells) {
 		    if (newMarkedCells.hasOwnProperty(key)) {
 		    	// .attr('style',  'background-color:#e3e3e3');
@@ -548,7 +549,6 @@ $( document ).ready(function()
 			};
 		}
 		// if released mouse when moving many products, then apply new pos, palce products in new pos
-		// this need two loops becouse in case when u drop on cell that is in marked prodcuts then it disapeer
 		if (Move.move_products['start'] && Move.move_products['move']) {
 			// check if products can be placed in new place
 			var lastTdIndex = $("#table2:first tr:nth-child(1) td:last-child")[0].cellIndex+1;
@@ -573,6 +573,7 @@ $( document ).ready(function()
 					// old product place. remove all prev products
 					var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].r+") td:nth-child("+markedProducts[key].c+")");
 					td_html.css('background-color', '#EEE' );
+					// if new products is not out of table bounds
 					if (is_valid) {
 						td_html.html(''); 
 					}
@@ -699,21 +700,43 @@ function fillProducts(product, start, count) {
 
 function getMarkedProducts() {
 	markedProducts = {};
+	Move.mProdCountInRow = {};
 	for (var key in newMarkedCells) {
 	    if (newMarkedCells.hasOwnProperty(key)) {
-	    	// .attr('style',  'background-color:#e3e3e3');
-	    	if ($('[name="'+key+'"]')[0].innerHTML.trim() != '') {
+	    	var td_html = $('[name="'+key+'"]')[0];
+	    	// if cell have product
+	    	if (td_html.innerHTML.trim() != '') {
 	    		$('[name="'+key+'"] div').addClass('marked');
-	    		markedProducts[key] = {'r': $('[name="'+key+'"]')[0].parentNode.rowIndex+1, 
-	    								'c': $('[name="'+key+'"]')[0].cellIndex+1,
-	    								'rEnd': $('[name="'+key+'"]')[0].parentNode.rowIndex+1, 
-	    								'cEnd': $('[name="'+key+'"]')[0].cellIndex+1,
-	    								'product': $('[name="'+key+'"] div').attr('product')
+	    		// update marked product count in row
+	    		var row = td_html.parentNode.rowIndex+1;
+	    		 if (Move.mProdCountInRow[row] === undefined) 
+	    		 	Move.mProdCountInRow[row] = [td_html.cellIndex+1];
+	    		 else
+	    		 	Move.mProdCountInRow[row].push(td_html.cellIndex+1);
+
+	    		markedProducts[key] = {'r': td_html.parentNode.rowIndex+1, 
+	    								'c': td_html.cellIndex+1,
+	    								'rEnd': td_html.parentNode.rowIndex+1, 
+	    								'cEnd': td_html.cellIndex+1,
+	    								'product': $('[name="'+key+'"] div').attr('product'),
+	    								'diff': 1
 	    								};
+	    		// TODO:
+	    		// Make also parameter min product in row
 	    		//console.log($('[name="'+key+'"] div').attr('product'));
 	    	}
 	    }
 	}
+	// update markedProducts.count. It's count of how many products is marked in this product row
+	for (var key in markedProducts) {
+	    if (markedProducts.hasOwnProperty(key)) {
+	    	var maxDiff = Math.max.apply(Math, Move.mProdCountInRow[markedProducts[key].r]);
+	    	var minDiff = Math.min.apply(Math, Move.mProdCountInRow[markedProducts[key].r]);
+
+	    	markedProducts[key].diff = maxDiff - minDiff + 1;
+	    }
+	}
+	console.log(markedProducts);
 }
 
 function showError(text) {
@@ -725,7 +748,7 @@ function showError(text) {
 }
 
 
-/* ###### COLOR FUNCTION #######
+/* ###### COLOR FUNCTIONS #######
 ###################################
 */
 
@@ -763,7 +786,7 @@ function updateColor(product) { // get random color
 	}
 }
 
-/* ### END OF COLOR FUNCTION ####
+/* ### END OF COLOR FUNCTIONS ###
     ###########################
 */
 
