@@ -388,7 +388,6 @@ $( document ).ready(function()
 		Move.old_row = e.parentNode.rowIndex+1;
 		Move.old_col = e.cellIndex+1;
 
-		console.log('Marking');
 		if ( (old_r != Move.old_row || old_c != Move.old_col) ) {
 		// for each row
 		    for (var i = r1; i <= r2; i++) {
@@ -398,6 +397,9 @@ $( document ).ready(function()
 					var td_html = $( "#table2 tbody tr:nth-child("+i+") td:nth-child("+j+")");
 					td_html.css('background-color', '#D93600' );
 					newMarkedCells[td_html.attr("name")] = {'r':td_html[0].parentNode.rowIndex+1, 'c':td_html[0].cellIndex+1};
+					if (td_html.children() != []) {
+						td_html.children().addClass('marked');
+					}
 				}
 			}
 		}
@@ -451,15 +453,21 @@ $( document ).ready(function()
 	}
 
 	var prevMovePosProduct = [];
-	$("#table2").mousemove(function(e) { // move rect on mousemove over table2
+	$("#table2").mousemove(function(e) { // move rect on mousemove over table2 for 
 	    if (Move.move_products['start'] && Move.move_products['move']) {
 	    	prevNewPosProd = [];
 	    	// unhighlight previous cells when moving products
 	    	for (var i = prevMovePosProduct.length - 1; i >= 0; i--) {
 	    		prevMovePosProduct[i].css('background-color', '#EEE' );
+	    		if (prevMovePosProduct[i].children() != []) {
+					prevMovePosProduct[i].children().removeClass('marked');
+				}
 	    	};
 	    	// highligt cells on moving products
-			for (var key in markedProducts) {
+	    	//////////////////////////////////////////////////
+	    	// MOVING ALREADY MARKED PRODUCTS!!
+	    	//////////////////////////////////////////////////
+			for (var key in markedProducts) { 
 			    if (markedProducts.hasOwnProperty(key)) {
 			    	//console.log('markedProducts'+key);
 			    	// .attr('style',  'background-color:#e3e3e3');
@@ -483,12 +491,13 @@ $( document ).ready(function()
 			    }
 			}
 	    }
-	    else if (Move.mouseStillDown) {
+	    else if (Move.mouseStillDown) { // marking products
 	    	drawRect(e, Move.old_row, Move.old_col);
 	    }
 	});
 
 	$("#table2").mousedown(function(e) {
+		console.log('mousedown');
 		for (var key in newMarkedCells) {
 		    if (newMarkedCells.hasOwnProperty(key)) {
 		    	// .attr('style',  'background-color:#e3e3e3');
@@ -696,12 +705,6 @@ function getMarkedProducts() {
 	}
 }
 
-function updateColor(product) {
-	var random_color = '#'+Math.floor(Math.random()*16777215).toString(16);
-	if(productsColor[product] === undefined) {
-		productsColor[product] = random_color;
-	}
-}
 function showError(text) {
 	$('#message').prepend('<div class="alert alert-danger fade in" role="alert" style="display: none; margin-top: 5px;">'+
 		'<a href="#" class="close" data-dismiss="alert">&times;</a>'+
@@ -710,10 +713,54 @@ function showError(text) {
 	setTimeout(function(){ $('.alert').alert('close'); }, 5000);
 }
 
+
+/* ###### COLOR FUNCTION #######
+###################################
+*/
+
+function hexToRgb(hex) { // converts color from hex to rgb
+    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+        return r + r + g + g + b + b;
+    });
+
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
+function generateTextColor(color) { // generates 
+	var color = hexToRgb(color);
+  	if (color != null) { // 'ok' is true when the parsing was a success
+	    var brightness = Math.sqrt(
+				           color.r * color.r * .299 +
+				           color.g * color.g * .587 +
+				           color.b * color.b * .114); 
+	    var foreColor = (brightness < 130) ? "#FFFFFF" : "#000000";
+	    return foreColor;
+	}
+}
+
+function updateColor(product) { // get random color
+	var random_color = '#'+Math.floor(Math.random()*16777215).toString(16);
+	if(productsColor[product] === undefined) {
+		productsColor[product] = random_color;
+	}
+}
+
+/* ### END OF COLOR FUNCTION ####
+    ###########################
+*/
+
 function getProductDiv (name, product) {
 	return '<div id="'+name+'" class="redips-drag blue" product="'+product+'"'+ 
-								'style="background-color:'+productsColor[product]+'">'+product+'</div';
+			'style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+product+'</div';
 }
+
 /*jslint white: true, browser: true, undef: true, nomen: true, eqeqeq: true, plusplus: false, bitwise: true, regexp: true, strict: true, newcap: true, immed: true, maxerr: 14 */
 /*global window: false, REDIPS: true */
 
@@ -790,7 +837,20 @@ redips.init = function () {
 		}
 	};
 	rd.event.clicked = function (currentCell) {
-		console.log($(currentCell).attr('name'));
+		if (ctrlPressed) {
+			//make copy of product
+			temp_obj = rd.obj;
+			// delete product
+			rd.deleteObject(rd.obj);
+			// make product in same place to allow drag marked products when start click is on product not on table
+			$(currentCell).html(getProductDiv( $(currentCell).attr('name'), $(temp_obj).attr('product')) );
+			REDIPS.drag.init();
+			Move.mouseStillDown = true;
+			Move.start_x = $(currentCell).offset().left, Move.start_y = $(currentCell).offset().top;
+		    Move.start_row = $(currentCell).context.parentNode.rowIndex+1, Move.start_col = $(currentCell).context.cellIndex+1;
+
+	    }
+	    console.log(ctrlPressed);
 		if (Move.move_products['start']) {
 			Move.move_products['move'] = true;
 			Move.start_row = currentCell.parentNode.rowIndex+1;
@@ -804,8 +864,8 @@ redips.init = function () {
 			REDIPS.drag.init();
 		}
 		
-		console.log(Move.move_products['start']);
-		console.log($(currentCell).context.cellIndex);
+		//console.log(Move.move_products['start']);
+		//console.log($(currentCell).position());
 		//REDIPS.drag.init();
 		// .context.cellIndex
 		redips.is_cloned = false;
@@ -833,6 +893,20 @@ redips.save = function () {
 	    console.log(data);
 	});
 };
+
+
+
+// checks if Ctrl button is pressed
+var ctrlPressed = false;
+$(window).keydown(function(evt) {
+  if (evt.which == 17) { // ctrl
+    ctrlPressed = true;
+  }
+}).keyup(function(evt) {
+  if (evt.which == 17) { // ctrl
+    ctrlPressed = false;
+  }
+});
 
 
 // add onload event listener
