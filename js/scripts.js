@@ -16,8 +16,9 @@ var newMarkedCells = {}; // all td or cells marked
 var oldMarkedCells = {}; // one event previous: all td or cells marked
 
 var markedProducts = {};
+var productsColor = {};
 
-var Move = {};
+var Move = {}; // namespace for marked products variable
 
 // use: when post/get data then ajax gif loader shows
 $(document).ajaxStop(function(){
@@ -38,7 +39,11 @@ $( document ).ready(function()
 
 	// Button-checkbox
 	/////////////////////////////////////
-
+	//var s = '<p>'
+	//for (var i = 0; i < 20; i++) {
+	//	s += '<div style="width:150px; height: 20px; background-color: '+'#'+Math.floor(Math.random()*16777215).toString(16)+'">sd</div>';
+	//};
+	//$('body').html(s+'</p>');
 	function initBttnCheckbox() {
 
 		$('.button-checkbox-time').each(function () {
@@ -309,18 +314,16 @@ $( document ).ready(function()
     			jsonData.forEach(function(plan) {
     				// make id for tile
     				td_name = plan.p_date+'/'+plan.machine+'/'+plan.e_shift;
+    				// update color for product name
+    				updateColor(plan.product);
     				// update td witch have attr name with drag tile
-    				$('[name="'+td_name+'"]').html('<div id="'+td_name+'" class="redips-drag blue" product="'+plan.product+'" '+
-    					'style="border-style: solid; cursor: move;">'+plan.product+'</div>');
+    				$('[name="'+td_name+'"]').html(getProductDiv(td_name, plan.product));
     				// add objects to loadedTiles
     				loadedTiles[td_name] = plan.product;
     			});
     			REDIPS.drag.init();
 			}
 		});
-	}
-	function showWelcome() {
-		console.log('20-23');
 	}
 	drawTable("2015/10/28", "2015/11/2");
 	loadTable("2015/10/28", "2015/11/2");
@@ -330,17 +333,16 @@ $( document ).ready(function()
 	*/
 
 	$('#gen-table-bttn').click(function() { 
-		markedMachines = {};
-		markedShift = 1;
-		deletedTiles = {};
-    	loadedTiles = {};
-    	addedTiles = {};
 		var startDate = $('[name="start"]').val();
 		var endDate = $('[name="end"]').val();
 		var sd = new Date(startDate), ed = new Date(endDate);
 		// if start date is less or equal to end date the draw table
 		if (sd <= ed){
-
+			markedMachines = {};
+			markedShift = 1;
+			deletedTiles = {};
+	    	loadedTiles = {};
+	    	addedTiles = {};
 	    	drawTable(startDate, endDate);
 	    	// replace all '/' in date to '-'. It's for postgres date format
 	    	startDate = startDate.replace(/\//g, '-');
@@ -359,7 +361,6 @@ $( document ).ready(function()
 	$('#gen-prod-bttn').click(function() { 
 		var p = $('#product').val();
 		var q = $('#quantity').val();
-    	//drawProductTable(p, q);
     	lastFilledProducts = fillProducts(p, markedShift, q);
     	REDIPS.drag.init();
     	console.log(lastFilledProducts);
@@ -384,9 +385,10 @@ $( document ).ready(function()
 
 	function markCells(r1, r2, c1, c2, old_r, old_c, e) {
 		// new cell indexes
-		Move.old_row = e.target.parentNode.rowIndex+1;
-		Move.old_col = e.target.cellIndex+1;
+		Move.old_row = e.parentNode.rowIndex+1;
+		Move.old_col = e.cellIndex+1;
 
+		console.log('Marking');
 		if ( (old_r != Move.old_row || old_c != Move.old_col) ) {
 		// for each row
 		    for (var i = r1; i <= r2; i++) {
@@ -406,23 +408,34 @@ $( document ).ready(function()
 		if (Object.keys(newMarkedCells).length > 0) 
 			oldMarkedCells = newMarkedCells;
 		newMarkedCells = {};
-		// if column or row is changed
 		
+		// save original event
+		old_e = e;
+
+		// if mouse is over empty cell
+		if (e.target.tagName == 'TD') {
+			e = e.target;
+		}
+		// if mouse is over product
+		else if (e.target.tagName == 'DIV'){
+			e = e.target.parentElement;
+		}
+
 		// if draw cube right down
-		if (e.pageY - Move.start_y >= 0 && e.pageX - Move.start_x >= 0) {
-    		markCells(Move.start_row, e.target.parentNode.rowIndex+1, Move.start_col, e.target.cellIndex+1, old_r, old_c, e);
+		if (old_e.pageY - Move.start_y >= 0 && old_e.pageX - Move.start_x >= 0) {
+    		markCells(Move.start_row, e.parentNode.rowIndex+1, Move.start_col, e.cellIndex+1, old_r, old_c, e);
     	}
     	// draw cube left up
-    	else if (e.pageY - Move.start_y < 0 && e.pageX - Move.start_x < 0) {
-    		markCells(e.target.parentNode.rowIndex+1, Move.start_row, e.target.cellIndex+1, Move.start_col, old_r, old_c, e);
+    	else if (old_e.pageY - Move.start_y < 0 && old_e.pageX - Move.start_x < 0) {
+    		markCells(e.parentNode.rowIndex+1, Move.start_row, e.cellIndex+1, Move.start_col, old_r, old_c, e);
     	}
     	// draw cube left down
-    	else if (e.pageX - Move.start_x <= 0) {
-    		markCells(Move.start_row, e.target.parentNode.rowIndex+1, e.target.cellIndex+1, Move.start_col, old_r, old_c, e);
+    	else if (old_e.pageX - Move.start_x <= 0) {
+    		markCells(Move.start_row, e.parentNode.rowIndex+1, e.cellIndex+1, Move.start_col, old_r, old_c, e);
     	}
     	// draw right up
-    	else if (e.pageY - Move.start_y <= 0) {
-    		markCells(e.target.parentNode.rowIndex+1, Move.start_row, Move.start_col, e.target.cellIndex+1, old_r, old_c, e);
+    	else if (old_e.pageY - Move.start_y <= 0) {
+    		markCells(e.parentNode.rowIndex+1, Move.start_row, Move.start_col, e.cellIndex+1, old_r, old_c, e);
     	}
     	// unmark old cells
     	if (Object.keys(newMarkedCells).length > 0) {
@@ -503,7 +516,7 @@ $( document ).ready(function()
 		//console.log(newMarkedCells);
 	    if (Move.mouseStillDown && Object.keys(newMarkedCells).length > 0) {
 			if (!Move.move_products['move']) {
-				$('.modal-dialog').attr('style','left: '+(e.clientX-80)+'px; top: '+(e.clientY-5)+'px;');
+				$('.modal-dialog').attr('style','left: '+(e.clientX)+'px; top: '+(e.clientY-10)+'px;');
 				$('#marked-modal').modal('show');
 		    	getMarkedProducts();
 			}
@@ -551,7 +564,7 @@ $( document ).ready(function()
 		    		var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")");
 					td_html.css('background-color', '#EEE' );
 					if (is_valid) {
-						td_html.html('<div id="'+key+'" class="redips-drag blue" product="'+markedProducts[key].product+'">'+markedProducts[key].product+'</div');
+						td_html.html( getProductDiv(key, markedProducts[key].product) );
 			    	}
 			    }
 			}
@@ -603,38 +616,6 @@ $( document ).ready(function()
 	*/ 
 });
 
-function drawProductTable(productName, productCount)
-{
-	var table_products_html = '',	// table cells
-		table_products_col = '',	// table col width
-		current_product = 0;
-	// generate table cells, iterate columns
-	for (var i = 0; i < productCount/12; i++) {	
-		// row start tag
-		table_products_html += '<tr>';
-		// generate one row all cells
-		for (var j = 0; j < 12; j++) {
-			// generate column width
-			if (i == 0) {table_products_col += '<col width="70"/>'}
-			// if not all products is in temp table
-			if (current_product < productCount){
-				// td cell with product
-				table_products_html += '<td><div id="x" class="redips-drag blue" product="'+productName+'">'+productName+'</div></td>';
-			}else{
-				// divide row in cells
-  				table_products_html += '<td></td>';
-			}
-  			// increase current product by 1
-  			current_product++;
-  		}
-  		// row end tag
-		table_products_html += '</tr>';
-
-	};
-	$('#table-products tbody').html(table_products_html);
-	$('#table-products colgroup').html(table_products_col);
-}
-
 function save(type) {
 	// define table_content variable
 	var table_content;
@@ -675,8 +656,10 @@ function fillProducts(product, start, count) {
 					var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
 					// if inner html in cell is empty
 					if (td_html[0].innerHTML.trim().length == 0) {
+						// update products colors
+						updateColor(product);
 						// put a product in cell
-						td_html.html('<div id="'+td_html.attr("name")+'" class="redips-drag blue" product="'+product+'">'+product+'</div');
+						td_html.html( getProductDiv(td_html.attr("name"), product) ) ;
 						addedTiles[td_html.attr("name")] = product;
 						// add to last filled products
 						filledProd.push(td_html.attr("name"));
@@ -713,13 +696,23 @@ function getMarkedProducts() {
 	}
 }
 
+function updateColor(product) {
+	var random_color = '#'+Math.floor(Math.random()*16777215).toString(16);
+	if(productsColor[product] === undefined) {
+		productsColor[product] = random_color;
+	}
+}
 function showError(text) {
 	$('#message').prepend('<div class="alert alert-danger fade in" role="alert" style="display: none; margin-top: 5px;">'+
 		'<a href="#" class="close" data-dismiss="alert">&times;</a>'+
 		'<strong>Kļūda!</strong> '+text+'</div>');
 	$(".alert").fadeIn(25);
 	setTimeout(function(){ $('.alert').alert('close'); }, 5000);
+}
 
+function getProductDiv (name, product) {
+	return '<div id="'+name+'" class="redips-drag blue" product="'+product+'"'+ 
+								'style="background-color:'+productsColor[product]+'">'+product+'</div';
 }
 /*jslint white: true, browser: true, undef: true, nomen: true, eqeqeq: true, plusplus: false, bitwise: true, regexp: true, strict: true, newcap: true, immed: true, maxerr: 14 */
 /*global window: false, REDIPS: true */
@@ -807,7 +800,7 @@ redips.init = function () {
 			// delete product
 			rd.deleteObject(rd.obj);
 			// make product in same place to allow drag marked products when start click is on product not on table
-			$(currentCell).html('<div id="'+$(currentCell).attr('name')+'" class="redips-drag blue" product="'+$(temp_obj).attr('product')+ '">'+$(temp_obj).attr('product')+'</div>');
+			$(currentCell).html(getProductDiv( $(currentCell).attr('name'), $(temp_obj).attr('product')) );
 			REDIPS.drag.init();
 		}
 		
