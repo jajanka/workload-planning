@@ -246,3 +246,15 @@ div#redips-drag table td,th {
     margin-top: 0% !important;
     float: left !important;
 }
+#calendarTable {
+	max-width: 960px;
+	margin: 0px auto;
+}
+#calendarTable td{
+	padding: 0px;
+    height: 30px;
+}
+#calendarTable thead th{
+	border-style: inherit;
+	//border-color: #ccc;
+}

@@ -8,16 +8,47 @@ $(document).ready(function () {
 	});
 
 	$("#bttn-add-year").click(function (e) {
-		var	year = $("#add-year").val();
+		var	year = parseInt($("#add-year").val());
 
-		$.post( "php/save_calendar.php", {year: year})
-		// when post is finished
-		.done(function( data ) {
-			alert(data);
-		})
-		.fail( function( data ) {
-		    alert('pfail');
-		    console.log(data);
-		});
+		if (year > 2005 && year < 2038) {
+			$.post( "php/calendar_save.php", {year: year})
+			// when post is finished
+			.done(function( data ) {
+				alert(data);
+				location.reload();
+			})
+			.fail( function( data ) {
+			    alert('pfail');
+			    console.log(data);
+			});
+		}
+		else 
+		{
+			alert('Nederīgs gads.');
+			return false;
+		}
 	});
+
+	$("#bttn-show-year").click(function (e) {
+		var	year = parseInt($("#getYear").val());
+
+		if (year > 2005 && year < 2038) {
+			$.post( "php/calendar_save.php", {get_year: year})
+			// when post is finished
+			.done(function( data ) {
+				//alert(data);
+				$('#calendarTable tbody').html(data);
+			})
+			.fail( function( data ) {
+			    alert('pfail');
+			    console.log(data);
+			});
+		}
+		else 
+		{
+			alert('Nederīgs gads.');
+			return false;
+		}
+	});
+
 });
