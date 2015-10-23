@@ -373,6 +373,10 @@ $( document ).ready(function()
     	};
     });
 
+    $('#save-bttn').click(function() { 
+    	redips.save();
+    });
+
 	//// Rectangle draw, marking products
 	///////////////////////// 
 	Move.mouseStillDown = false,
@@ -493,7 +497,7 @@ $( document ).ready(function()
 			    		//console.log("Col:"+col+' '+key);
 
 			    		var td_html = $( "#table2 tbody tr:nth-child("+row+") td:nth-child("+col+")");
-			    		console.log("#table2 tbody tr:nth-child("+row+") td:nth-child("+col+")");
+			    		//console.log("#table2 tbody tr:nth-child("+row+") td:nth-child("+col+")");
 						td_html.css('background-color', '#D93600' );
 						// highlight product
 			    		if (td_html.children() != []) {
@@ -509,6 +513,7 @@ $( document ).ready(function()
 	});
 
 	$("#table2").mousedown(function(e) {
+		$('.marked').removeClass('marked');
 		// unhighlight marked products
 		for (var key in newMarkedCells) {
 		    if (newMarkedCells.hasOwnProperty(key)) {
@@ -558,7 +563,7 @@ $( document ).ready(function()
 			    if (markedProducts.hasOwnProperty(key)) {
 			    	// new place is out of table bounds then don't placed
 		    		if (markedProducts[key].rEnd < 1 || markedProducts[key].rEnd > machineCount ||
-		    			markedProducts[key].cEnd < 1 || markedProducts[key].cEnd > lastTdIndex) { 
+		    			markedProducts[key].cEnd < 1 /*|| markedProducts[key].cEnd > lastTdIndex*/) { 
 		    			//showError('Produkti neietilpst tabulā.');
 		    			is_valid = false;
 						$('.modal-dialog').attr('style','left: '+(e.clientX-80)+'px; top: '+(e.clientY-10)+'px;');
@@ -579,13 +584,43 @@ $( document ).ready(function()
 					}
 			    }
 			}
+			//var shifted_rows = {};
 			for (var key in markedProducts) {
 			    if (markedProducts.hasOwnProperty(key)) {
 		    		// new product place. place new products in cells
 		    		var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")");
 					td_html.css('background-color', '#EEE' );
 					if (is_valid) {
-						td_html.html( getProductDiv(key, markedProducts[key].product) );
+						// if row is not already shifted
+						//if (!shifted_rows[markedProducts[key].rEnd]) {
+							// row's last td index
+							var rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
+							// row's first new product
+							var startIndex = markedProducts[key].cEnd;
+							// 
+							var nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(startIndex)+")")[0].innerHTML;
+							for (var i = startIndex; i <= rowLastCellIndex; i++) {
+								// if next cell have no products then break
+								if (nextCell_html == "") break; 
+								// current cell in next cell innerHTML
+								var currentCell = nextCell_html;
+								// next cell
+								nextCell = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")");
+								// next cell html
+								nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")")[0].innerHTML;
+
+								nextCell[0].innerHTML = currentCell;
+
+
+
+								//$( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")")[0].innerHTML = '';
+
+							};
+							//$( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")");
+						//}
+						// say that shifted row is true	
+						//shifted_rows[markedProducts[key].rEnd] = true;
+						td_html.html( getProductDiv(key, markedProducts[key].product, true));
 			    	}
 			    }
 			}
@@ -719,7 +754,7 @@ function getMarkedProducts() {
 	    								'rEnd': td_html.parentNode.rowIndex+1, 
 	    								'cEnd': td_html.cellIndex+1,
 	    								'product': $('[name="'+key+'"] div').attr('product'),
-	    								'diff': 1
+	    								'diffToFirst': 1, 'diffToLastFirst': 1
 	    								};
 	    		// TODO:
 	    		// Make also parameter min product in row
@@ -733,7 +768,8 @@ function getMarkedProducts() {
 	    	var maxDiff = Math.max.apply(Math, Move.mProdCountInRow[markedProducts[key].r]);
 	    	var minDiff = Math.min.apply(Math, Move.mProdCountInRow[markedProducts[key].r]);
 
-	    	markedProducts[key].diff = maxDiff - minDiff + 1;
+	    	markedProducts[key].diffToFirst = markedProducts[key].c - minDiff + 1;
+	    	markedProducts[key].diffToLastFirst = maxDiff - minDiff + 1;
 	    }
 	}
 	console.log(markedProducts);
@@ -790,8 +826,9 @@ function updateColor(product) { // get random color
     ###########################
 */
 
-function getProductDiv (name, product) {
-	return '<div id="'+name+'" class="redips-drag blue" product="'+product+'"'+ 
+function getProductDiv (name, product,marked) {
+	cls = (marked) ? ' marked' : '';
+	return '<div id="'+name+'" class="redips-drag blue'+cls+'" product="'+product+'"'+ 
 			'style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+product+'</div';
 }
 
@@ -813,7 +850,7 @@ redips.init = function () {
 	// initialization
 	rd.init();
 	// dragged elements can be placed to the empty cells only
-	rd.dropMode = 'single';
+	rd.dropMode = 'multiple';
 	// elements could be cloned with pressed SHIFT key
 	rd.clone.keyDiv = true;
 	// define dropped handler
@@ -871,6 +908,7 @@ redips.init = function () {
 		}
 	};
 	rd.event.clicked = function (currentCell) {
+		$('.marked').removeClass('marked');	
 		if (ctrlPressed) {
 			//make copy of product
 			temp_obj = rd.obj;
