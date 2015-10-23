@@ -13,11 +13,11 @@
 					<label for="bttn-add-year">Pievienot gadu</label>
 					<div class="form-inline">
 				    	<input type="text" class="form-control" id="add-year" maxlength="4" placeholder="Gads">
-				    	<button type="submit" class="btn btn-primary" id="bttn-add-year">Labi</button>
+				    	<button type="submit" class="btn btn-primary" id="bttn-add-year" style="margin-right: 20px;">Labi</button>
 				  	</div>
 				</div>
 
-				<div class="form-group" style="margin-left: 20px;">
+				<div class="form-group">
 					<label for="bttn-add-year">Parādīt gadu</label>
 					<div class="form-inline">
 						<select class="form-control" id="getYear">
