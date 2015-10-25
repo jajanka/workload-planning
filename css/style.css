@@ -246,15 +246,16 @@ div#redips-drag table td,th {
     margin-top: 0% !important;
     float: left !important;
 }
-#calendarTable {
+#calendarTable, #productsTable {
 	max-width: 960px;
 	margin: 0px auto;
 }
-#calendarTable td{
+#calendarTable td, #productsTable td{
 	padding: 0px;
     height: 30px;
 }
-#calendarTable thead th{
+#calendarTable thead th, #productsTable thead th{
 	border-style: inherit;
 	//border-color: #ccc;
 }
+#productsTable td {text-align: center;}
