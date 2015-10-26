@@ -33,6 +33,23 @@ $(document).ready(function () {
 		$('#productsInfoTable tbody').html(td_html);
     	$('#productModal').modal('show');
 	});
+
+	var clonedHeaderRow;
+
+   $("#productsTable").each(function() {
+       clonedHeaderRow = $(".persist-header", this);
+       clonedHeaderRow
+         .before(clonedHeaderRow.clone())
+         .css("width", clonedHeaderRow.width())
+         .addClass("floatingHeader");
+         
+   });
+   
+   $(window)
+    .scroll(UpdateTableHeaders)
+    .trigger("scroll");
+
+
 });
 
 
@@ -54,4 +71,38 @@ function showError(text, type) {
 		'<strong>'+alertType+'</strong> '+text+'</div>');
 	$(".alert").fadeIn(25);
 	setTimeout(function(){ $('.alert').alert('close'); }, 5000);
+}
+
+var header_lag_fix = true;
+var col_widths = {};
+function UpdateTableHeaders() {
+   $("#productsTable").each(function() {
+   
+        var el             = $(this),
+           offset         = el.offset(),
+           scrollTop      = $(window).scrollTop(),
+           floatingHeader = $(".floatingHeader", this)
+       
+        if ((scrollTop > offset.top) && (scrollTop < offset.top + el.height())) {
+        	// fixes problem when header is at top fixed and not having correct th width. 
+       		if (header_lag_fix) {
+       			for (var i = 1; i <= 8; i++) {
+        			$('#productsTable thead th:nth-child('+i+')').width(col_widths[i]);
+        		};
+	       		floatingHeader.css('height','40px');
+	       	}
+            floatingHeader.css({
+            "visibility": "visible"
+            });
+           	header_lag_fix = false;
+        } else {
+        	header_lag_fix = true;
+        	for (var i = 1; i <= 8; i++) {
+        		col_widths[i] = $('#productsTable thead th:nth-child('+i+')').width();
+        	};
+            floatingHeader.css({
+            "visibility": "hidden"
+            });      
+        };
+    });
 }

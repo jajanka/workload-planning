@@ -54,7 +54,7 @@
 		        <th>#</th>
 		        <th>Datums</th>
 		        <th>1. maiņa 22:00 - 06:00</th>
-		        <th>2. maiņa 06:00 - 14:00)</th>
+		        <th>2. maiņa 06:00 - 14:00</th>
 		        <th>3. maiņa 14:00 - 22:00</th>
 		      </tr>
 		    </thead>

@@ -42,7 +42,7 @@
 		  <div class="table-responsive" style="margin-top: 20px;">      
 		  <h2>Produkti</h2>    
 		  <table class="table table-striped" id="productsTable">
-		    <thead>
+		    <thead class="persist-header">
 		      <tr>
 		        <th>#</th>
 		        <th>Produkts</th>

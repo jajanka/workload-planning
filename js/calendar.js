@@ -126,23 +126,37 @@ function showError(text, type) {
 	setTimeout(function(){ $('.alert').alert('close'); }, 5000);
 }
 
-
+var header_lag_fix = true;
+var col_widths = {};
 function UpdateTableHeaders() {
    $("#calendarTable").each(function() {
    
-       var el             = $(this),
+        var el             = $(this),
            offset         = el.offset(),
            scrollTop      = $(window).scrollTop(),
            floatingHeader = $(".floatingHeader", this)
        
-       if ((scrollTop > offset.top) && (scrollTop < offset.top + el.height())) {
-           floatingHeader.css({
+        if ((scrollTop > offset.top) && (scrollTop < offset.top + el.height())) {
+       		if (header_lag_fix) {
+       			console.log('lol');
+	       		floatingHeader.css('height','40px');
+	       		for (var i = 1; i <= 5; i++) {
+        			$('#calendarTable thead th:nth-child('+i+')').width(col_widths[i]);
+        		};
+	       	}
+            floatingHeader.css({
             "visibility": "visible"
-           });
-       } else {
-           floatingHeader.css({
+            });
+           	header_lag_fix = false;
+        } else {
+        	for (var i = 1; i <= 5; i++) {
+        		col_widths[i] = $('#calendarTable thead th:nth-child('+i+')').width();
+        	};
+        	console.log(col_widths);
+        	header_lag_fix = true;
+            floatingHeader.css({
             "visibility": "hidden"
-           });      
-       };
-   });
+            });      
+        };
+    });
 }
