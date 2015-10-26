@@ -39,9 +39,9 @@
 	          <ul class="dropdown-menu">
 	            <li><a href="products.php">Produkti</a></li>
 	            <li><a href="calendar.php">Kalendārs</a></li>
-	            <li><a href="#">...</a></li>
+	            <!-- <li><a href="#">...</a></li>
 	            <li role="separator" class="divider"></li>
-	            <li><a href="#">...</a></li>
+	            <li><a href="#">...</a></li> -->
 	          </ul>
 	        </li>
 	      </ul>

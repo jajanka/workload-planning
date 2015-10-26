@@ -5,11 +5,15 @@ if (isset($_POST['startDate']) && isset($_POST['endDate']))
 	require_once('../../h/postgres_cmp.php');
 
 	//$sequance = trim($_POST['sequance']);
-	$q = "SELECT p_date, machine, e_shift, product FROM plan WHERE p_date >= :startDate AND p_date <= :endDate";
+	$selectQ = "SELECT p_date, machine, e_shift, product FROM plan WHERE p_date >= :startDate AND p_date <= :endDate";
+	$selectCalendarQ = "SELECT week_day, shift1, shift2, shift3 FROM calendar WHERE week_day >= :startDate AND week_day <= :endDate";
+
+	$output = array();
+	$validationCounter = 0;
 
 	try
 	{
-		$pdo = $pgc->prepare($q);
+		$pdo = $pgc->prepare($selectQ);
 		$pdo->bindValue(':startDate', $_POST['startDate']);
 		$pdo->bindValue(':endDate', $_POST['endDate']);
 		$pdo->execute();
@@ -17,7 +21,8 @@ if (isset($_POST['startDate']) && isset($_POST['endDate']))
 
 		if ($pdo->rowCount() > 0)
 		{
-			echo json_encode($res);
+			$output['products'] = $res;
+			$validationCounter++;
 		}
 	}
 	catch(PDOException $e)
@@ -25,6 +30,31 @@ if (isset($_POST['startDate']) && isset($_POST['endDate']))
 	    $pgc = NULL;
 	    die('error in gc function => ' . $e->getMessage());
 	}
+
+	try
+	{
+		$pdo = $pgc->prepare($selectCalendarQ);
+		$pdo->bindValue(':startDate', $_POST['startDate']);
+		$pdo->bindValue(':endDate', $_POST['endDate']);
+		$pdo->execute();
+		$res = $pdo->fetchAll(PDO::FETCH_ASSOC);
+
+		if ($pdo->rowCount() > 0)
+		{
+			$output['shifts'] = $res;
+			$validationCounter++;
+		}
+	}
+	catch(PDOException $e)
+	{
+	    $pgc = NULL;
+	    die('error in gc function => ' . $e->getMessage());
+	}
+
+	if ($validationCounter == 2) {
+		echo json_encode($output);
+	}
+
 	$pgc = NULL;
 }
 

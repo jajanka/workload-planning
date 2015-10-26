@@ -239,10 +239,10 @@ div#redips-drag table td,th {
 .modal-backdrop {
    background-color: red;
 }
-.modal-backdrop {
+.modal-backdrop #marked-modal{
    background-color: transparent !important;
 }
-.modal-dialog {
+#marked-modal .modal-dialog {
     margin-top: 0% !important;
     float: left !important;
 }
@@ -250,12 +250,26 @@ div#redips-drag table td,th {
 	max-width: 960px;
 	margin: 0px auto;
 }
-#calendarTable td, #productsTable td{
+#calendarTable td, #productsTable td, #productsInfoTable td{
 	padding: 0px;
     height: 30px;
 }
-#calendarTable thead th, #productsTable thead th{
+#calendarTable thead th, #productsTable thead th, #productsInfoTable thead th{
 	border-style: inherit;
 	//border-color: #ccc;
 }
-#productsTable td {text-align: center;}
+#productsTable td, #productsInfoTable td {text-align: center;}
+#productModal .checkbox { margin-top: 0px; margin-bottom: 0px;}
+
+.floatingHeader {
+  position: fixed;
+  top: 0;
+  visibility: hidden;
+  background-color: #FFF;
+  z-index: 10;
+
+}
+.floatingHeader th {
+  padding-right: 8px !important;
+  padding-left: 8px;
+}

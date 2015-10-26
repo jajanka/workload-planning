@@ -17,7 +17,10 @@ try
 		$total_kg_h = number_format($value[4] / $kg_h, 3);
 
 		echo '<tr>
-			<td>'.$curProduct.'</td>
+			<td><button type="button" class="btn btn-default" aria-label="Left Align" id="p'.$value[0].'">
+			  <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+			</button>
+			</td>
 	        <td>'.$value[1].'</td>
 	        <td>'.$value[2].'</td>
 	        <td>'.$value[3].'</td>

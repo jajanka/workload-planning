@@ -5,6 +5,7 @@
 		<script type="text/javascript" src="js/calendar.js"></script>
 		<div class="container">
 
+
 		<div class="panel panel-primary" style="margin-top: 20px;">
 	    <div class="panel-heading">Kalendārs</div>
 	    <div class="panel-body">
@@ -45,7 +46,10 @@
 		  <div class="table-responsive" style="margin-top: 20px;">      
 		  <h2>Kalendārs</h2>    
 		  <table class="table table-striped" id="calendarTable">
-		    <thead>
+		  	<div id='ajax_loader' style="width: 100%; height: 100px; background-color: #FFF; display: none; z-index: 10; margin: auto 0px;">
+			    <img src="css/images/ring-alt.gif" style="display: block; margin: auto; position: relative; top: 50%; transform: translateY(-50%);"></img>
+			</div>
+		    <thead class="persist-header">
 		      <tr>
 		        <th>#</th>
 		        <th>Datums</th>

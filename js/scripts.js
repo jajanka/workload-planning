@@ -258,7 +258,9 @@ $( document ).ready(function()
 				header_time_html += '<td class="redips-mark dark">'+checkBox_html+'</td>';
 			};
 			var dateStr = d.getDate()  + "." + monthNamesShort[d.getMonth()] + "  " + d.getFullYear();
-			header_day_html += '<td class="redips-mark dark" colspan="3">'+dateStr+' '+d.getDay()+'</td>'; //date
+			// format date for header date id
+			var date_formated = d.getFullYear()+'-'+pad((d.getMonth()+1))+'-'+pad(d.getDate())+'H';
+			header_day_html += '<td id="'+date_formated+'" class="redips-mark dark" colspan="3">'+dateStr+' '+d.getDay()+'</td>'; //date
 		});
 		$('.table1-header .header-time').html('<td class="redips-mark blank"></td>'+header_time_html);
 		$('.table1-header .header-day').html('<td class="redips-mark blank"></td>'+header_day_html);
@@ -302,22 +304,55 @@ $( document ).ready(function()
 		$.post( "php/load.php", {startDate: startD, endDate: endD})
 		// when post is finished
 		.done(function( data ) {
+			//alert(data);
 			// parse received php data to JSON
 			var jsonData = '';
 			try {
 				jsonData = jQuery.parseJSON(data);
 			}
 			catch (e) {}
+			console.log(jsonData);
 			// if json is parsed
+			// place free shifts
 			if (jsonData != ''){
     			// iterate over JSON array
-    			jsonData.forEach(function(plan) {
+    			jsonData['shifts'].forEach(function(shift) {
+    				// make id for tile
+    				var head_id = '#'+shift.week_day+'H';
+    				// update color for product name
+    				var head_id_col = $(head_id)[0].cellIndex;
+    				// mark free shifts all columns with redips-mark dark
+    				if (shift.shift1) {
+    					$('.header-time td:nth-child('+((head_id_col*3-1))+')').html(tableHeaders[0]).addClass('free');
+    					for (var i = 1; i <= machineCount; i++) {
+    						$('#table2 tr:nth-child('+i+') td:nth-child('+((head_id_col*3-1)-1)+')').addClass('redips-mark  dark');
+    					};
+    				}
+    				if (shift.shift2) {
+    					$('.header-time td:nth-child('+((head_id_col*3-1)+1)+')').html(tableHeaders[1]).addClass('free');
+    					for (var i = 1; i <= machineCount; i++) {
+    						$('#table2 tr:nth-child('+i+') td:nth-child('+(head_id_col*3-1)+')').addClass('redips-mark  dark');
+    					};
+    				}
+    				if (shift.shift3) {
+    					$('.header-time td:nth-child('+((head_id_col*3-1)+2)+')').html(tableHeaders[2]).addClass('free');
+    					for (var i = 1; i <= machineCount; i++) {
+    						$('#table2 tr:nth-child('+i+') td:nth-child('+((head_id_col*3-1)+1)+')').addClass('redips-mark  dark');
+    					};
+    				}
+    				//loadedTiles[td_name] = plan.product;
+    			});
+			}
+			// place products in table
+			if (jsonData != ''){
+    			// iterate over JSON array
+    			jsonData['products'].forEach(function(plan) {
     				// make id for tile
     				td_name = plan.p_date+'/'+plan.machine+'/'+plan.e_shift;
     				// update color for product name
     				updateColor(plan.product);
     				// update td witch have attr name with drag tile
-    				$('[name="'+td_name+'"]').html(getProductDiv(td_name, plan.product));
+    				$('[name="'+td_name+'"]').html(setProductDiv(td_name, plan.product));
     				// add objects to loadedTiles
     				loadedTiles[td_name] = plan.product;
     			});
@@ -465,134 +500,155 @@ $( document ).ready(function()
 
 	var prevMovePosProduct = [];
 	$("#table2").mousemove(function(e) { // move rect on mousemove over table2
-	    if (Move.move_products['start'] && Move.move_products['move']) {
-	    	//////////////////////////////////////////////////
-	    	// MOVING ALREADY MARKED PRODUCTS!!
-	    	//////////////////////////////////////////////////
-	    	// unhighlight previous cells when moving products
-	    	for (var i = prevMovePosProduct.length - 1; i >= 0; i--) {
-	    		prevMovePosProduct[i].css('background-color', '#EEE' );
-   				// unhighlight product
-	    		if (prevMovePosProduct[i].children() != []) {
-					prevMovePosProduct[i].children().removeClass('marked');
-				}
-	    	};
-	    	prevMovePosProduct = [];
-	    	// highligt cells on moving products
-			for (var key in markedProducts) { 
-			    if (markedProducts.hasOwnProperty(key)) {
-			    	//console.log('markedProducts'+key);
-			    	// .attr('style',  'background-color:#e3e3e3');
-			    		var row,col;
-			    		if (e.target.tagName == "TD") {
-			    			row = markedProducts[key].r - (Move.start_row - e.target.parentNode.rowIndex)+1;
-			    			col = markedProducts[key].c - (Move.start_col - e.target.cellIndex) + 1;
-			    		} else {
-			    			row = markedProducts[key].r - (Move.start_row - e.target.parentElement.parentNode.rowIndex)+1;
-			    			col = markedProducts[key].c - (Move.start_col - e.target.parentElement.cellIndex) + 1;
-			    		}
-			    		markedProducts[key].rEnd = row;
-			    		markedProducts[key].cEnd = col;
-			    		//console.log('Row:'+row+' '+key);
-			    		//console.log("Col:"+col+' '+key);
+		if(e.which == 1) {
+			console.log('Mouse move '+Move.move_products['start']+ ' '+Move.move_products['move']);
+		    if (Move.move_products['start'] && Move.move_products['move']) {
+		    	//////////////////////////////////////////////////
+		    	// MOVING ALREADY MARKED PRODUCTS!!
+		    	//////////////////////////////////////////////////
+		    	// unhighlight previous cells when moving products
+		    	for (var i = prevMovePosProduct.length - 1; i >= 0; i--) {
+		    		prevMovePosProduct[i].css('background-color', '#EEE' );
+	   				// unhighlight product
+		    		if (prevMovePosProduct[i].children() != []) {
+						prevMovePosProduct[i].children().removeClass('marked');
+					}
+		    	};
+		    	prevMovePosProduct = [];
 
-			    		var td_html = $( "#table2 tbody tr:nth-child("+row+") td:nth-child("+col+")");
-			    		//console.log("#table2 tbody tr:nth-child("+row+") td:nth-child("+col+")");
-						td_html.css('background-color', '#D93600' );
-						// highlight product
-			    		if (td_html.children() != []) {
-							td_html.children().addClass('marked');
-						}
-						prevMovePosProduct.push(td_html);   
-			    }
-			}
-	    }
-	    else if (Move.mouseStillDown) { // marking products
-	    	drawRect(e, Move.old_row, Move.old_col);
-	    }
+		    	// highligt cells on moving products
+				for (var key in markedProducts) { 
+				    if (markedProducts.hasOwnProperty(key)) {
+				    	//console.log('markedProducts'+key);
+				    	// .attr('style',  'background-color:#e3e3e3');
+				    		var row,col;
+				    		if (e.target.tagName == "TD") {
+				    			row = markedProducts[key].r - (Move.start_row - e.target.parentNode.rowIndex)+1;
+				    			col = markedProducts[key].c - (Move.start_col - e.target.cellIndex) + 1;
+				    		} else {
+				    			row = markedProducts[key].r - (Move.start_row - e.target.parentElement.parentNode.rowIndex)+1;
+				    			col = markedProducts[key].c - (Move.start_col - e.target.parentElement.cellIndex) + 1;
+				    		}
+				    		markedProducts[key].rEnd = row;
+				    		markedProducts[key].cEnd = col;
+				    		console.log(markedProducts[key].cEnd);
+				    		//console.log('Row:'+row+' '+key);
+				    		//console.log("Col:"+col+' '+key);
+
+				    		var td_html = $( "#table2 tbody tr:nth-child("+row+") td:nth-child("+col+")");
+				    		//console.log("#table2 tbody tr:nth-child("+row+") td:nth-child("+col+")");
+							td_html.css('background-color', '#D93600' );
+							// highlight product
+				    		if (td_html.children() != []) {
+								td_html.children().addClass('marked');
+							}
+							prevMovePosProduct.push(td_html);   
+				    }
+				}
+		    }
+		    else if (Move.mouseStillDown) { // marking products
+		    	drawRect(e, Move.old_row, Move.old_col);
+		    }
+		}
 	});
 
 	$("#table2").mousedown(function(e) {
-		$('.marked').removeClass('marked');
-		// unhighlight marked products
-		for (var key in newMarkedCells) {
-		    if (newMarkedCells.hasOwnProperty(key)) {
-		    	// .attr('style',  'background-color:#e3e3e3');
-		    	if ($('[name="'+key+'"]')[0].innerHTML.trim() != '') {
-		    		$('[name="'+key+'"] div').removeClass('marked');
-		    		//console.log($('[name="'+key+'"]')[0].innerHTML);
-		    	}
-		    }
+		if(e.which == 1) {
+			$('.marked').removeClass('marked');
+			// unhighlight marked products
+			for (var key in newMarkedCells) {
+			    if (newMarkedCells.hasOwnProperty(key)) {
+			    	// .attr('style',  'background-color:#e3e3e3');
+			    	if ($('[name="'+key+'"]')[0].innerHTML.trim() != '') {
+			    		$('[name="'+key+'"] div').removeClass('marked');
+			    		//console.log($('[name="'+key+'"]')[0].innerHTML);
+			    	}
+			    }
+			}
+		    Move.mouseStillDown = true;
+		    Move.start_x = e.pageX, Move.start_y = e.pageY;
+		    Move.start_row = e.target.parentNode.rowIndex+1, Move.start_col = e.target.cellIndex+1;
+		    // if button pressed to move products, then on mouse down start to move products
+		    if (Move.move_products['start']) {
+		    	Move.move_products['move'] = true;
+			}
+			else{
+				newMarkedCells = {};
+			}
+			console.log('Mouse down '+Move.move_products['start']);
 		}
-	    Move.mouseStillDown = true;
-	    Move.start_x = e.pageX, Move.start_y = e.pageY;
-	    Move.start_row = e.target.parentNode.rowIndex+1, Move.start_col = e.target.cellIndex+1;
-	    // if button pressed to move products, then on mouse down start to move products
-	    if (Move.move_products['start']) {
-	    	Move.move_products['move'] = true;
-		}
-		else{
-			newMarkedCells = {};
-		}
-		console.log(123);
 	});
-	
 
-	$("body").mouseup(function(e) {
-		//console.log(newMarkedCells);
-	    if (Move.mouseStillDown && Object.keys(newMarkedCells).length > 0) {
+	document.getElementById('right').oncontextmenu = function(e) {
+	   	console.log(newMarkedCells);
+	    if ( Object.keys(newMarkedCells).length > 0) {
 			if (!Move.move_products['move']) {
 				$('.modal-dialog').attr('style','left: '+(e.clientX)+'px; top: '+(e.clientY-10)+'px;');
 				$('#marked-modal').modal('show');
-		    	getMarkedProducts();
 			}
-	    	for (var key in newMarkedCells) {
-	    		// if new marked cell not in old then unmark it
-			    if (newMarkedCells.hasOwnProperty(key)) {
-					$('[name="'+key+'"]').css('background-color', '#EEEEEE' );
-				}
-			};
 		}
-		// if released mouse when moving many products, then apply new pos, palce products in new pos
-		if (Move.move_products['start'] && Move.move_products['move']) {
-			// check if products can be placed in new place
-			var lastTdIndex = $("#table2:first tr:nth-child(1) td:last-child")[0].cellIndex+1;
-			var is_valid = true;
-			// checks if product can be placed in new place
-			for (var key in markedProducts) {
-			    if (markedProducts.hasOwnProperty(key)) {
-			    	// new place is out of table bounds then don't placed
-		    		if (markedProducts[key].rEnd < 1 || markedProducts[key].rEnd > machineCount ||
-		    			markedProducts[key].cEnd < 1 /*|| markedProducts[key].cEnd > lastTdIndex*/) { 
-		    			//showError('Produkti neietilpst tabulā.');
-		    			is_valid = false;
-						$('.modal-dialog').attr('style','left: '+(e.clientX-80)+'px; top: '+(e.clientY-10)+'px;');
-						$('#error-modal').modal('show');
-						
-		    			break;
-		    		}
-				}
-			}
-			for (var key in markedProducts) {
-			    if (markedProducts.hasOwnProperty(key)) {
-					// old product place. remove all prev products
-					var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].r+") td:nth-child("+markedProducts[key].c+")");
-					td_html.css('background-color', '#EEE' );
-					// if new products is not out of table bounds
-					if (is_valid) {
-						td_html.html(''); 
+	    return false;
+	}
+
+	$("body").mouseup(function(e) {
+		if (e.which == 1) {
+
+			// unmark empty cells
+			if ( Object.keys(newMarkedCells).length > 0) {
+				for (var key in newMarkedCells) {
+		    		// if new marked cell not in old then unmark it
+				    if (newMarkedCells.hasOwnProperty(key)) {
+						$('[name="'+key+'"]').css('background-color', '#EEEEEE' );
 					}
-			    }
+				};
+				if (!Move.move_products['start']) getMarkedProducts();
+				Move.modal_action = true; // true if modal is not canceled
+	    		Move.move_products['start'] = true;
+	    		//Move.move_products['move'] = true;
+	    		console.log('Mouse up '+Move.move_products['start']);
 			}
-			//var shifted_rows = {};
-			for (var key in markedProducts) {
-			    if (markedProducts.hasOwnProperty(key)) {
-		    		// new product place. place new products in cells
-		    		var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")");
-					td_html.css('background-color', '#EEE' );
-					if (is_valid) {
-						// if row is not already shifted
-						//if (!shifted_rows[markedProducts[key].rEnd]) {
+			else {
+				Move.move_products['start'] = false; Move.move_products['move'] = false;
+			}
+			// if released mouse when moving many products, then apply new pos, palce products in new pos
+			if (Move.move_products['start'] && Move.move_products['move']) {
+				console.log('Place products');
+				// check if products can be placed in new place
+				var lastTdIndex = $("#table2:first tr:nth-child(1) td:last-child")[0].cellIndex+1;
+				var is_valid = true;
+				// checks if product can be placed in new place
+				for (var key in markedProducts) {
+				    if (markedProducts.hasOwnProperty(key)) {
+				    	// new place is out of table bounds then don't placed
+			    		if (markedProducts[key].rEnd < 1 || markedProducts[key].rEnd > machineCount ||
+			    			markedProducts[key].cEnd < 1 /*|| markedProducts[key].cEnd > lastTdIndex*/) { 
+			    			//showError('Produkti neietilpst tabulā.');
+			    			is_valid = false;
+							$('.modal-dialog').attr('style','left: '+(e.clientX-80)+'px; top: '+(e.clientY-10)+'px;');
+							$('#error-modal').modal('show');
+							
+			    			break;
+			    		}
+					}
+				}
+				for (var key in markedProducts) {
+				    if (markedProducts.hasOwnProperty(key)) {
+						// old product place. remove all prev products
+						var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].r+") td:nth-child("+markedProducts[key].c+")");
+						td_html.css('background-color', '#EEE' );
+						// if new products is not out of table bounds
+						if (is_valid) {
+							td_html.html(''); 
+						}
+				    }
+				}
+				//var shifted_rows = {};
+				for (var key in markedProducts) {
+				    if (markedProducts.hasOwnProperty(key)) {
+			    		// new product place. place new products in cells
+			    		var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")");
+						td_html.css('background-color', '#EEE' );
+						if (is_valid) {
 							// row's last td index
 							var rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
 							// row's first new product
@@ -610,26 +666,18 @@ $( document ).ready(function()
 								nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")")[0].innerHTML;
 
 								nextCell[0].innerHTML = currentCell;
-
-
-
-								//$( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")")[0].innerHTML = '';
-
 							};
-							//$( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")");
-						//}
-						// say that shifted row is true	
-						//shifted_rows[markedProducts[key].rEnd] = true;
-						td_html.html( getProductDiv(key, markedProducts[key].product, true));
-			    	}
-			    }
+							td_html.html( setProductDiv(key, markedProducts[key].product, true));
+				    	}
+				    }
+				}
+				REDIPS.drag.init();
+				markedProducts = {};
+				newMarkedCells = {};
 			}
-			REDIPS.drag.init();
 
+			Move.mouseStillDown = false;
 		}
-
-		Move.mouseStillDown = false;
-		Move.move_products['start'] = false; Move.move_products['move'] = false;
 	});
 
 	$('#delete-marked-bttn').click(function() { 
@@ -641,6 +689,8 @@ $( document ).ready(function()
 			}
 		};
 		newMarkedCells = {};	
+		markedProducts = {};
+		Move.move_products['start'] = false; Move.move_products['move'] = false;
     });
 
    	$('#marked-modal').on('hidden.bs.modal', function () {
@@ -715,7 +765,7 @@ function fillProducts(product, start, count) {
 						// update products colors
 						updateColor(product);
 						// put a product in cell
-						td_html.html( getProductDiv(td_html.attr("name"), product) ) ;
+						td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
 						addedTiles[td_html.attr("name")] = product;
 						// add to last filled products
 						filledProd.push(td_html.attr("name"));
@@ -826,7 +876,7 @@ function updateColor(product) { // get random color
     ###########################
 */
 
-function getProductDiv (name, product,marked) {
+function setProductDiv (name, product,marked) {
 	cls = (marked) ? ' marked' : '';
 	return '<div id="'+name+'" class="redips-drag blue'+cls+'" product="'+product+'"'+ 
 			'style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+product+'</div';
@@ -915,7 +965,7 @@ redips.init = function () {
 			// delete product
 			rd.deleteObject(rd.obj);
 			// make product in same place to allow drag marked products when start click is on product not on table
-			$(currentCell).html(getProductDiv( $(currentCell).attr('name'), $(temp_obj).attr('product')) );
+			$(currentCell).html(setProductDiv( $(currentCell).attr('name'), $(temp_obj).attr('product')) );
 			REDIPS.drag.init();
 			Move.mouseStillDown = true;
 			Move.start_x = $(currentCell).offset().left, Move.start_y = $(currentCell).offset().top;
@@ -932,7 +982,7 @@ redips.init = function () {
 			// delete product
 			rd.deleteObject(rd.obj);
 			// make product in same place to allow drag marked products when start click is on product not on table
-			$(currentCell).html(getProductDiv( $(currentCell).attr('name'), $(temp_obj).attr('product')) );
+			$(currentCell).html(setProductDiv( $(currentCell).attr('name'), $(temp_obj).attr('product')) );
 			REDIPS.drag.init();
 		}
 		

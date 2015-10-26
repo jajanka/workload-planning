@@ -12,7 +12,7 @@ if (isset($_POST['get_year']) && is_numeric($_POST['get_year']))
 	$start_date = (string)$year."-01-01";
 	$end_date = (string)$year."-12-31";
 
-	$selectQ = "SELECT * FROM calendar WHERE week_day >= :start_date AND week_day <= :end_date";
+	$selectQ = "SELECT * FROM calendar WHERE week_day >= :start_date AND week_day <= :end_date ORDER BY week_day ASC";
 
 	try
 	{
@@ -29,6 +29,7 @@ if (isset($_POST['get_year']) && is_numeric($_POST['get_year']))
 				echo '<tr><td colspan="5" style="text-align:center; background-color:#337AB7; color: #fff; font-size: 16px;">'.$month[$curMonth].'</td></tr>';
 			}
 			$curMonth = date("n",strtotime($value[0]));
+			//$curMonth = ($curMonth > 10) ? 11 : $curMonth;
 			echo '<tr>
 		        <td></td>
 		        <td id="'.$value[0].'">'.$value[0].' <span style="font-weight: bold;">'.$week_days[date("N", strtotime($value[0]))-1].'</span></td>

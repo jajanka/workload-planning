@@ -1,5 +1,19 @@
 var datesToSave = {};
 
+// use: when post/get data then ajax gif loader shows
+$(document).ajaxStop(function(){
+    console.debug("ajaxStop");
+    $("#ajax_loader img").hide();
+    $("#ajax_loader").hide();
+    $("#calendarTable").show();
+ });
+ $(document).ajaxStart(function(){
+     console.debug("ajaxStart");
+     $("#calendarTable").hide();
+     $("#ajax_loader img").show();
+     $("#ajax_loader").show();
+ });
+
 $(document).ready(function () {
   //called when key is pressed in textbox
 	$("#add-year").keypress(function (e) {
@@ -85,6 +99,22 @@ $(document).ready(function () {
 
 	});
 
+	var clonedHeaderRow;
+
+   $("#calendarTable").each(function() {
+       clonedHeaderRow = $(".persist-header", this);
+       clonedHeaderRow
+         .before(clonedHeaderRow.clone())
+         .css("width", clonedHeaderRow.width())
+         .addClass("floatingHeader");
+         
+   });
+   
+   $(window)
+    .scroll(UpdateTableHeaders)
+    .trigger("scroll");
+
+
 });
 
 function showError(text, type) {
@@ -94,4 +124,25 @@ function showError(text, type) {
 		'<strong>'+alertType+'</strong> '+text+'</div>');
 	$(".alert").fadeIn(25);
 	setTimeout(function(){ $('.alert').alert('close'); }, 5000);
+}
+
+
+function UpdateTableHeaders() {
+   $("#calendarTable").each(function() {
+   
+       var el             = $(this),
+           offset         = el.offset(),
+           scrollTop      = $(window).scrollTop(),
+           floatingHeader = $(".floatingHeader", this)
+       
+       if ((scrollTop > offset.top) && (scrollTop < offset.top + el.height())) {
+           floatingHeader.css({
+            "visibility": "visible"
+           });
+       } else {
+           floatingHeader.css({
+            "visibility": "hidden"
+           });      
+       };
+   });
 }
