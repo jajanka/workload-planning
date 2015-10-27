@@ -17,17 +17,21 @@ try
 		$total_kg_h = number_format($value[4] / $kg_h, 3);
 
 		echo '<tr>
-			<td><button type="button" class="btn btn-default" aria-label="Left Align" id="p'.$value[0].'">
+			<td><button type="button" class="btn btn-success info" aria-label="Left Align" id="p'.$value[0].'">
 			  <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
 			</button>
 			</td>
-	        <td>'.$value[1].'</td>
-	        <td>'.$value[2].'</td>
-	        <td>'.$value[3].'</td>
-	        <td>'.$kg_h.'</td>
-	        <td>'.$value[4].'</td>
-	        <td>'.$total_kg_h.'</td>
-	        <td>'.$value[5].' %</td>
+	        <td class="td1">'.$value[1].'</td>
+	        <td class="td2">'.$value[2].'</td>
+	        <td class="td3">'.$value[3].'</td>
+	        <td class="td4">'.$kg_h.'</td>
+	        <td class="td5">'.$value[4].'</td>
+	        <td class="td6">'.$total_kg_h.'</td>
+	        <td class="td7">'.$value[5].'</td>
+	        <td><button type="button" 
+	        class="btn btn-danger delete hidden" aria-label="Left Align" id="del'.$value[0].'">
+	        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+	       </td>
 	      </tr>';
 
 	     $curProduct++;

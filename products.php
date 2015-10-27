@@ -10,26 +10,18 @@
 	    <div class="panel-body">
 	    	<div class="form-inline">
 				<div class="form-group">
-					<label for="bttn-add-year">...</label>
+					<label for="bttn-add-year">Pievienot produktu</label>
 					<div class="form-inline">
 				    	<input type="text" class="form-control" id="add-year" maxlength="4" placeholder="...">
 				    	<button type="submit" class="btn btn-primary" id="bttn-add-year" style="margin-right: 20px;">...</button>
 				  	</div>
 				</div>
 
-				<div class="form-group">
-					<label for="bttn-show-year">...</label>
-					<div class="form-inline">
-						<select class="form-control" id="getYear">
-						</select>
-						<button type="submit" class="btn btn-primary" id="bttn-show-year">...</button>
-					</div> 
-				</div>
 				<div class="form-group" style="float: right; margin-top: 25px;">
 					
 					<div class="form-inline">
-					<label for="bttn-save-year">...</label>
-						<button type="submit" class="btn btn-success" id="bttn-save-year">...</button>
+					<label for="bttn-save-year">Saglabāt izmaiņas</label>
+						<button type="submit" class="btn btn-success" id="bttn-save-year">Saglabāt</button>
 					</div> 
 				</div>
 
@@ -39,19 +31,25 @@
 
 	  <div id="message"></div>
 		                        
-		  <div class="table-responsive" style="margin-top: 20px;">      
-		  <h2>Produkti</h2>    
+		  <div class="table-responsive" style="margin-top: 20px;">  
+		  <div class="form-inline">
+				<label for="bttn-add-product" id="labelProduct">Produkti
+				<button type="submit" class="btn btn-default" id="bttn-add-product"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button></label>
+				
+			</div>
+		  
 		  <table class="table table-striped" id="productsTable">
 		    <thead class="persist-header">
 		      <tr>
-		        <th>#</th>
+		        <th>Info</th>
 		        <th>Produkts</th>
 		        <th>Svars</th>
 		        <th>m/min</th>
 		        <th>Kg/h</th>
 		        <th>Mašīnu skaits</th>
 		        <th>Kopējais kg/h</th>
-		        <th>Efektivitāte</th>
+		        <th>Efektivitāte %</th>
+		        <th style="width: 50px;"></th>
 		      </tr>
 		    </thead>
 		    <tbody>

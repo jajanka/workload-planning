@@ -272,3 +272,15 @@ div#redips-drag table td,th {
 .floatingHeader th {
   //width: 1% !important;
 }
+#labelProduct {
+	font-size: 30px !important; 
+	font-weight: 500 !important; 
+	margin-top: 20px;
+    margin-bottom: 10px;
+    padding: 0px;
+}
+#bttn-add-product {
+	font-size:0.8em;
+	padding: 0px 2px 4px 4px !important;
+}
+#labelProduct > button { vertical-align: middle }

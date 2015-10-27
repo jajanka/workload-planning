@@ -23,6 +23,7 @@ if (isset($_POST['get_year']) && is_numeric($_POST['get_year']))
 		$res = $pdo->fetchAll(PDO::FETCH_NUM);
 		
 		$curMonth = 0;
+		$curDay = 1;
 		foreach ($res as $key => $value) {
 			if ( date("n",strtotime($value[0])) != $curMonth)
 			{		
@@ -31,7 +32,7 @@ if (isset($_POST['get_year']) && is_numeric($_POST['get_year']))
 			$curMonth = date("n",strtotime($value[0]));
 			//$curMonth = ($curMonth > 10) ? 11 : $curMonth;
 			echo '<tr>
-		        <td></td>
+		        <td>'.$curDay.'</td>
 		        <td id="'.$value[0].'">'.$value[0].' <span style="font-weight: bold;">'.$week_days[date("N", strtotime($value[0]))-1].'</span></td>
 		        <td class="'.(($value[1])? "danger":"").'"><div class="checkbox">
 					  <label>
@@ -56,6 +57,7 @@ if (isset($_POST['get_year']) && is_numeric($_POST['get_year']))
 					</div></td>
 
 		      </tr>';
+		      $curDay++;
 		}	
 	}
 	catch(PDOException $e)
