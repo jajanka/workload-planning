@@ -21,7 +21,7 @@
 					
 					<div class="form-inline">
 					<label for="bttn-save-year">Saglabāt izmaiņas</label>
-						<button type="submit" class="btn btn-success" id="bttn-save-year">Saglabāt</button>
+						<button type="submit" class="btn btn-success" id="bttn-save-products">Saglabāt</button>
 					</div> 
 				</div>
 
@@ -86,8 +86,8 @@
 			  </div>
 		    </div>
 	      <div class="modal-footer">
-	        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-	        <button type="button" class="btn btn-primary">Save changes</button>
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Aizvērt</button>
+	        <button type="button" class="btn btn-success" id="bttn-save-modal"">Saglabāt</button>
 	      </div>
 	    </div><!-- /.modal-content -->
 	  </div><!-- /.modal-dialog -->

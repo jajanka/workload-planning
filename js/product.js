@@ -56,13 +56,34 @@ $(document).ready(function () {
 	});
 
 	//if the letter is not digit then display error and don't type anything
-	$('#productsTable').on('keypress', 'td2', function(e) {
+	$('#productsTable').on('keyup', '.td1', function(e) {
+		console.log('keypress');
+		var curThis = this;
+		var row = this.parentNode.rowIndex;
+		var text = $(this).text();
+		var cleanCol = true;
+	    $( "#productsTable tbody tr td:nth-child(2)" ).each(function() {
+	    	if (row != this.parentNode.rowIndex) {
+	    		if (text == $(this).text() || text.trim() == "") {
+	    			console.log('same');
+	    			$(curThis).addClass('danger');
+	    			cleanCol = false;	
+	    			$('#bttn-save-products').prop('disabled', true);
+	    		}
+	    	}
+	    })
+	    if (cleanCol) {
+	    	$(curThis).removeClass('danger');
+	    	$('#bttn-save-products').prop('disabled', false);
+	    }
+	});
+	$('#productsTable').on('keypress', '.td2', function(e) {
 	    if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) return false;
 	});
-	$('#productsTable').on('keypress', 'td3', function(e) {
+	$('#productsTable').on('keypress', '.td3', function(e) {
 	    if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) return false;
 	});
-	$('#productsTable').on('keypress', 'td7', function(e) {
+	$('#productsTable').on('keypress', '.td7', function(e) {
 	    if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) return false;
 	});
 
@@ -120,7 +141,7 @@ $('body').on('focus', '[contenteditable]', function() {
     // new added row html
     var newRow = '<tr><td><button type="button" class="btn btn-success info" aria-label="Left Align" id="a">'+
     		'<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button></td>'+
-    		'<td class="td1"></td><td class="td2"></td><td class="td3"></td><td class="td4"></td>'+
+    		'<td class="td1">...</td><td class="td2">1000</td><td class="td3">1000</td><td class="td4"></td>'+
     		'<td class="td5">1</td><td class="td6"></td><td class="td7">90</td>'+
     		'<td><button type="button" class="btn btn-danger delete hidden" aria-label="Left Align" id="del">'+
 	        '<span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>'+
@@ -130,6 +151,8 @@ $('body').on('focus', '[contenteditable]', function() {
 	$("#bttn-add-product").click(function (e) {
 		$("#productsTable tbody").prepend(newRow);
 		$(".delete").confirmation();
+		$('#productsTable tbody tr:nth-child(1) td:nth-child(2)').addClass('danger');	
+	    $('#bttn-save-products').prop('disabled', true);
 	});
 
 	// shows delete icon in the end of row
@@ -140,6 +163,20 @@ $('body').on('focus', '[contenteditable]', function() {
 	$('#productsTable').on("mouseleave", "tbody tr", function() {
 	   	$(this).find('td .btn-danger').last().addClass('hidden');
 	});
+	///////////////////////////////////
+	///////////////////////////////////
+
+	var modalProdSave = {};
+	$("#bttn-save-modal").click(function (e) {
+		$( "#productsInfoTable tbody tr" ).each(function() {
+			// if checkbox is checked
+		  	if ( $( this ).find('td:nth-child(1) input').is(":checked") ) {
+		  		var comment = $( this ).find('td:nth-child(2) input').val();
+		  		modalProdSave[$( this ).find('td:nth-child(1) label').text()] = comment;
+		  	}
+		});
+		console.log(modalProdSave);
+	})
 
 });
 
