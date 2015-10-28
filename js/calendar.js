@@ -85,8 +85,8 @@ $(document).ready(function () {
 		console.log(datesToSave);
 	});
 
-	$("#bttn-save-year").click(function (e) {
-
+	$(document).on('click','#bttn-save-year', function (e) {
+		console.log('asd');
 		$.post( "php/calendar_save.php", {update: JSON.stringify(datesToSave)})
 		// when post is finished
 		.done(function( data ) {

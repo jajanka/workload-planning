@@ -258,7 +258,9 @@ div#redips-drag table td,th {
 	border-style: inherit;
 	//border-color: #ccc;
 }
+#calendarTable .checkbox { margin-top: 0px; margin-bottom: 0px;}
 #productsTable td, #productsInfoTable td {text-align: center;}
+#productsTable button {margin: 0px !important;}
 #productModal .checkbox { margin-top: 0px; margin-bottom: 0px;}
 
 .floatingHeader {
@@ -270,7 +272,9 @@ div#redips-drag table td,th {
 
 }
 .floatingHeader th {
-  //width: 1% !important;
+  line-height: 35px !important;
+  height: 50px !important;
+  background-color: white;
 }
 #labelProduct {
 	font-size: 30px !important; 

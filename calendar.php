@@ -29,13 +29,6 @@
 						<button type="submit" class="btn btn-primary" id="bttn-show-year">Labi</button>
 					</div> 
 				</div>
-				<div class="form-group" style="float: right; margin-top: 25px;">
-					
-					<div class="form-inline">
-					<label for="bttn-save-year">Saglabāt izmaiņas</label>
-						<button type="submit" class="btn btn-success" id="bttn-save-year">Saglabāt</button>
-					</div> 
-				</div>
 
 			</div>
 	    </div>
@@ -56,6 +49,7 @@
 		        <th>1. maiņa 22:00 - 06:00</th>
 		        <th>2. maiņa 06:00 - 14:00</th>
 		        <th>3. maiņa 14:00 - 22:00</th>
+		        <th style="width: 50px;"><button type="submit" class="btn btn-primary" id="bttn-save-year">Saglabāt</button></th>
 		      </tr>
 		    </thead>
 		    <tbody>

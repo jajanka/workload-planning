@@ -27,7 +27,7 @@ if (isset($_POST['get_year']) && is_numeric($_POST['get_year']))
 		foreach ($res as $key => $value) {
 			if ( date("n",strtotime($value[0])) != $curMonth)
 			{		
-				echo '<tr><td colspan="5" style="text-align:center; background-color:#337AB7; color: #fff; font-size: 16px;">'.$month[$curMonth].'</td></tr>';
+				echo '<tr><td colspan="6" style="text-align:center; background-color:#337AB7; color: #fff; font-size: 16px;">'.$month[$curMonth].'</td></tr>';
 			}
 			$curMonth = date("n",strtotime($value[0]));
 			//$curMonth = ($curMonth > 10) ? 11 : $curMonth;
@@ -55,6 +55,7 @@ if (isset($_POST['get_year']) && is_numeric($_POST['get_year']))
 						</label>
 					  </label>
 					</div></td>
+				<td></td>
 
 		      </tr>';
 		      $curDay++;

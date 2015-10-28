@@ -1,4 +1,5 @@
-var datesToSave = {};
+var prodsToSave = [];
+var Product = {};
 
 // use: when post/get data then ajax gif loader shows
 $(document).ajaxStop(function(){
@@ -17,6 +18,16 @@ $(document).ajaxStop(function(){
 
 $(document).ready(function () {
 
+	$("#productsTable tbody tr").each(function() {
+		var pid = $(this).find('td:nth-child(1) button').attr('name');
+		var pname = $(this).find('td:nth-child(2)').text();
+		var pweight = $(this).find('td:nth-child(3)').text();
+		var pm_min = $(this).find('td:nth-child(4)').text();
+		var peff = $(this).find('td:nth-child(8)').text();
+		prodsToSave.push({'pid': pid, 'name': pname, 'weight': pweight, 
+						'm_min': pm_min, 'eff': peff, 'modal': undefined, 'status':'loaded'});
+	})
+
 	var confirmOptions = {title: "Dzēst?", btnOkLabel: "Jā", btnCancelLabel: "Nē", singleton: true, onCancel: function(){
 		$(this).addClass('hidden'); 
 		}
@@ -24,8 +35,9 @@ $(document).ready(function () {
 
 	// allow click on new generated buttons
 	$(document).on('click', '#productsTable .delete', function() {
-		$(this).parent().parent().remove()
-		console.log('delete');
+		// delete modal product info about this deleted product
+		prodsToSave.splice($(this).parent().parent()[0].rowIndex-2, 1);
+		$(this).parent().parent().remove();
 	})
 	// init yes/no box on delete
 	$(".delete").confirmation(confirmOptions);
@@ -56,38 +68,67 @@ $(document).ready(function () {
 	});
 
 	//if the letter is not digit then display error and don't type anything
-	$('#productsTable').on('keyup', '.td1', function(e) {
-		console.log('keypress');
+	$('#productsTable').on('blur keyup paste input', 'tbody .td1', function(e) {
 		var curThis = this;
 		var row = this.parentNode.rowIndex;
 		var text = $(this).text();
-		var cleanCol = true;
+		var cleanCell = true, cleanCol = true;
+		prodsToSave[row-2]['status'] = (prodsToSave[row-2]['status'] == 'loaded')? 'moded': prodsToSave[row-2]['status'];
+		// checks if this product name is unique in all prducts name column
 	    $( "#productsTable tbody tr td:nth-child(2)" ).each(function() {
-	    	if (row != this.parentNode.rowIndex) {
+	    	if (row != this.parentNode.rowIndex) { // cheks when it's not comparing to it self
 	    		if (text == $(this).text() || text.trim() == "") {
 	    			console.log('same');
-	    			$(curThis).addClass('danger');
-	    			cleanCol = false;	
+	    			$(curThis).addClass('danger');	
+	    			cleanCell = false;
 	    			$('#bttn-save-products').prop('disabled', true);
+	    			$(curThis).parent().find('td:nth-child(1) button').prop('disabled', true);
+	    		}
+	    		if ($(this).hasClass('danger')) {
+	    			cleanCol = false;
+	      			$('#bttn-save-products').prop('disabled', true);
 	    		}
 	    	}
 	    })
-	    if (cleanCol) {
+	    if (cleanCell) {
 	    	$(curThis).removeClass('danger');
+	    	// disable info button
+	    	$(curThis).parent().find('td:nth-child(1) button').prop('disabled', false);
+	    	// change products name
+			prodsToSave[row-2]['name'] = text;
+		}
+	    if (cleanCell && cleanCol) {
 	    	$('#bttn-save-products').prop('disabled', false);
 	    }
 	});
-	$('#productsTable').on('keypress', '.td2', function(e) {
-	    if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) return false;
+	$('#productsTable').on('keyup', '.td2', function(e) {
+	    var row = this.parentNode.rowIndex-2;
+	    prodsToSave[row]['status'] = (prodsToSave[row]['status'] == 'loaded')? 'moded': prodsToSave[row]['status'];
+	    prodsToSave[row]['weight'] = $(this).text();
+	    isRowValid(this);
 	});
-	$('#productsTable').on('keypress', '.td3', function(e) {
-	    if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) return false;
+	$('#productsTable').on('keyup', '.td3', function(e) {
+	    var row = this.parentNode.rowIndex-2;
+	    prodsToSave[row]['status'] = (prodsToSave[row]['status'] == 'loaded')? 'moded': prodsToSave[row]['status'];
+	    prodsToSave[row]['m_min'] = $(this).text();
+	    isRowValid(this);
 	});
-	$('#productsTable').on('keypress', '.td7', function(e) {
-	    if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) return false;
+	$('#productsTable').on('keyup', '.td7', function(e) {
+	    var row = this.parentNode.rowIndex-2;
+	    prodsToSave[row]['status'] = (prodsToSave[row]['status'] == 'loaded')? 'moded': prodsToSave[row]['status'];
+	    prodsToSave[row]['eff'] = $(this).text();
+	    isRowValid(this);
 	});
 
-
+	function isRowValid(t) {
+		for (var i = 3; i <= 8; i++) {
+			if ( !isNumber($(t).parent().find('td:nth-child('+i+')').text()) ){
+				$('#bttn-save-products').prop('disabled', true);
+				return;
+			}
+		};
+		$('#bttn-save-products').prop('disabled', false);
+	}
 
 $('body').on('focus', '[contenteditable]', function() {
 
@@ -106,22 +147,44 @@ $('body').on('focus', '[contenteditable]', function() {
 
 	// info modal for products
 	$("#productsTable").on('click', '.info', function() {
-		console.log('info');
-		product_name = $("#"+this.id).parent().closest("td").next()[0].innerHTML;
-		$('#productModal .modal-title')[0].innerHTML = product_name;
-		
+		// current product
+		var productName = $(this).parent().parent().find('td:nth-child(2)').text();
+		Product['curModalProduct'] = productName;
+		/////////////////
+		// curent row index
+		Product['curRow'] = $(this).parent().parent()[0].rowIndex - 2;
+		// set id to product name
+		$(this).attr('id', 'productName')
+
+		$('#productModal .modal-title')[0].innerHTML = productName;
+		// set overll comment 
+		if (prodsToSave[Product['curRow']]['modal'] !== undefined) 
+			$('#overallComment').val(prodsToSave[Product['curRow']]['modal']['info']);
+
 		var td_html = '';
 		for (var i = 1; i <= 21; i++) 
 		{
+			var comment = '';
+			var is_checked = 'unchecked';
+			if (prodsToSave[Product['curRow']]['modal'] !== undefined) {
+				if (prodsToSave[Product['curRow']]['modal'][i] !== undefined) {
+				 	comment = prodsToSave[Product['curRow']]['modal'][i];
+				 	is_checked = 'checked';
+				}
+			}
 			td_html += '<tr>';
-			td_html += '<td><div class="checkbox"><label><input type="checkbox">'+i+'</label></div></td>';
-			td_html += '<td><input type="text" class="form-control input-sm"></td>';
+			td_html += '<td><div class="checkbox"><label><input type="checkbox" '+is_checked+'>'+i+'</label></div></td>';
+			td_html += '<td><input type="text" class="form-control input-sm" value="'+comment+'"></td>';
+				
 			td_html += '</tr>';
 		};
 		$('#productsInfoTable tbody').html(td_html);
     	$('#productModal').modal('show');
-	});;
+	});
 
+	$('#productModal').on('hidden.bs.modal', function () {
+		$('#overallComment').val('');
+	})
 
 	var clonedHeaderRow;
 	// for static header on top. clone
@@ -139,9 +202,9 @@ $('body').on('focus', '[contenteditable]', function() {
     .trigger("scroll");
 
     // new added row html
-    var newRow = '<tr><td><button type="button" class="btn btn-success info" aria-label="Left Align" id="a">'+
+    var newRow = '<tr><td><button type="button" class="btn btn-success info" aria-label="Left Align" id="" name="new" disabled>'+
     		'<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button></td>'+
-    		'<td class="td1">...</td><td class="td2">1000</td><td class="td3">1000</td><td class="td4"></td>'+
+    		'<td class="td1"></td><td class="td2">1000</td><td class="td3">500</td><td class="td4"></td>'+
     		'<td class="td5">1</td><td class="td6"></td><td class="td7">90</td>'+
     		'<td><button type="button" class="btn btn-danger delete hidden" aria-label="Left Align" id="del">'+
 	        '<span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>'+
@@ -150,6 +213,7 @@ $('body').on('focus', '[contenteditable]', function() {
 	// add new row on + click
 	$("#bttn-add-product").click(function (e) {
 		$("#productsTable tbody").prepend(newRow);
+		prodsToSave.unshift({'pid':'new','name': '', 'weight': 1000, 'm_min': 500, 'eff': 90, 'modal': undefined, 'status':'new'});
 		$(".delete").confirmation();
 		$('#productsTable tbody tr:nth-child(1) td:nth-child(2)').addClass('danger');	
 	    $('#bttn-save-products').prop('disabled', true);
@@ -166,16 +230,33 @@ $('body').on('focus', '[contenteditable]', function() {
 	///////////////////////////////////
 	///////////////////////////////////
 
-	var modalProdSave = {};
 	$("#bttn-save-modal").click(function (e) {
-		$( "#productsInfoTable tbody tr" ).each(function() {
+		var curProd = Product['curModalProduct'];
+		var cRow = Product['curRow'];
+		var Modal = {};
+		Modal['info'] = $('#overallComment').val();
+		// empty modal textarea
+		$('#overallComment').val('');
+
+		$( "#productsInfoTable tbody tr" ).each(function() {	
 			// if checkbox is checked
 		  	if ( $( this ).find('td:nth-child(1) input').is(":checked") ) {
+		  		var cbLabel = $( this ).find('td:nth-child(1) label').text();
 		  		var comment = $( this ).find('td:nth-child(2) input').val();
-		  		modalProdSave[$( this ).find('td:nth-child(1) label').text()] = comment;
+		  		console.log(comment);
+		  		Modal[cbLabel] = comment;
 		  	}
 		});
-		console.log(modalProdSave);
+		prodsToSave[cRow]['modal'] = Modal;
+		prodsToSave[cRow]['status'] = (prodsToSave[cRow]['status'] == 'loaded')? 'moded': prodsToSave[cRow]['status'];
+		console.log(Modal);
+	})
+
+	$("#bttn-save-products").click(function (e) {
+		jsonTable = JSON.stringify(prodsToSave);
+
+
+		console.log(jsonTable);
 	})
 
 });
@@ -196,6 +277,10 @@ function cellEdit(cell) {
     } else {
         $(cell).attr("contentEditable","true");
     }
+}
+
+function isNumber(n) {
+  return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
 var header_lag_fix = true;
