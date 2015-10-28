@@ -17,7 +17,8 @@ $(document).ajaxStop(function(){
 
 
 $(document).ready(function () {
-
+	// reckons only deleted loaded products
+	var deletedProducts = [];
 	$("#productsTable tbody tr").each(function() {
 		var pid = $(this).find('td:nth-child(1) button').attr('name');
 		var pname = $(this).find('td:nth-child(2)').text();
@@ -25,7 +26,7 @@ $(document).ready(function () {
 		var pm_min = $(this).find('td:nth-child(4)').text();
 		var peff = $(this).find('td:nth-child(8)').text();
 		prodsToSave.push({'pid': pid, 'name': pname, 'weight': pweight, 
-						'm_min': pm_min, 'eff': peff, 'modal': undefined, 'status':'loaded'});
+						'm_min': pm_min, 'eff': peff, 'modal': '', 'status':'loaded'});
 	})
 
 	var confirmOptions = {title: "Dzēst?", btnOkLabel: "Jā", btnCancelLabel: "Nē", singleton: true, onCancel: function(){
@@ -35,9 +36,28 @@ $(document).ready(function () {
 
 	// allow click on new generated buttons
 	$(document).on('click', '#productsTable .delete', function() {
+		// get products status
+		var status = prodsToSave[$(this).parent().parent()[0].rowIndex-2]['status'];
+		// if loaded product is deleted add it do deleted products arrays
+		if (status == 'loaded' || status == 'moded') {
+			deletedProducts.push($(this).parent().parent().find('td:nth-child(1) button').attr('name'));
+		}
+		console.log(deletedProducts);
 		// delete modal product info about this deleted product
 		prodsToSave.splice($(this).parent().parent()[0].rowIndex-2, 1);
 		$(this).parent().parent().remove();
+
+		// on deletion check if save button should be enabled
+		var enableSave = true;
+		$( "#productsTable tbody tr td:nth-child(2)" ).each(function() {
+			if ($(this).hasClass('danger')){
+				enableSave = false;
+			}
+		})
+		if (enableSave) {
+			$('#bttn-save-products').prop('disabled', false);
+			clonedHeaderRow.find('button').prop('disabled', false);
+		}
 	})
 	// init yes/no box on delete
 	$(".delete").confirmation(confirmOptions);
@@ -82,11 +102,13 @@ $(document).ready(function () {
 	    			$(curThis).addClass('danger');	
 	    			cleanCell = false;
 	    			$('#bttn-save-products').prop('disabled', true);
+	    			clonedHeaderRow.find('button').prop('disabled', true);
 	    			$(curThis).parent().find('td:nth-child(1) button').prop('disabled', true);
 	    		}
 	    		if ($(this).hasClass('danger')) {
 	    			cleanCol = false;
 	      			$('#bttn-save-products').prop('disabled', true);
+	      			clonedHeaderRow.find('button').prop('disabled', true);
 	    		}
 	    	}
 	    })
@@ -94,11 +116,13 @@ $(document).ready(function () {
 	    	$(curThis).removeClass('danger');
 	    	// disable info button
 	    	$(curThis).parent().find('td:nth-child(1) button').prop('disabled', false);
+	    	clonedHeaderRow.find('button').prop('disabled', false);
 	    	// change products name
 			prodsToSave[row-2]['name'] = text;
 		}
 	    if (cleanCell && cleanCol) {
 	    	$('#bttn-save-products').prop('disabled', false);
+	    	clonedHeaderRow.find('button').prop('disabled', false);
 	    }
 	});
 	$('#productsTable').on('keyup', '.td2', function(e) {
@@ -124,10 +148,12 @@ $(document).ready(function () {
 		for (var i = 3; i <= 8; i++) {
 			if ( !isNumber($(t).parent().find('td:nth-child('+i+')').text()) ){
 				$('#bttn-save-products').prop('disabled', true);
+				clonedHeaderRow.find('button').prop('disabled', true);
 				return;
 			}
 		};
 		$('#bttn-save-products').prop('disabled', false);
+		clonedHeaderRow.find('button').prop('disabled', false);
 	}
 
 $('body').on('focus', '[contenteditable]', function() {
@@ -158,7 +184,7 @@ $('body').on('focus', '[contenteditable]', function() {
 
 		$('#productModal .modal-title')[0].innerHTML = productName;
 		// set overll comment 
-		if (prodsToSave[Product['curRow']]['modal'] !== undefined) 
+		if (prodsToSave[Product['curRow']]['modal'] != '') 
 			$('#overallComment').val(prodsToSave[Product['curRow']]['modal']['info']);
 
 		var td_html = '';
@@ -166,7 +192,7 @@ $('body').on('focus', '[contenteditable]', function() {
 		{
 			var comment = '';
 			var is_checked = 'unchecked';
-			if (prodsToSave[Product['curRow']]['modal'] !== undefined) {
+			if (prodsToSave[Product['curRow']]['modal'] != '') {
 				if (prodsToSave[Product['curRow']]['modal'][i] !== undefined) {
 				 	comment = prodsToSave[Product['curRow']]['modal'][i];
 				 	is_checked = 'checked';
@@ -213,10 +239,11 @@ $('body').on('focus', '[contenteditable]', function() {
 	// add new row on + click
 	$("#bttn-add-product").click(function (e) {
 		$("#productsTable tbody").prepend(newRow);
-		prodsToSave.unshift({'pid':'new','name': '', 'weight': 1000, 'm_min': 500, 'eff': 90, 'modal': undefined, 'status':'new'});
+		prodsToSave.unshift({'pid':'new','name': '', 'weight': 1000, 'm_min': 500, 'eff': 90, 'modal': '', 'status':'new'});
 		$(".delete").confirmation();
 		$('#productsTable tbody tr:nth-child(1) td:nth-child(2)').addClass('danger');	
 	    $('#bttn-save-products').prop('disabled', true);
+	    clonedHeaderRow.find('button').prop('disabled', true);
 	});
 
 	// shows delete icon in the end of row
@@ -253,11 +280,30 @@ $('body').on('focus', '[contenteditable]', function() {
 	})
 
 	$("#bttn-save-products").click(function (e) {
-		jsonTable = JSON.stringify(prodsToSave);
-
-
+		console.log('sd');
+		var upsertData = [];
+		for (var i = prodsToSave.length - 1; i >= 0; i--) {
+			// push only new or modified products
+			if ( prodsToSave[i]['status'] != 'loaded') {
+				upsertData.push(prodsToSave[i]);
+			}
+		};
+		jsonTable = JSON.stringify(upsertData);
+		jsonDelete = JSON.stringify(deletedProducts);
 		console.log(jsonTable);
-	})
+		console.log(jsonDelete);
+		$.post( "php/products_save.php", {upsert: jsonTable, del: jsonDelete})
+		// when post is finished
+		.done(function( data ) {
+			showError('Dati saglabāti.', 'success');
+			//alert(data);
+			location.reload();
+		})
+		.fail( function( data ) {
+		    showError("Nevar saglabāt datus.", 'danger');
+		});
+
+	});
 
 });
 

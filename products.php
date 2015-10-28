@@ -4,16 +4,16 @@
 	?>
 		<script type="text/javascript" src="js/product.js"></script>
 		<div class="container">
-
-	  <div id="message"></div>
 		                        
 		  <div class="table-responsive" style="margin-top: 20px;">  
 		  <div class="form-inline" style="max-width: 960px; margin: 0px auto">
 				<label for="bttn-add-product" id="labelProduct">Produkti
 				<button type="submit" class="btn btn-default" id="bttn-add-product"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button></label>
 				
-			</div>
-		  
+		  </div>
+
+		  <div id="message"></div>
+
 		  <table class="table table-striped" id="productsTable">
 		    <thead class="persist-header">
 		      <tr>

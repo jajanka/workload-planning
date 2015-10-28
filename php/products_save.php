@@ -1,27 +1,27 @@
 <?php
 
-if (isset($_POST['modalP']) && is_numeric($_POST['tableP'])) 
+if (isset($_POST['upsert']) && isset($_POST['del'])) 
 {
 	require('../../h/postgres_cmp.php');
 
-	$year = $_POST['get_year'];
-	$start_date = (string)$year."-01-01";
-	$end_date = (string)$year."-12-31";
+	$upsert = json_decode($_POST['upsert'], true);
+	$del = json_decode($_POST['del'], true);
 
-	$selectQ = "SELECT * FROM calendar WHERE week_day >= :start_date AND week_day <= :end_date ORDER BY week_day ASC";
-
+	
+	$insertQ = "INSERT INTO products (p_name, weigth, m_speed, efficiency_percentage, allowed_machines, record_time) 
+			VALUES (:p_name, :weigth, :m_speed, :efficiency_percentage, :allowed_machines, :record_time)";
+	$updateQ = "UPDATE products SET p_name = :p_name, weigth = :weigth, m_speed = :m_speed, 
+			efficiency_percentage = :efficiency_percentage, allowed_machines = :allowed_machines, 
+			record_time = :record_time WHERE pid = :pid";
+	$deleteQ = "DELETE FROM products WHERE pid = :pid";
+	//print_r($del);
 	try
 	{
-		$pdo = $pgc->prepare($selectQ);
-		$pdo->bindValue(':start_date', $start_date );
-		$pdo->bindValue(':end_date', $end_date );
-		$pdo->execute();
-		$res = $pdo->fetchAll(PDO::FETCH_NUM);
-		
-		$curMonth = 0;
-		$curDay = 1;
-		foreach ($res as $key => $value) {
- $curDay++;
+		foreach ($del as $key => $value) 
+		{ // delete records
+			$pdo = $pgc->prepare($deleteQ);
+			$pdo->bindValue(':pid', $value, PDO::PARAM_INT);
+			$pdo->execute();
 		}	
 	}
 	catch(PDOException $e)
@@ -29,6 +29,42 @@ if (isset($_POST['modalP']) && is_numeric($_POST['tableP']))
 	    $pgc = NULL;
 	    die('error in gc function => ' . $e->getMessage());
 	}
+
+	try
+	{
+		foreach ($upsert as $key => $value) 
+		{
+			if ($value['status'] == 'moded') 
+			{
+				$pdo = $pgc->prepare($updateQ);
+				$pdo->bindValue(':p_name', $value['name'], PDO::PARAM_STR);
+				$pdo->bindValue(':weigth', $value['weight'], PDO::PARAM_INT);
+				$pdo->bindValue(':m_speed', $value['m_min'], PDO::PARAM_INT);
+				$pdo->bindValue(':efficiency_percentage', $value['eff'], PDO::PARAM_INT);
+				$pdo->bindValue(':allowed_machines', json_encode($value['modal']));
+				$pdo->bindValue(':pid', $value['pid'], PDO::PARAM_INT);
+				$pdo->bindValue(':record_time', date("Y-m-d H:i:s", strtotime(date('Y-m-d H:i:s')) - 60*60*2)." +00:00");
+				$pdo->execute();
+			}
+			else if ($value['status'] == 'new') 
+			{
+				$pdo = $pgc->prepare($insertQ);
+				$pdo->bindValue(':p_name', $value['name'], PDO::PARAM_STR);
+				$pdo->bindValue(':weigth', $value['weight'], PDO::PARAM_INT);
+				$pdo->bindValue(':m_speed', $value['m_min'], PDO::PARAM_INT);
+				$pdo->bindValue(':efficiency_percentage', $value['eff'], PDO::PARAM_INT);
+				$pdo->bindValue(':allowed_machines', json_encode($value['modal']));
+				$pdo->bindValue(':record_time', date("Y-m-d H:i:s", strtotime(date('Y-m-d H:i:s')) - 60*60*2)." +00:00");
+				$pdo->execute();
+			}
+		}	
+	}
+	catch(PDOException $e)
+	{
+	    $pgc = NULL;
+	    die('error in gc function => ' . $e->getMessage());
+	}
+
 
 	$pdo = NULL;
 	$pgc = NULL;
