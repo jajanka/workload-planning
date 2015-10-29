@@ -138,7 +138,7 @@ function UpdateTableHeaders() {
        
         if ((scrollTop > offset.top) && (scrollTop < offset.top + el.height())) {
        		if (header_lag_fix) {
-       			console.log('lol');
+       			console.log('Static header');
 	       		floatingHeader.css('height','40px');
 	       		for (var i = 1; i <= 5; i++) {
         			$('#calendarTable thead th:nth-child('+i+')').width(col_widths[i]);
@@ -152,7 +152,7 @@ function UpdateTableHeaders() {
         	for (var i = 1; i <= 5; i++) {
         		col_widths[i] = $('#calendarTable thead th:nth-child('+i+')').width();
         	};
-        	console.log(col_widths);
+        	console.log('Platums');
         	header_lag_fix = true;
             floatingHeader.css({
             "visibility": "hidden"

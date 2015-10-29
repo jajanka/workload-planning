@@ -2,6 +2,7 @@
 		$title = 'Plānošana';
 		include("header.php");
 	?>
+		<link rel="stylesheet" href="css/noselect.css" type="text/css" media="screen"/>
 		<script type="text/javascript" src="datepicker/jquery.plugin.js"></script>
 		<script type="text/javascript" src="datepicker/jquery.datepick.js"></script>
 		<script type="text/javascript" src="datepicker/jquery.datepick-lv.js"></script> 

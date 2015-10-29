@@ -6,11 +6,11 @@ $(document).ajaxStop(function(){
     console.debug("ajaxStop");
     $("#ajax_loader img").hide();
     $("#ajax_loader").hide();
-    $("#calendarTable").show();
+    $("#productsTable").show();
  });
  $(document).ajaxStart(function(){
      console.debug("ajaxStart");
-     $("#calendarTable").hide();
+     $("#productsTable").hide();
      $("#ajax_loader img").show();
      $("#ajax_loader").show();
  });
@@ -19,15 +19,27 @@ $(document).ajaxStop(function(){
 $(document).ready(function () {
 	// reckons only deleted loaded products
 	var deletedProducts = [];
-	$("#productsTable tbody tr").each(function() {
-		var pid = $(this).find('td:nth-child(1) button').attr('name');
-		var pname = $(this).find('td:nth-child(2)').text();
-		var pweight = $(this).find('td:nth-child(3)').text();
-		var pm_min = $(this).find('td:nth-child(4)').text();
-		var peff = $(this).find('td:nth-child(8)').text();
-		prodsToSave.push({'pid': pid, 'name': pname, 'weight': pweight, 
-						'm_min': pm_min, 'eff': peff, 'modal': '', 'status':'loaded'});
+
+	// load info about products
+	$.post( "php/products_load_info.php", {getInfo: true})
+	// when post is finished
+	.done(function( data ) {
+		var infoArr = JSON.parse(data);
+		console.log(infoArr);
+		$("#productsTable tbody tr").each(function() {
+			var pid = $(this).find('td:nth-child(1) button').attr('name');
+			var pname = $(this).find('td:nth-child(2)').text();
+			var pweight = $(this).find('td:nth-child(3)').text();
+			var pm_min = $(this).find('td:nth-child(4)').text();
+			var peff = $(this).find('td:nth-child(8)').text();
+			var pmodal = (infoArr[pid] !== undefined) ? JSON.parse(infoArr[pid]) : '';
+			prodsToSave.push({'pid': pid, 'name': pname, 'weight': pweight, 
+							'm_min': pm_min, 'eff': peff, 'modal': pmodal, 'status':'loaded'});
+		})
 	})
+	.fail( function( data ) {
+	    showError("Nevar ielādēt produkta informāciju.", 'danger');
+	});
 
 	var confirmOptions = {title: "Dzēst?", btnOkLabel: "Jā", btnCancelLabel: "Nē", singleton: true, onCancel: function(){
 		$(this).addClass('hidden'); 
@@ -37,14 +49,16 @@ $(document).ready(function () {
 	// allow click on new generated buttons
 	$(document).on('click', '#productsTable .delete', function() {
 		// get products status
-		var status = prodsToSave[$(this).parent().parent()[0].rowIndex-2]['status'];
+		var firstRowIndex = $('#productsTable tbody').find('tr').first()[0].rowIndex;
+		var status = prodsToSave[$(this).parent().parent()[0].rowIndex-firstRowIndex]['status'];
 		// if loaded product is deleted add it do deleted products arrays
 		if (status == 'loaded' || status == 'moded') {
 			deletedProducts.push($(this).parent().parent().find('td:nth-child(1) button').attr('name'));
 		}
 		console.log(deletedProducts);
 		// delete modal product info about this deleted product
-		prodsToSave.splice($(this).parent().parent()[0].rowIndex-2, 1);
+		var firstRowIndex = $('#productsTable tbody').find('tr').first()[0].rowIndex;
+		prodsToSave.splice($(this).parent().parent()[0].rowIndex-firstRowIndex, 1);
 		$(this).parent().parent().remove();
 
 		// on deletion check if save button should be enabled
@@ -90,15 +104,20 @@ $(document).ready(function () {
 	//if the letter is not digit then display error and don't type anything
 	$('#productsTable').on('blur keyup paste input', 'tbody .td1', function(e) {
 		var curThis = this;
+		// Fix for browser different tabel row indexes
+		var firstRowIndex = $('#productsTable tbody').find('tr').first()[0].rowIndex;
 		var row = this.parentNode.rowIndex;
+		var r = row - firstRowIndex;
 		var text = $(this).text();
 		var cleanCell = true, cleanCol = true;
-		prodsToSave[row-2]['status'] = (prodsToSave[row-2]['status'] == 'loaded')? 'moded': prodsToSave[row-2]['status'];
+		var firstRowIndex = $('#productsTable tbody').find('tr').first()[0].rowIndex;
+		console.log(prodsToSave[r]);
+		prodsToSave[r]['status'] = (prodsToSave[r]['status'] == 'loaded')? 'moded': prodsToSave[r]['status'];
+
 		// checks if this product name is unique in all prducts name column
 	    $( "#productsTable tbody tr td:nth-child(2)" ).each(function() {
 	    	if (row != this.parentNode.rowIndex) { // cheks when it's not comparing to it self
 	    		if (text == $(this).text() || text.trim() == "") {
-	    			console.log('same');
 	    			$(curThis).addClass('danger');	
 	    			cleanCell = false;
 	    			$('#bttn-save-products').prop('disabled', true);
@@ -118,7 +137,7 @@ $(document).ready(function () {
 	    	$(curThis).parent().find('td:nth-child(1) button').prop('disabled', false);
 	    	clonedHeaderRow.find('button').prop('disabled', false);
 	    	// change products name
-			prodsToSave[row-2]['name'] = text;
+			prodsToSave[r]['name'] = text;
 		}
 	    if (cleanCell && cleanCol) {
 	    	$('#bttn-save-products').prop('disabled', false);
@@ -126,19 +145,25 @@ $(document).ready(function () {
 	    }
 	});
 	$('#productsTable').on('keyup', '.td2', function(e) {
-	    var row = this.parentNode.rowIndex-2;
+		// Fix for table index in browsers. Chrome table indexes is for whole table. Mozilla indexes starts ar table tbody as specified
+	    var firstRowIndex = $('#productsTable tbody').find('tr').first()[0].rowIndex;
+	    var row = this.parentNode.rowIndex-firstRowIndex;
 	    prodsToSave[row]['status'] = (prodsToSave[row]['status'] == 'loaded')? 'moded': prodsToSave[row]['status'];
 	    prodsToSave[row]['weight'] = $(this).text();
 	    isRowValid(this);
 	});
 	$('#productsTable').on('keyup', '.td3', function(e) {
-	    var row = this.parentNode.rowIndex-2;
+	    // Fix for table index in browsers. Chrome table indexes is for whole table. Mozilla indexes starts ar table tbody as specified
+	    var firstRowIndex = $('#productsTable tbody').find('tr').first()[0].rowIndex;
+	    var row = this.parentNode.rowIndex-firstRowIndex;
 	    prodsToSave[row]['status'] = (prodsToSave[row]['status'] == 'loaded')? 'moded': prodsToSave[row]['status'];
 	    prodsToSave[row]['m_min'] = $(this).text();
 	    isRowValid(this);
 	});
 	$('#productsTable').on('keyup', '.td7', function(e) {
-	    var row = this.parentNode.rowIndex-2;
+	    // Fix for table index in browsers. Chrome table indexes is for whole table. Mozilla indexes starts ar table tbody as specified
+	    var firstRowIndex = $('#productsTable tbody').find('tr').first()[0].rowIndex;
+	    var row = this.parentNode.rowIndex-firstRowIndex;
 	    prodsToSave[row]['status'] = (prodsToSave[row]['status'] == 'loaded')? 'moded': prodsToSave[row]['status'];
 	    prodsToSave[row]['eff'] = $(this).text();
 	    isRowValid(this);
@@ -166,7 +191,7 @@ $('body').on('focus', '[contenteditable]', function() {
     var v4 = t.find('td:nth-child(8)')[0].innerHTML;
     var kgh = (v2 * 60 * v1 / 1000 / 1000 * v4 / 100).toFixed(3);
     t.find('td:nth-child(5)')[0].innerHTML = kgh;
-    t.find('td:nth-child(7)')[0].innerHTML = (v3 / kgh).toFixed(3);
+    t.find('td:nth-child(7)')[0].innerHTML = (kgh * 1).toFixed(3);
 });
 
 
@@ -178,7 +203,9 @@ $('body').on('focus', '[contenteditable]', function() {
 		Product['curModalProduct'] = productName;
 		/////////////////
 		// curent row index
-		Product['curRow'] = $(this).parent().parent()[0].rowIndex - 2;
+		// Fix for table index in browsers. Chrome table indexes is for whole table. Mozilla indexes starts ar table tbody as specified
+	    var firstRowIndex = $('#productsTable tbody').find('tr').first()[0].rowIndex;
+		Product['curRow'] = $(this).parent().parent()[0].rowIndex - firstRowIndex;
 		// set id to product name
 		$(this).attr('id', 'productName')
 
@@ -230,8 +257,9 @@ $('body').on('focus', '[contenteditable]', function() {
     // new added row html
     var newRow = '<tr><td><button type="button" class="btn btn-success info" aria-label="Left Align" id="" name="new" disabled>'+
     		'<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button></td>'+
-    		'<td class="td1"></td><td class="td2">1000</td><td class="td3">500</td><td class="td4"></td>'+
-    		'<td class="td5">1</td><td class="td6"></td><td class="td7">90</td>'+
+    		'<td class="td1" contenteditable="true"></td><td class="td2" contenteditable="true">1000</td>'+
+    		'<td class="td3" contenteditable="true">500</td><td class="td4"></td>'+
+    		'<td class="td5">1</td><td class="td6"></td><td class="td7" contenteditable="true">90</td>'+
     		'<td><button type="button" class="btn btn-danger delete hidden" aria-label="Left Align" id="del">'+
 	        '<span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>'+
 	        '</td></tr>';
@@ -240,7 +268,7 @@ $('body').on('focus', '[contenteditable]', function() {
 	$("#bttn-add-product").click(function (e) {
 		$("#productsTable tbody").prepend(newRow);
 		prodsToSave.unshift({'pid':'new','name': '', 'weight': 1000, 'm_min': 500, 'eff': 90, 'modal': '', 'status':'new'});
-		$(".delete").confirmation();
+		$(".delete").confirmation(confirmOptions);
 		$('#productsTable tbody tr:nth-child(1) td:nth-child(2)').addClass('danger');	
 	    $('#bttn-save-products').prop('disabled', true);
 	    clonedHeaderRow.find('button').prop('disabled', true);
@@ -279,7 +307,7 @@ $('body').on('focus', '[contenteditable]', function() {
 		console.log(Modal);
 	})
 
-	$("#bttn-save-products").click(function (e) {
+	$("#productsTable").on('click', '#bttn-save-products', function (e) {
 		console.log('sd');
 		var upsertData = [];
 		for (var i = prodsToSave.length - 1; i >= 0; i--) {
@@ -295,8 +323,12 @@ $('body').on('focus', '[contenteditable]', function() {
 		$.post( "php/products_save.php", {upsert: jsonTable, del: jsonDelete})
 		// when post is finished
 		.done(function( data ) {
-			showError('Dati saglabāti.', 'success');
-			//alert(data);
+			if (data == '1')
+				showError('Dati saglabāti!', 'success');
+			else {
+				showError('Dati saglabāti!', 'success');
+				showError('Šie produkti jau pastāv '+data, 'danger');
+			}
 			location.reload();
 		})
 		.fail( function( data ) {
@@ -331,10 +363,11 @@ function isNumber(n) {
 
 var header_lag_fix = true;
 var col_widths = {};
+var head_width = 960;
 function UpdateTableHeaders() {
    $("#productsTable").each(function() {
    
-        var el             = $(this),
+        var el            = $(this),
            offset         = el.offset(),
            scrollTop      = $(window).scrollTop(),
            floatingHeader = $(".floatingHeader", this)
@@ -342,9 +375,11 @@ function UpdateTableHeaders() {
         if ((scrollTop > offset.top) && (scrollTop < offset.top + el.height())) {
         	// fixes problem when header is at top fixed and not having correct th width. 
        		if (header_lag_fix) {
+       			console.log('Static header');
        			for (var i = 1; i <= 8; i++) {
         			$('#productsTable thead th:nth-child('+i+')').width(col_widths[i]);
         		};
+        		$('#productsTable thead').width(head_width);
 	       		floatingHeader.css('height','40px');
 	       	}
             floatingHeader.css({
@@ -356,6 +391,7 @@ function UpdateTableHeaders() {
         	for (var i = 1; i <= 8; i++) {
         		col_widths[i] = $('#productsTable thead th:nth-child('+i+')').width();
         	};
+        	head_width = $('#productsTable thead').width();
             floatingHeader.css({
             "visibility": "hidden"
             });      
