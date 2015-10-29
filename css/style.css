@@ -74,7 +74,7 @@ body {
 
 /* tables */
 div#redips-drag table {
-	background-color: #eee;
+	background-color: #EEE;
 	border-collapse: collapse;
 	/* center tables */
 	margin: 0px auto;
@@ -141,8 +141,8 @@ div#redips-drag table td,th {
 
 /* blank cells (upper left corner) */
 .blank {
-	background-color: #EEEEEE !important;
-	border-color: #EEEEEE !important; 
+	background-color: #FFF !important;
+	border-color: #FFF !important; 
 }
 
 .marked {
@@ -188,7 +188,7 @@ div#redips-drag table td,th {
 }
 
 .table1-header .header-day td{
-	background-color: #8DB4E3;
+	background-color: #337AB7;
 	color: white !important;
 	font-size: 12pt !important;
 	font-weight: bold !important;
@@ -282,3 +282,16 @@ div#redips-drag table td,th {
 	padding: 0px 2px 4px 4px !important;
 }
 #labelProduct > button { vertical-align: middle }
+
+.tt-open {
+	background-color: white;
+	width: 150px;
+
+	border: 1px solid #CCC;
+}
+.tt-selectable {
+	border-bottom: 1px solid #CCC;
+}
+.tt-selectable:hover{
+	background-color: #EEE;
+}

@@ -717,6 +717,34 @@ $( document ).ready(function()
     	Move.move_products['start'] = true;
     });
 
+	// constructs the suggestion engine
+	var prods = new Bloodhound({
+	    datumTokenizer: Bloodhound.tokenizers.whitespace,
+	    queryTokenizer: Bloodhound.tokenizers.whitespace,
+	    remote: {
+	       url: 'http://live.dev/mygit/cm-timeline/php/products.php',
+
+	       prepare: function (query, settings) {
+	          settings.type = "GET";
+	          settings.contentType = "application/json; charset=UTF-8";
+	          settings.data = 'q='+query;
+
+	          return settings;
+	       }
+	   }
+	});
+	$('#product').typeahead({
+	  hint: true,
+	  highlight: true,
+	  minLength: 1
+	},
+	{
+	  name: 'product',
+	  source: prods
+	});
+
+	$('#product').css("vertical-align", " inherit");
+
 	/* ####################### END OF EVENTS #############################
 		#################################################################
 	*/ 

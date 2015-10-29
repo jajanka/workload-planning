@@ -257,8 +257,8 @@ $('body').on('focus', '[contenteditable]', function() {
     // new added row html
     var newRow = '<tr><td><button type="button" class="btn btn-success info" aria-label="Left Align" id="" name="new" disabled>'+
     		'<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></button></td>'+
-    		'<td class="td1" contenteditable="true"></td><td class="td2" contenteditable="true">1000</td>'+
-    		'<td class="td3" contenteditable="true">500</td><td class="td4"></td>'+
+    		'<td class="td1" contenteditable="true"></td><td class="td2" contenteditable="true">0</td>'+
+    		'<td class="td3" contenteditable="true">0</td><td class="td4"></td>'+
     		'<td class="td5">1</td><td class="td6"></td><td class="td7" contenteditable="true">90</td>'+
     		'<td><button type="button" class="btn btn-danger delete hidden" aria-label="Left Align" id="del">'+
 	        '<span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>'+

@@ -3,24 +3,31 @@
 			<div class="panel panel-primary" style="margin-top: 20px;">
 			<div class="panel-heading" style="text-align: center;">28.okt. 2015 - 1.nov. 2016</div>
 			<div class="panel-body">
-				<div class="form-inline" style="margin-left: 5%; margin-top: -12px;"> <!-- style="max-width: 1000px; margin: auto;" --> 
+				<div class="form-inline"> <!-- style="max-width: 1000px; margin: auto;" --> 
 				     <div class="form-group">
-		                <div class="input-daterange input-group col-xs-4" id="datepicker">
-		                	<span class="input-group-addon">no</span>
-		                    <input id="datepickerFrom" type="text" class="input-small form-control popupDatepicker" name="start" /> 
-		                    <span class="input-group-addon">līdz</span>
-		                    <input id="datepickerFrom" type="text" class="input-small form-control popupDatepicker" name="end" />
+				     	<label for="bttn-add-year">Parādīt laika periodu</label>
+				     	<div class="form-inline">
+			                <div class="input-daterange input-group col-xs-8" id="datepicker">
+			                	<span class="input-group-addon">no</span>
+			                    <input id="datepickerFrom" type="text" class="input form-control popupDatepicker" name="start" /> 
+			                    <span class="input-group-addon">līdz</span>
+			                    <input id="datepickerFrom" type="text" class="input form-control popupDatepicker" name="end" />
+			                </div>
+		                	<button type="button" class="btn btn-primary" id="gen-table-bttn">Parādīt</button>
 		                </div>
-		                <button type="button" class="btn btn-primary" id="gen-table-bttn">Parādīt</button>
-
-			             <div class="form-inline" style="float:right">
-							<input id="product" type="text" class="input-small form-control" placeholder="Produkts" />
+		            </div>
+		            <div class="form-group">
+		           		<label for="bttn-add-year">Pievienot produktu</label>
+			            <div class="form-inline">
+			            	<button type="button" class="btn btn-success info" aria-label="Left Align" id="bttn-prod-info">
+							  <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+							</button>
+							<input id="product" type="text" class="input-small form-control" data-provide="typeahead" autocomplete="off" placeholder="Produkts"/>
 				            <input id="quantity" type="number" min="0" step="1" class="input-small form-control" placeholder="Kg" />
 						  <button type="button" class="btn btn-primary" id="gen-prod-bttn">Labi</button>
 						  <button type="button" class="btn btn-danger" id="undo-gen-prod-bttn">Atcelt</button>
 						</div>
-
-		            </div>
+					</div>
 				</div>
 			</div>
 			</div>
