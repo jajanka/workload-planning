@@ -43,11 +43,6 @@ $( document ).ready(function()
 
 	// Button-checkbox
 	/////////////////////////////////////
-	//var s = '<p>'
-	//for (var i = 0; i < 20; i++) {
-	//	s += '<div style="width:150px; height: 20px; background-color: '+'#'+Math.floor(Math.random()*16777215).toString(16)+'">sd</div>';
-	//};
-	//$('body').html(s+'</p>');
 	function initBttnCheckbox() {
 
 		$('.button-checkbox-time').each(function () {
@@ -506,7 +501,8 @@ $( document ).ready(function()
 	$("#table2").mousemove(function(e) { // move rect on mousemove over table2
 		if(e.which == 1) {
 			console.log('Mouse move '+Move.move_products['start']+ ' '+Move.move_products['move']);
-		    if (Move.move_products['start'] && Move.move_products['move']) {
+			console.log(markedProducts);
+		    if (Move.move_products['start'] && Move.move_products['move'] && Object.keys(markedProducts).length > 0) {
 		    	//////////////////////////////////////////////////
 		    	// MOVING ALREADY MARKED PRODUCTS!!
 		    	//////////////////////////////////////////////////
@@ -605,6 +601,7 @@ $( document ).ready(function()
 						$('[name="'+key+'"]').css('background-color', '#EEEEEE' );
 					}
 				};
+				console.log('M up Move.move_products[start] ' +Move.move_products['start']);
 				if (!Move.move_products['start']) getMarkedProducts();
 				Move.modal_action = true; // true if modal is not canceled
 	    		Move.move_products['start'] = true;
@@ -649,6 +646,7 @@ $( document ).ready(function()
 				//var shifted_rows = {};
 				for (var key in markedProducts) {
 				    if (markedProducts.hasOwnProperty(key)) {
+
 			    		// new product place. place new products in cells
 			    		var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")");
 						td_html.css('background-color', '#EEE' );
@@ -659,6 +657,7 @@ $( document ).ready(function()
 							var startIndex = markedProducts[key].cEnd;
 							// 
 							var nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(startIndex)+")")[0].innerHTML;
+
 							for (var i = startIndex; i <= rowLastCellIndex; i++) {
 								// if next cell have no products then break
 								if (nextCell_html == "") break; 
@@ -670,6 +669,7 @@ $( document ).ready(function()
 								nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")")[0].innerHTML;
 
 								nextCell[0].innerHTML = currentCell;
+								console.log(nextCell_html);
 							};
 							td_html.html( setProductDiv(key, markedProducts[key].product, true));
 				    	}
@@ -678,6 +678,7 @@ $( document ).ready(function()
 				REDIPS.drag.init();
 				markedProducts = {};
 				newMarkedCells = {};
+				Move.move_products['start'] = false; Move.move_products['move'] = false;
 			}
 
 			Move.mouseStillDown = false;
@@ -689,7 +690,7 @@ $( document ).ready(function()
     	for (var key in newMarkedCells) {
     		// if new marked cell not in old then unmark it
 		    if (newMarkedCells.hasOwnProperty(key)) {
-				$('[name="'+key+'"]')[0].innerHTML = ' ';
+				$('[name="'+key+'"]')[0].innerHTML = "";
 			}
 		};
 		newMarkedCells = {};	
@@ -749,6 +750,54 @@ $( document ).ready(function()
 	});
 
 	$('#product').css("vertical-align", " middle");
+
+	// info modal for products
+	$("body").on('click', '.info', function() {
+		console.log($('#product').val());
+
+		$.post( "php/products.php", {product: $('#product').val()})
+		// when post is finished
+		.done(function( data ) {
+			if (data != '[]') {
+				console.log(data);
+				jsonModal = JSON.parse(data)[0];
+				console.log(jsonModal);
+				jsonModal = JSON.parse(jsonModal[0]);
+				console.log(data);
+				$('#productModal .modal-title')[0].innerHTML = $('#product').val();
+				// set overll comment 
+				if (jsonModal != null) 
+					$('#overallComment').val(jsonModal['info']);
+
+				var td_html = '';
+				for (var i = 1; i <= 21; i++) 
+				{
+					var comment = '';
+					var is_checked = 'unchecked';
+					if (jsonModal != null) {
+						if (jsonModal[i] !== undefined) {
+						 	comment = jsonModal[i];
+						 	is_checked = 'checked';
+						}
+					}
+					td_html += '<tr>';
+					td_html += '<td><div class="checkbox"><label><input type="checkbox" '+is_checked+'>'+i+'</label></div></td>';
+					td_html += '<td><input type="text" class="form-control input-sm" value="'+comment+'"></td>';
+						
+					td_html += '</tr>';
+				};
+				$('#productsInfoTable tbody').html(td_html);
+		    	$('#productModal').modal('show');
+		    }
+		    else {
+		    	showError("Šāds '"+$('#product').val()+"' produkts neeksistē.", 'danger');
+		    }
+		})
+		.fail( function( data ) {
+		    showError("Nevar saglabāt datus.", 'danger');
+		});
+
+	});
 
 	/* ####################### END OF EVENTS #############################
 		#################################################################
@@ -839,9 +888,6 @@ function getMarkedProducts() {
 	    								'product': $('[name="'+key+'"] div').attr('product'),
 	    								'diffToFirst': 1, 'diffToLastFirst': 1
 	    								};
-	    		// TODO:
-	    		// Make also parameter min product in row
-	    		//console.log($('[name="'+key+'"] div').attr('product'));
 	    	}
 	    }
 	}
@@ -933,7 +979,7 @@ redips.init = function () {
 	// initialization
 	rd.init();
 	// dragged elements can be placed to the empty cells only
-	rd.dropMode = 'multiple';
+	rd.dropMode = 'single';
 	// elements could be cloned with pressed SHIFT key
 	rd.clone.keyDiv = true;
 	// define dropped handler
@@ -1003,7 +1049,22 @@ redips.init = function () {
 			Move.mouseStillDown = true;
 			Move.start_x = $(currentCell).offset().left, Move.start_y = $(currentCell).offset().top;
 		    Move.start_row = $(currentCell).context.parentNode.rowIndex+1, Move.start_col = $(currentCell).context.cellIndex+1;
-
+	    }else {
+	    	// if single cell in clicked then make it like product marking process is done and cell should be moved
+	    	//make copy of product
+			temp_obj = rd.obj;
+			// delete product
+			rd.deleteObject(rd.obj);
+			// make product in same place to allow drag marked products when start click is on product not on table
+			$(currentCell).html(setProductDiv( $(currentCell).attr('name'), $(temp_obj).attr('product')) );
+			REDIPS.drag.init();
+			// make bools like product is marked and it should be moved
+			Move.move_products['start'] = true; Move.move_products['move'] = true;
+			// place it in marked cells not products
+			newMarkedCells[$(currentCell).attr('name')] = {'r':$(currentCell)[0].parentNode.rowIndex+1, 'c':$(currentCell)[0].cellIndex+1};
+			// get cell in marked products
+			getMarkedProducts();
+			console.log(markedProducts);
 	    }
 	    console.log(ctrlPressed);
 		if (Move.move_products['start']) {
@@ -1048,7 +1109,6 @@ redips.save = function () {
 	    console.log(data);
 	});
 };
-
 
 
 // checks if Ctrl button is pressed

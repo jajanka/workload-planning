@@ -66,8 +66,8 @@ body {
 	background-color: white;
 	text-align: center;
 	font-size: 10pt; /* needed for cloned object */
-	width: 69px;
-	height: 22px;
+	//width: 69px;
+	height: 100%;
 	line-height: 18px !important;
 }
 
@@ -108,7 +108,7 @@ div#redips-drag table td,th {
 
 		/* th */
 		div#redips-drag table th {
-			border-width: 1px 1px 1px 1px;
+			border-width: 0px 1px 1px 1px;
 			border-color: #DDC5B5;
 			font-weight: normal;
 		}
@@ -136,13 +136,14 @@ div#redips-drag table td,th {
 	border-style: none !important;
     //text-shadow: #000 0px 0px 1px;
     //-webkit-font-smoothing: antialiased;  
+    //margin:-1px 0 0 -1px; 
 }
 
 
 /* blank cells (upper left corner) */
 .blank {
 	background-color: #FFF !important;
-	border-color: #FFF !important; 
+	border-color: #FFF !important;
 }
 
 .marked {
@@ -173,7 +174,7 @@ div#redips-drag table td,th {
 .table1-header{
 	//float: left; 
 	z-index: 1; 
-	margin-left: 1px !important;
+	margin-left: 2px !important;
 }
 .left-header{
 	float:left; 
@@ -195,8 +196,8 @@ div#redips-drag table td,th {
 }
 
 .table1-header .header-time td{
-	background-color: #808080;
-	color: white !important;
+	background-color: #CCC;
+	//color: white !important;
 }
 #trash {
 	float: left; 
@@ -289,4 +290,10 @@ div#redips-drag table td,th {
 }
 .tt-selectable:hover{
 	background-color: #EEE;
+}
+
+.button-checkbox .btn-xs, .button-checkbox-time .btn-xs {
+	border-radius: 0px;
+	border-color: #EEE;
+	border-size: 2px;
 }

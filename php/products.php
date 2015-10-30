@@ -33,29 +33,26 @@ if (isset($_POST['q']))
 	$pgc = NULL;
 }
 
-else if (isset($_POST['q'])) 
+else if (isset($_POST['product'])) 
 {
 
 	require('../../h/postgres_cmp.php');
 
-	$results = array();
-	$query = $_POST['q'].'%'; // add % for LIKE query later
+	$prod = $_POST['product'];
+	$res = '';
 
-	$selectQ = 'SELECT p_name FROM products WHERE p_name LIKE :query';
+	$selectQ = 'SELECT allowed_machines FROM products WHERE p_name = :product LIMIT 1';
 	
 	try
 	{
 
 		$pdo = $pgc->prepare($selectQ);
-		$pdo->bindParam(':query', $query, PDO::PARAM_STR);
+		$pdo->bindParam(':product', $prod, PDO::PARAM_STR);
 		$pdo->execute();
 		$res = $pdo->fetchAll(PDO::FETCH_NUM);
 
-		foreach ($res as $key => $value) 
-		{
-			$results[] = $value[0];
-		}
-		echo json_encode($results);
+		echo json_encode($res);
+		
 	}
 	catch(PDOException $e)
 	{

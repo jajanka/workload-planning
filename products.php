@@ -50,7 +50,7 @@
 	      </div>
 	      <div class="modal-body">
 	      	<textarea class="form-control custom-control" rows="3" style="resize:none" id="overallComment"></textarea>
-	        <div class="table-responsive" style="margin-top: 20px;">        
+	        <div class="table-responsive">        
 			  <table class="table table-striped" id="productsInfoTable">
 			    <thead>
 			      <tr>
