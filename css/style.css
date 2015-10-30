@@ -222,12 +222,7 @@ div#redips-drag table td,th {
 }
 .page-date-header {
 	text-align: center;
-	margin-top: 0px !important;
 	background-color: #B5FFAB;
-	margin-bottom: 15px;
-	margin-left: -15px;
-	margin-right: -15px;
-	margin-top: 15px;
 	font-size: 16px;
 }
 .modal-backdrop {
@@ -236,7 +231,7 @@ div#redips-drag table td,th {
 .modal-backdrop #marked-modal{
    background-color: transparent !important;
 }
-#marked-modal .modal-dialog {
+#marked-modal .modal-dialog, #error-modal .modal-dialog {
     margin-top: 0% !important;
     float: left !important;
 }

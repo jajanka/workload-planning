@@ -21,15 +21,19 @@ var productsColor = {};
 var Move = {}; // namespace for marked products variable
 
 // use: when post/get data then ajax gif loader shows
-$(document).ajaxStop(function(){
-    console.debug("ajaxStop");
-    $("#ajax_loader img").hide();
-    $("#ajax_loader").fadeOut( 200 );
+$(document).ajaxStop(function(ev){
+	console.debug("ajaxStop");
+	if (ev.currentTarget.activeElement.id != 'product') { 
+	    $("#ajax_loader img").hide();
+	    $("#ajax_loader").fadeOut( 200 );
+	}
  });
- $(document).ajaxStart(function(){
-     console.debug("ajaxStart");
-     $("#ajax_loader img").show();
-     $("#ajax_loader").show();
+ $(document).ajaxStart(function(ev) {
+ 	console.debug("ajaxStart");
+ 	if (ev.currentTarget.activeElement.id != 'product') {
+	    $("#ajax_loader img").show();
+	    $("#ajax_loader").show();
+	}
  });
 
 $( document ).ready(function() 
@@ -385,7 +389,7 @@ $( document ).ready(function()
 			loadTable(startDate, endDate);
 			var start_date_formated = sd.getDate()+'.'+monthNamesShort[sd.getMonth()]+'. '+sd.getFullYear();
 			var end_date_formated = ed.getDate()+'.'+monthNamesShort[ed.getMonth()]+'. '+ed.getFullYear();
-			$('.page-date-header p').html(start_date_formated+' - '+end_date_formated);
+			$('.page-date-header').html(start_date_formated+' - '+end_date_formated);
 		}
 		else {
 			showError('Nav korekti ievadīts datums.');
@@ -725,9 +729,9 @@ $( document ).ready(function()
 	       url: 'http://live.dev/mygit/cm-timeline/php/products.php',
 
 	       prepare: function (query, settings) {
-	          settings.type = "GET";
-	          settings.contentType = "application/json; charset=UTF-8";
-	          settings.data = 'q='+query;
+	          settings.dataType = 'json';
+              settings.type = 'POST';
+	          settings.data = {q:query};
 
 	          return settings;
 	       }
@@ -740,10 +744,11 @@ $( document ).ready(function()
 	},
 	{
 	  name: 'product',
-	  source: prods
+	  source: prods,
+	  limit: 7
 	});
 
-	$('#product').css("vertical-align", " inherit");
+	$('#product').css("vertical-align", " middle");
 
 	/* ####################### END OF EVENTS #############################
 		#################################################################
