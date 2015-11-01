@@ -220,9 +220,12 @@ $('body').on('focus', '[contenteditable]', function() {
 			var comment = '';
 			var is_checked = 'unchecked';
 			if (prodsToSave[Product['curRow']]['modal'] != '') {
+				// check if this machine number is defined in json modal
 				if (prodsToSave[Product['curRow']]['modal'][i] !== undefined) {
-				 	comment = prodsToSave[Product['curRow']]['modal'][i];
-				 	is_checked = 'checked';
+					comment = prodsToSave[Product['curRow']]['modal'][i]['comment'];
+					if (prodsToSave[Product['curRow']]['modal'][i]['check']) { 	
+					 	is_checked = 'checked';
+					}
 				}
 			}
 			td_html += '<tr>';
@@ -293,13 +296,15 @@ $('body').on('focus', '[contenteditable]', function() {
 		// empty modal textarea
 		$('#overallComment').val('');
 
-		$( "#productsInfoTable tbody tr" ).each(function() {	
+		$( "#productsInfoTable tbody tr" ).each(function() {
+			var cbLabel = $( this ).find('td:nth-child(1) label').text();
+		  	var comment = $( this ).find('td:nth-child(2) input').val();	
 			// if checkbox is checked
 		  	if ( $( this ).find('td:nth-child(1) input').is(":checked") ) {
-		  		var cbLabel = $( this ).find('td:nth-child(1) label').text();
-		  		var comment = $( this ).find('td:nth-child(2) input').val();
 		  		console.log(comment);
-		  		Modal[cbLabel] = comment;
+		  		Modal[cbLabel] = {'comment': comment, 'check': true};
+		  	} else {
+		  		Modal[cbLabel] = {'comment': comment, 'check': false};
 		  	}
 		});
 		prodsToSave[cRow]['modal'] = Modal;

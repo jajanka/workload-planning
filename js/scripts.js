@@ -763,7 +763,7 @@ $( document ).ready(function()
 				jsonModal = JSON.parse(data)[0];
 				console.log(jsonModal);
 				jsonModal = JSON.parse(jsonModal[0]);
-				console.log(data);
+				console.log(jsonModal);
 				$('#productModal .modal-title')[0].innerHTML = $('#product').val();
 				// set overll comment 
 				if (jsonModal != null) 
@@ -776,8 +776,10 @@ $( document ).ready(function()
 					var is_checked = 'unchecked';
 					if (jsonModal != null) {
 						if (jsonModal[i] !== undefined) {
-						 	comment = jsonModal[i];
-						 	is_checked = 'checked';
+						 	comment = jsonModal[i]['comment'];
+						 	if (jsonModal[i]['check']) {
+						 		is_checked = 'checked';
+						 	}
 						}
 					}
 					td_html += '<tr>';
