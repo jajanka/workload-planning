@@ -727,7 +727,7 @@ $( document ).ready(function()
 	    datumTokenizer: Bloodhound.tokenizers.whitespace,
 	    queryTokenizer: Bloodhound.tokenizers.whitespace,
 	    remote: {
-	       url: 'http://live.dev/mygit/cm-timeline/php/products.php',
+	       url: 'php/products.php',
 
 	       prepare: function (query, settings) {
 	          settings.dataType = 'json';
