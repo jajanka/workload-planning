@@ -51,9 +51,9 @@ if (isset($_POST['startDate']) && isset($_POST['endDate']))
 	    die('error in gc function => ' . $e->getMessage());
 	}
 
-	if ($validationCounter == 2) {
+	//if ($validationCounter == 2) {
 		echo json_encode($output);
-	}
+	//}
 
 	$pgc = NULL;
 }

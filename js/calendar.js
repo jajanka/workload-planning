@@ -15,6 +15,7 @@ $(document).ajaxStop(function(){
  });
 
 $(document).ready(function () {
+
   //called when key is pressed in textbox
 	$("#add-year").keypress(function (e) {
 	     //if the letter is not digit then display error and don't type anything

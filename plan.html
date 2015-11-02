@@ -19,7 +19,7 @@
 		            <div class="form-group">
 		           		<label for="bttn-add-year">Pievienot produktu</label>
 			            <div class="form-inline">
-			            	<button type="button" class="btn btn-success info" aria-label="Left Align" id="bttn-prod-info">
+			            	<button type="button" class="btn btn-success info" aria-label="Left Align" id="bttn-prod-info" data-dismiss="modal" data-backdrop="false">
 							  <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
 							</button>
 							<input id="product" type="text" class="input-small form-control" data-provide="typeahead" autocomplete="off" placeholder="Produkts"/>
@@ -74,8 +74,8 @@
 				<div id="trash">
 					<table id="table-trash">
 						<tr>
-							<td class="redips-trash" style="width: 60px; height: 50px; background-color: #6495ED; color: #fff">
-							Miskaste</td>
+							<td class="redips-trash" style="width: 60px; height: 50px; background-color: #708090; color: #fff">
+							<span class="glyphicon glyphicon-trash" style="font-size: 1.2em"></span></td>
 						</tr>
 					</table>
 				</div>
@@ -116,7 +116,7 @@
 	        </div>
 	    </div>
 
-	    <div class="modal fade bs-example-modal-sm" id="error-modal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+	    <div class="modal bs-example-modal-sm" id="error-modal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
 		  <div class="modal-dialog modal-sm">
 		    <div class="modal-content">
 		      <div class="modal-header">
@@ -131,7 +131,7 @@
 		  </div>
 		</div>
 
-		<div class="modal fade" id="productModal">
+		<div class="modal" id="productModal">
 		  <div class="modal-dialog">
 		    <div class="modal-content">
 		      <div class="modal-header">

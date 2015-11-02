@@ -23,14 +23,14 @@ var Move = {}; // namespace for marked products variable
 // use: when post/get data then ajax gif loader shows
 $(document).ajaxStop(function(ev){
 	console.debug("ajaxStop");
-	if (ev.currentTarget.activeElement.id != 'product') { 
+	if (ev.currentTarget.activeElement.id != 'product' && ev.currentTarget.activeElement.id != 'gen-prod-bttn') { 
 	    $("#ajax_loader img").hide();
 	    $("#ajax_loader").fadeOut( 200 );
 	}
  });
  $(document).ajaxStart(function(ev) {
  	console.debug("ajaxStart");
- 	if (ev.currentTarget.activeElement.id != 'product') {
+ 	if (ev.currentTarget.activeElement.id != 'product' && ev.currentTarget.activeElement.id != 'gen-prod-bttn') {
 	    $("#ajax_loader img").show();
 	    $("#ajax_loader").show();
 	}
@@ -344,18 +344,20 @@ $( document ).ready(function()
 			}
 			// place products in table
 			if (jsonData != ''){
-    			// iterate over JSON array
-    			jsonData['products'].forEach(function(plan) {
-    				// make id for tile
-    				td_name = plan.p_date+'/'+plan.machine+'/'+plan.e_shift;
-    				// update color for product name
-    				updateColor(plan.product);
-    				// update td witch have attr name with drag tile
-    				$('[name="'+td_name+'"]').html(setProductDiv(td_name, plan.product));
-    				// add objects to loadedTiles
-    				loadedTiles[td_name] = plan.product;
-    			});
-    			REDIPS.drag.init();
+				if (jsonData['products'] !== undefined) {
+	    			// iterate over JSON array
+	    			jsonData['products'].forEach(function(plan) {
+	    				// make id for tile
+	    				td_name = plan.p_date+'/'+plan.machine+'/'+plan.e_shift;
+	    				// update color for product name
+	    				updateColor(plan.product);
+	    				// update td witch have attr name with drag tile
+	    				$('[name="'+td_name+'"]').html(setProductDiv(td_name, plan.product));
+	    				// add objects to loadedTiles
+	    				loadedTiles[td_name] = plan.product;
+	    			});
+	    			REDIPS.drag.init();
+	    		}
 			}
 		});
 	}
@@ -567,13 +569,36 @@ $( document ).ready(function()
 			}
 		    Move.mouseStillDown = true;
 		    Move.start_x = e.pageX, Move.start_y = e.pageY;
-		    Move.start_row = e.target.parentNode.rowIndex+1, Move.start_col = e.target.cellIndex+1;
-		    // if button pressed to move products, then on mouse down start to move products
-		    if (Move.move_products['start']) {
-		    	Move.move_products['move'] = true;
+		    if (!ctrlPressed) {
+			    Move.start_row = e.target.parentNode.rowIndex+1, Move.start_col = e.target.cellIndex+1;
 			}
-			else{
-				newMarkedCells = {};
+			else {
+			    Move.start_row = e.target.parentNode.parentNode.rowIndex+1, Move.start_col = e.target.parentNode.cellIndex+1;
+			}
+			if (!ctrlPressed) {
+			    if (e.target.className == 'blue' && Move.move_products['start']) {
+				    Move.start_row = e.target.parentNode.parentNode.rowIndex+1, 
+				    Move.start_col = e.target.parentNode.cellIndex+1;
+				    // if marked products start to move and it starts from product div not empty cell
+				    if (Move.move_products['start']) {
+				    	Move.move_products['move'] = true;
+					}
+				}
+				else if (e.target.className == 'blue' && !Move.move_products['start']) {
+					Move.move_products['start'] = true; Move.move_products['move'] = true;
+					Move.start_row = e.target.parentNode.parentNode.rowIndex+1, 
+					Move.start_col = e.target.parentNode.cellIndex+1;
+					// place it in marked cells not products
+					var curCell = e.target.parentNode;
+					newMarkedCells[$(curCell).attr('name')] = {'r':$(curCell)[0].parentNode.rowIndex+1, 'c':$(curCell)[0].cellIndex+1};
+					// get cell in marked products
+					getMarkedProducts();
+				}
+				else
+				{
+			    	Move.start_row = e.target.parentNode.rowIndex+1, Move.start_col = e.target.cellIndex+1;
+					newMarkedCells = {};
+				}
 			}
 			console.log('Mouse down '+Move.move_products['start']);
 		}
@@ -583,7 +608,7 @@ $( document ).ready(function()
 	   	console.log(newMarkedCells);
 	    if ( Object.keys(newMarkedCells).length > 0) {
 			if (!Move.move_products['move']) {
-				$('.modal-dialog').attr('style','left: '+(e.clientX)+'px; top: '+(e.clientY-10)+'px;');
+				$('#marked-modal .modal-dialog').attr('style','left: '+(e.clientX)+'px; top: '+(e.clientY-10)+'px;');
 				$('#marked-modal').modal('show');
 			}
 		}
@@ -625,7 +650,7 @@ $( document ).ready(function()
 			    			markedProducts[key].cEnd < 1 /*|| markedProducts[key].cEnd > lastTdIndex*/) { 
 			    			//showError('Produkti neietilpst tabulā.');
 			    			is_valid = false;
-							$('.modal-dialog').attr('style','left: '+(e.clientX-80)+'px; top: '+(e.clientY-10)+'px;');
+							$('#error-modal .modal-dialog').attr('style','left: '+(e.clientX-80)+'px; top: '+(e.clientY-10)+'px;');
 							$('#error-modal').modal('show');
 							
 			    			break;
@@ -789,7 +814,8 @@ $( document ).ready(function()
 					td_html += '</tr>';
 				};
 				$('#productsInfoTable tbody').html(td_html);
-		    	$('#productModal').modal('show');
+				// $('#productModal').modal({'backdrop': 'static'});
+		    	$('#productModal').modal({'show': true, });
 		    }
 		    else {
 		    	showError("Šāds '"+$('#product').val()+"' produkts neeksistē.", 'danger');
@@ -806,65 +832,79 @@ $( document ).ready(function()
 	*/ 
 });
 
-function save(type) {
-	// define table_content variable
-	var table_content;
-	// prepare table content of first table in JSON format or as plain query string (depends on value of "type" variable)
-	table_content = REDIPS.drag.saveContent('table2', 'json');
-	console.log(table_content);
-}
-
 function fillProducts(product, start, count) {
-	// row column length
-	var column_count = document.getElementById('table2').rows[0].cells.length;
-	var count_check = 0, 
-		is_valid = false;
-		filledProd = [];
-	for (var i = start; i <= column_count; i++) { // counts empty cell in marked machines. starting from marked e shift
-		for (var key in markedMachines) {
-		    if (markedMachines.hasOwnProperty(key)) {
-				var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
-				if (td_html[0].innerHTML.trim().length == 0) {
-					count_check++;
+	if (Object.keys(markedMachines).length < 1) {
+		showError('Nav atzīmēta neviena mašīna.', 'danger');
+		return;
+	}
+	$.post( "php/products_formula.php", {kg: count, prod: product})
+	// when post is finished
+	.done(function( data ) {
+		var jsonCount = '';
+		if (data != '') 
+		{
+			jsonCount = Math.ceil(JSON.parse(data));
+			// row column length
+			var column_count = document.getElementById('table2').rows[0].cells.length;
+			var count_check = 0, 
+				is_valid = false;
+				lastFilledProducts = [];
+			for (var i = start; i <= column_count; i++) { // counts empty cell in marked machines. starting from marked e shift
+				for (var key in markedMachines) {
+				    if (markedMachines.hasOwnProperty(key)) {
+						var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
+						if (td_html[0].innerHTML.trim().length == 0) {
+							count_check++;
+						}
+					if (count_check >= jsonCount) { is_valid = true; break; }
+				    }
 				}
-			if (count_check >= count) { is_valid = true; break; }
-		    }
-		}
-		if (count_check >= count) { is_valid = true; break; }
-	}
-	console.log(is_valid);
-
-	// if products can be filled in table
-	if (is_valid) {
-		// iterate over columns
-		for (var i = start; i <= column_count; i++) {
-			// for each marked machine in left header column
-			for (var key in markedMachines) {
-				// js lagging fix
-			    if (markedMachines.hasOwnProperty(key)) {
-			    	// get cell
-					var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
-					// if inner html in cell is empty
-					if (td_html[0].innerHTML.trim().length == 0) {
-						// update products colors
-						updateColor(product);
-						// put a product in cell
-						td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
-						addedTiles[td_html.attr("name")] = product;
-						// add to last filled products
-						filledProd.push(td_html.attr("name"));
-						count--;
-					}
-			    }
-			    if (0 >= count) { break; } // if all products placed
+				if (count_check >= jsonCount) { is_valid = true; break; }
 			}
-			if (0 >= count) { break; }
-		};
-	}
-	else{
-		showError('Nepietiek vietas tabulā (max '+count_check+')');
-	}
-	return filledProd;
+			console.log(is_valid);
+
+			// if products can be filled in table
+			if (is_valid) {
+				// iterate over columns
+				for (var i = start; i <= column_count; i++) {
+					// for each marked machine in left header column
+					for (var key in markedMachines) {
+						// js lagging fix
+					    if (markedMachines.hasOwnProperty(key)) {
+					    	// get cell
+							var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
+							// if inner html in cell is empty
+							if (td_html[0].innerHTML.trim().length == 0) {
+								// update products colors
+								updateColor(product);
+								// put a product in cell
+								td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
+								addedTiles[td_html.attr("name")] = product;
+								// add to last filled products
+								lastFilledProducts.push(td_html.attr("name"));
+								jsonCount--;
+							}
+					    }
+					    if (0 >= jsonCount) { break; } // if all products placed
+					}
+					if (0 >= jsonCount) { break; }
+				};
+			}
+			else{
+				showError('Nepietiek vietas tabulā (max '+count_check+')');
+			}
+			return lastFilledProducts;
+		}
+		else 
+		{
+			showError("Nekorekts rezultāts.", 'danger');;
+		}
+
+	})
+	.fail( function( data ) {
+	    showError("Nevar pievienot produktu.", 'danger');
+	});
+
 }
 
 function getMarkedProducts() {
@@ -959,142 +999,12 @@ function updateColor(product) { // get random color
 
 function setProductDiv (name, product,marked) {
 	cls = (marked) ? ' marked' : '';
-	return '<div id="'+name+'" class="redips-drag blue'+cls+'" product="'+product+'"'+ 
+	return '<div id="'+name+'" class="blue'+cls+'" product="'+product+'"'+ 
 			'style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+product+'</div';
 }
 
-/*jslint white: true, browser: true, undef: true, nomen: true, eqeqeq: true, plusplus: false, bitwise: true, regexp: true, strict: true, newcap: true, immed: true, maxerr: 14 */
-/*global window: false, REDIPS: true */
 
-/* enable strict mode */
-"use strict";
-
-// define redipsInit variable
-var redips = {};
-
-// redips initialization
-redips.init = function () {
-	// reference to the REDIPS.drag lib
-	var rd = REDIPS.drag;
-	// boolean if cloned
-	redips.is_cloned = 0;
-	// initialization
-	rd.init();
-	// dragged elements can be placed to the empty cells only
-	rd.dropMode = 'single';
-	// elements could be cloned with pressed SHIFT key
-	rd.clone.keyDiv = true;
-	// define dropped handler
-	rd.event.dropped = function (targetCell) {
-		var tbl,	// table reference of dropped element
-			id,		// id of scrollable container
-			msg;	// message
-		// find table of target cell
-		tbl = rd.findParent('TABLE', targetCell);
-		console.log(targetCell.getElementsByTagName('div')[0].getAttribute("product"));
-		// previous cell name 
-		var prevName = targetCell.getElementsByTagName('div')[0].id;
-		var prevProduct = targetCell.getElementsByTagName('div')[0].getAttribute("product");
-
-		targetCell.getElementsByTagName('div')[0].id = targetCell.getAttribute('name'); //getAttribute('name')
-		console.log(prevName); //getElementsByTagName('div')[0]
-		console.log(targetCell.getElementsByTagName('div')[0]);
-
-		// if dropping in same cell as started to drop
-		if (prevName == targetCell.getAttribute('name')){
-
-		}
-		// if loaded tile is moved and not cloned
-		else if (prevName in loadedTiles && !(prevName in addedTiles) && !redips.is_cloned) {
-			console.log('LoadedTile');
-			// mark this loded tile pos as deleted becouse it is moved
-			deletedTiles[prevName] = prevProduct;
-			// new tile added
-			addedTiles[targetCell.getAttribute('name')] = prevProduct;
-		}
-		// if loaded tile is cloned
-		else if (prevName in loadedTiles && !(prevName in addedTiles) && redips.is_cloned) {
-			addedTiles[targetCell.getAttribute('name')] = prevProduct;
-		}
-		else {
-			// tile move to new cell. Delete previous tile pos if it's in added.
-			delete addedTiles[prevName];
-			// add tiles to addedTiles
-			addedTiles[targetCell.getAttribute('name')] = prevProduct;
-			// when add tile then delete it form deleteTiles
-			delete deletedTiles[targetCell.getAttribute('name')];
-		}
-		console.log(redips.is_cloned);
-	};
-	// deletion event when cell moved to trash
-	rd.event.deleted = function (cloned) {
-		if (!cloned){
-			delete addedTiles[rd.obj.id];
-			// if this cell is from database
-			if (rd.obj.id in loadedTiles) {
-				// add it to array
-				deletedTiles[rd.obj.id] = loadedTiles[rd.obj.id];
-			}
-			console.log(deletedTiles);
-		}
-	};
-	rd.event.clicked = function (currentCell) {
-		$('.marked').removeClass('marked');	
-		if (ctrlPressed) {
-			//make copy of product
-			temp_obj = rd.obj;
-			// delete product
-			rd.deleteObject(rd.obj);
-			// make product in same place to allow drag marked products when start click is on product not on table
-			$(currentCell).html(setProductDiv( $(currentCell).attr('name'), $(temp_obj).attr('product')) );
-			REDIPS.drag.init();
-			Move.mouseStillDown = true;
-			Move.start_x = $(currentCell).offset().left, Move.start_y = $(currentCell).offset().top;
-		    Move.start_row = $(currentCell).context.parentNode.rowIndex+1, Move.start_col = $(currentCell).context.cellIndex+1;
-	    }else {
-	    	// if single cell in clicked then make it like product marking process is done and cell should be moved
-	    	//make copy of product
-			temp_obj = rd.obj;
-			// delete product
-			rd.deleteObject(rd.obj);
-			// make product in same place to allow drag marked products when start click is on product not on table
-			$(currentCell).html(setProductDiv( $(currentCell).attr('name'), $(temp_obj).attr('product')) );
-			REDIPS.drag.init();
-			// make bools like product is marked and it should be moved
-			Move.move_products['start'] = true; Move.move_products['move'] = true;
-			// place it in marked cells not products
-			newMarkedCells[$(currentCell).attr('name')] = {'r':$(currentCell)[0].parentNode.rowIndex+1, 'c':$(currentCell)[0].cellIndex+1};
-			// get cell in marked products
-			getMarkedProducts();
-			console.log(markedProducts);
-	    }
-	    console.log(ctrlPressed);
-		if (Move.move_products['start']) {
-			Move.move_products['move'] = true;
-			Move.start_row = currentCell.parentNode.rowIndex+1;
-			Move.start_col = currentCell.cellIndex+1;
-			//make copy of product
-			temp_obj = rd.obj;
-			// delete product
-			rd.deleteObject(rd.obj);
-			// make product in same place to allow drag marked products when start click is on product not on table
-			$(currentCell).html(setProductDiv( $(currentCell).attr('name'), $(temp_obj).attr('product')) );
-			REDIPS.drag.init();
-		}
-		
-		//console.log(Move.move_products['start']);
-		//console.log($(currentCell).position());
-		//REDIPS.drag.init();
-		// .context.cellIndex
-		redips.is_cloned = false;
-	};
-	rd.event.cloned = function (clonedElement) {
-		redips.is_cloned = true;
-		console.log('cloned');
-	}
-};
-
-redips.save = function () {
+save = function () {
 	// declare local variables
 	var	JSONobjNew = addedTiles,	// prepare JSON object
 		JSONobjDel = deletedTiles;

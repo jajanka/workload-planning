@@ -9,7 +9,7 @@ if (isset($_POST['q']))
 	$results = array();
 	$query = $_POST['q'].'%'; // add % for LIKE query later
 
-	$selectQ = 'SELECT p_name FROM products WHERE p_name LIKE :query';
+	$selectQ = 'SELECT p_name FROM products WHERE  UPPER(p_name) LIKE UPPER(:query)';
 	
 	try
 	{
@@ -41,7 +41,7 @@ else if (isset($_POST['product']))
 	$prod = $_POST['product'];
 	$res = '';
 
-	$selectQ = 'SELECT allowed_machines FROM products WHERE p_name = :product LIMIT 1';
+	$selectQ = 'SELECT allowed_machines FROM products WHERE  UPPER(p_name) = UPPER(:product) LIMIT 1';
 	
 	try
 	{
