@@ -169,8 +169,8 @@ div#redips-drag table td,th {
 
 /* dark cells (first column and table header) */
 .dark {
-	color: #444;
-	background-color: #e0e0e0;
+	color: #444 !important;
+	background-color: #e0e0e0 !important;
 }
 .table1-header{
 	//float: left; 

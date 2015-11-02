@@ -254,12 +254,12 @@ $( document ).ready(function()
 		        '<button style="width:100%;" type="button" class="btn btn-xs" data-color="success">'+tableHeaders[i]+'</button>'+
 		        '<input type="checkbox" class="hidden" unchecked />'+
 		    	'</span>';
-				header_time_html += '<td class="redips-mark dark">'+checkBox_html+'</td>';
+				header_time_html += '<td class="">'+checkBox_html+'</td>';
 			};
 			var dateStr = d.getDate()  + "." + monthNamesShort[d.getMonth()] + "  " + d.getFullYear();
 			// format date for header date id
 			var date_formated = d.getFullYear()+'-'+pad((d.getMonth()+1))+'-'+pad(d.getDate())+'H';
-			header_day_html += '<td id="'+date_formated+'" class="redips-mark dark" colspan="3">'+dateStr+' '+d.getDay()+'</td>'; //date
+			header_day_html += '<td id="'+date_formated+'" class="" colspan="3">'+dateStr+' '+d.getDay()+'</td>'; //date
 		});
 		$('.table1-header .header-time').html('<td class="redips-mark blank"></td>'+header_time_html);
 		$('.table1-header .header-day').html('<td class="redips-mark blank"></td>'+header_day_html);
@@ -356,7 +356,6 @@ $( document ).ready(function()
 	    				// add objects to loadedTiles
 	    				loadedTiles[td_name] = plan.product;
 	    			});
-	    			REDIPS.drag.init();
 	    		}
 			}
 		});
@@ -398,7 +397,6 @@ $( document ).ready(function()
 		var p = $('#product').val();
 		var q = $('#quantity').val();
     	lastFilledProducts = fillProducts(p, markedShift, q);
-    	REDIPS.drag.init();
     	console.log(lastFilledProducts);
     });
 
@@ -410,7 +408,7 @@ $( document ).ready(function()
     });
 
     $('#save-bttn').click(function() { 
-    	redips.save();
+    	save();
     });
 
 	//// Rectangle draw, marking products
@@ -567,6 +565,7 @@ $( document ).ready(function()
 			    	}
 			    }
 			}
+
 		    Move.mouseStillDown = true;
 		    Move.start_x = e.pageX, Move.start_y = e.pageY;
 		    if (!ctrlPressed) {
@@ -585,6 +584,7 @@ $( document ).ready(function()
 					}
 				}
 				else if (e.target.className == 'blue' && !Move.move_products['start']) {
+					newMarkedCells = {};
 					Move.move_products['start'] = true; Move.move_products['move'] = true;
 					Move.start_row = e.target.parentNode.parentNode.rowIndex+1, 
 					Move.start_col = e.target.parentNode.cellIndex+1;
@@ -593,6 +593,7 @@ $( document ).ready(function()
 					newMarkedCells[$(curCell).attr('name')] = {'r':$(curCell)[0].parentNode.rowIndex+1, 'c':$(curCell)[0].cellIndex+1};
 					// get cell in marked products
 					getMarkedProducts();
+					console.log(newMarkedCells);
 				}
 				else
 				{
@@ -606,12 +607,10 @@ $( document ).ready(function()
 
 	document.getElementById('right').oncontextmenu = function(e) {
 	   	console.log(newMarkedCells);
-	    if ( Object.keys(newMarkedCells).length > 0) {
-			if (!Move.move_products['move']) {
-				$('#marked-modal .modal-dialog').attr('style','left: '+(e.clientX)+'px; top: '+(e.clientY-10)+'px;');
-				$('#marked-modal').modal('show');
-			}
-		}
+
+		$('#marked-modal .modal-dialog').attr('style','left: '+(e.clientX)+'px; top: '+(e.clientY-10)+'px;');
+		$('#marked-modal').modal('show');
+
 	    return false;
 	}
 
@@ -700,9 +699,8 @@ $( document ).ready(function()
 				    	}
 				    }
 				}
-				REDIPS.drag.init();
 				markedProducts = {};
-				newMarkedCells = {};
+				
 				Move.move_products['start'] = false; Move.move_products['move'] = false;
 			}
 
@@ -1035,12 +1033,4 @@ $(window).keydown(function(evt) {
   }
 });
 
-
-// add onload event listener
-if (window.addEventListener) {
-	window.addEventListener('load', redips.init, false);
-}
-else if (window.attachEvent) {
-	window.attachEvent('onload', redips.init);
-}
 function p(){ console.log(loadedTiles); console.log(addedTiles); console.log(deletedTiles); }
