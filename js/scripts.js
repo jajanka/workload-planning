@@ -299,69 +299,133 @@ $( document ).ready(function()
 		initBttnCheckbox();
 	}
 
-	function loadTable(startD, endD) {
-		$.post( "php/load.php", {startDate: startD, endDate: endD})
-		// when post is finished
-		.done(function( data ) {
-			//alert(data);
-			// parse received php data to JSON
-			var jsonData = '';
-			try {
-				jsonData = jQuery.parseJSON(data);
-			}
-			catch (e) {}
-			console.log(jsonData);
-			// if json is parsed
-			// place free shifts
-			if (jsonData != ''){
-    			// iterate over JSON array
-    			jsonData['shifts'].forEach(function(shift) {
-    				// make id for tile
-    				var head_id = '#'+shift.week_day+'H';
-    				// update color for product name
-    				var head_id_col = $(head_id)[0].cellIndex;
-    				// mark free shifts all columns with redips-mark dark
-    				if (shift.shift1) {
-    					$('.header-time td:nth-child('+((head_id_col*3-1))+')').html(tableHeaders[0]).addClass('free');
-    					for (var i = 1; i <= machineCount; i++) {
-    						$('#table2 tr:nth-child('+i+') td:nth-child('+((head_id_col*3-1)-1)+')').addClass('redips-mark  dark');
-    					};
-    				}
-    				if (shift.shift2) {
-    					$('.header-time td:nth-child('+((head_id_col*3-1)+1)+')').html(tableHeaders[1]).addClass('free');
-    					for (var i = 1; i <= machineCount; i++) {
-    						$('#table2 tr:nth-child('+i+') td:nth-child('+(head_id_col*3-1)+')').addClass('redips-mark  dark');
-    					};
-    				}
-    				if (shift.shift3) {
-    					$('.header-time td:nth-child('+((head_id_col*3-1)+2)+')').html(tableHeaders[2]).addClass('free');
-    					for (var i = 1; i <= machineCount; i++) {
-    						$('#table2 tr:nth-child('+i+') td:nth-child('+((head_id_col*3-1)+1)+')').addClass('redips-mark  dark');
-    					};
-    				}
-    				//loadedTiles[td_name] = plan.product;
-    			});
-			}
-			// place products in table
-			if (jsonData != ''){
-				if (jsonData['products'] !== undefined) {
+	function expandTable(r, c) 
+	{
+		// last day date of current table
+		var lastDate = $('.header-day td').last()[0].id;
+		lastDate = lastDate.slice(0, -1);
+		// create expandig table last date
+		var expandDate = new Date(lastDate);
+		expandDate.setDate(expandDate.getDate() + 7);
+
+		var expandDate_formated = expandDate.getFullYear()+'-'+pad((expandDate.getMonth()+1))+'-'+pad(expandDate.getDate());
+		// get all dates for expanding table 
+		var dates = getDates(new Date(lastDate), expandDate);
+		// delete first array element becouse it's unnecessery
+		dates.shift();
+		var header_time_html = '';
+		var header_day_html = '';
+
+		initBttnCheckbox(); // fix for bttn-checkbox
+		dates.forEach(function(d) // timeline header
+		{	
+			for (var i = 0; i < tableHeaders.length; i++) { // time
+			checkBox_html = '<span class="button-checkbox-time">'+
+		        '<button style="width:100%;" type="button" class="btn btn-xs" data-color="success">'+tableHeaders[i]+'</button>'+
+		        '<input type="checkbox" class="hidden" unchecked />'+
+		    	'</span>';
+				header_time_html += '<td class="">'+checkBox_html+'</td>';
+			};
+			var dateStr = d.getDate()  + "." + monthNamesShort[d.getMonth()] + "  " + d.getFullYear();
+			// format date for header date id
+			var date_formated = d.getFullYear()+'-'+pad((d.getMonth()+1))+'-'+pad(d.getDate())+'H';
+			header_day_html += '<td id="'+date_formated+'" class="" colspan="3">'+dateStr+' '+d.getDay()+'</td>'; //date
+		});
+		$('.table1-header .header-time').append(header_time_html);
+		$('.table1-header .header-day').append(header_day_html);
+		initBttnCheckbox();
+
+		// add table main table cells
+		// generate table cells
+		for (var i = 1; i <= r; i++) {	
+			var table2_html = '';	// table cells
+			// length for employee change times. There are 3 in 1 day
+			var cellLen = dates.length*3;
+	  		// counts to 3
+	  		var data_counter = 0;
+	  		for (var j = 0; j < cellLen; j++) {
+	  			// if mod 3 is 0 then gets next date index
+	  			data_counter = (j > 0 && j % 3 == 0)? ++data_counter : data_counter;
+	  			// iterate through dates
+	  			var cur_date = dates[data_counter];
+	  			// make td name with date from array
+	  			var cur_date_formated = cur_date.getFullYear()+'-'+pad((cur_date.getMonth()+1))+'-'+pad(cur_date.getDate())+'/'+i+'/'+j%3;
+	  			//console.log(cur_date_formated);
+	    		table2_html += '<td name="'+cur_date_formated+'"></td>';
+	  		};
+	  		$('#table2 tr:nth-child('+i+')').append(table2_html);
+		};
+		loadTable(lastDate, expandDate_formated, false);
+	}
+
+
+	function loadTable(startD, endD, is_async) {
+		$.ajax({
+			  type: 'POST',
+			  url: "php/load.php",
+			  data: {startDate: startD, endDate: endD},
+			  success: function( data ) {
+				//alert(data);
+				// parse received php data to JSON
+				var jsonData = '';
+				try {
+					jsonData = jQuery.parseJSON(data);
+				}
+				catch (e) {}
+				console.log(jsonData);
+				// if json is parsed
+				// place free shifts
+				if (jsonData != ''){
 	    			// iterate over JSON array
-	    			jsonData['products'].forEach(function(plan) {
+	    			jsonData['shifts'].forEach(function(shift) {
 	    				// make id for tile
-	    				td_name = plan.p_date+'/'+plan.machine+'/'+plan.e_shift;
+	    				var head_id = '#'+shift.week_day+'H';
 	    				// update color for product name
-	    				updateColor(plan.product);
-	    				// update td witch have attr name with drag tile
-	    				$('[name="'+td_name+'"]').html(setProductDiv(td_name, plan.product));
-	    				// add objects to loadedTiles
-	    				loadedTiles[td_name] = plan.product;
+	    				var head_id_col = $(head_id)[0].cellIndex;
+	    				// mark free shifts all columns with redips-mark dark
+	    				if (shift.shift1) {
+	    					$('.header-time td:nth-child('+((head_id_col*3-1))+')').html(tableHeaders[0]).addClass('free');
+	    					for (var i = 1; i <= machineCount; i++) {
+	    						$('#table2 tr:nth-child('+i+') td:nth-child('+((head_id_col*3-1)-1)+')').addClass('redips-mark  dark');
+	    					};
+	    				}
+	    				if (shift.shift2) {
+	    					$('.header-time td:nth-child('+((head_id_col*3-1)+1)+')').html(tableHeaders[1]).addClass('free');
+	    					for (var i = 1; i <= machineCount; i++) {
+	    						$('#table2 tr:nth-child('+i+') td:nth-child('+(head_id_col*3-1)+')').addClass('redips-mark  dark');
+	    					};
+	    				}
+	    				if (shift.shift3) {
+	    					$('.header-time td:nth-child('+((head_id_col*3-1)+2)+')').html(tableHeaders[2]).addClass('free');
+	    					for (var i = 1; i <= machineCount; i++) {
+	    						$('#table2 tr:nth-child('+i+') td:nth-child('+((head_id_col*3-1)+1)+')').addClass('redips-mark  dark');
+	    					};
+	    				}
+	    				//loadedTiles[td_name] = plan.product;
 	    			});
-	    		}
-			}
+				}
+				// place products in table
+				if (jsonData != ''){
+					if (jsonData['products'] !== undefined) {
+		    			// iterate over JSON array
+		    			jsonData['products'].forEach(function(plan) {
+		    				// make id for tile
+		    				td_name = plan.p_date+'/'+plan.machine+'/'+plan.e_shift;
+		    				// update color for product name
+		    				updateColor(plan.product);
+		    				// update td witch have attr name with drag tile
+		    				$('[name="'+td_name+'"]').html(setProductDiv(td_name, plan.product));
+		    				// add objects to loadedTiles
+		    				loadedTiles[td_name] = plan.product;
+		    			});
+		    		}
+				}
+			},
+			  async:is_async
 		});
 	}
-	drawTable("2015/10/28", "2015/11/2");
-	loadTable("2015/10/28", "2015/11/2");
+	drawTable("2015/10/29", "2015/11/1");
+	loadTable("2015/10/29", "2015/11/1", true);
 
 	/* ################################################
 	###################### EVENTS #######################
@@ -382,7 +446,7 @@ $( document ).ready(function()
 	    	// replace all '/' in date to '-'. It's for postgres date format
 	    	startDate = startDate.replace(/\//g, '-');
 			endDate = endDate.replace(/\//g, '-');
-			loadTable(startDate, endDate);
+			loadTable(startDate, endDate, true);
 			var start_date_formated = sd.getDate()+'.'+monthNamesShort[sd.getMonth()]+'. '+sd.getFullYear();
 			var end_date_formated = ed.getDate()+'.'+monthNamesShort[ed.getMonth()]+'. '+ed.getFullYear();
 			$('.page-date-header').html(start_date_formated+' - '+end_date_formated);
@@ -667,30 +731,67 @@ $( document ).ready(function()
 						}
 				    }
 				}
-				//var shifted_rows = {};
 				for (var key in markedProducts) {
 				    if (markedProducts.hasOwnProperty(key)) {
 
 			    		// new product place. place new products in cells
 			    		var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")");
+			    		//console.log(td_html.hasClass('dark'));
 						td_html.css('background-color', '#EEE' );
 						if (is_valid) {
 							// row's last td index
 							var rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
 							// row's first new product
 							var startIndex = markedProducts[key].cEnd;
-							// 
+							var i = startIndex;
+							// if product is landed on free day. then while loop on col till it gets to work shift
+							while (td_html.hasClass('dark')){
+								i++;
+								if (i >= rowLastCellIndex)  {
+									console.log('Expand1');
+									expandTable(machineCount, 7);
+									rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
+								}
+								td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
+							}
+							// id products goes further then showed table dates
+							if (startIndex > rowLastCellIndex) {
+								console.log('Expand2');
+								expandTable(machineCount, 7);
+								rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
+							}
 							var nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(startIndex)+")")[0].innerHTML;
+							// next cell  
+							var nextCell = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(startIndex)+")");
 
 							for (var i = startIndex; i <= rowLastCellIndex; i++) {
 								// if next cell have no products then break
-								if (nextCell_html == "") break; 
+								if (nextCell_html == "" && !nextCell.hasClass('dark')) break; 
+
+								if (i >= rowLastCellIndex) {
+									console.log('Expand3');
+									expandTable(machineCount, 7);
+									rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
+								}
 								// current cell in next cell innerHTML
 								var currentCell = nextCell_html;
 								// next cell
 								nextCell = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")");
 								// next cell html
 								nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")")[0].innerHTML;
+								// if cell is in free shift then while loop till it gets out of free shifts
+								while (nextCell.hasClass('dark')){
+									i += 1;
+									if (i >= rowLastCellIndex) {
+										console.log('Expand4');
+										expandTable(machineCount, 7);
+										rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
+										//break;
+									}
+									nextCell = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")");
+									nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")")[0].innerHTML;
+								}
+
 
 								nextCell[0].innerHTML = currentCell;
 								console.log(nextCell_html);
@@ -793,7 +894,7 @@ $( document ).ready(function()
 					$('#overallComment').val(jsonModal['info']);
 
 				var td_html = '';
-				for (var i = 1; i <= 21; i++) 
+				for (var i = 1; i <= machineCount; i++) 
 				{
 					var comment = '';
 					var is_checked = 'unchecked';
@@ -845,52 +946,33 @@ function fillProducts(product, start, count) {
 			// row column length
 			var column_count = document.getElementById('table2').rows[0].cells.length;
 			var count_check = 0, 
-				is_valid = false;
 				lastFilledProducts = [];
-			for (var i = start; i <= column_count; i++) { // counts empty cell in marked machines. starting from marked e shift
-				for (var key in markedMachines) {
-				    if (markedMachines.hasOwnProperty(key)) {
-						var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
-						if (td_html[0].innerHTML.trim().length == 0) {
-							count_check++;
-						}
-					if (count_check >= jsonCount) { is_valid = true; break; }
-				    }
-				}
-				if (count_check >= jsonCount) { is_valid = true; break; }
-			}
-			console.log(is_valid);
 
 			// if products can be filled in table
-			if (is_valid) {
-				// iterate over columns
-				for (var i = start; i <= column_count; i++) {
-					// for each marked machine in left header column
-					for (var key in markedMachines) {
-						// js lagging fix
-					    if (markedMachines.hasOwnProperty(key)) {
-					    	// get cell
-							var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
-							// if inner html in cell is empty
-							if (td_html[0].innerHTML.trim().length == 0) {
-								// update products colors
-								updateColor(product);
-								// put a product in cell
-								td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
-								addedTiles[td_html.attr("name")] = product;
-								// add to last filled products
-								lastFilledProducts.push(td_html.attr("name"));
-								jsonCount--;
-							}
-					    }
-					    if (0 >= jsonCount) { break; } // if all products placed
-					}
-					if (0 >= jsonCount) { break; }
-				};
-			}
-			else{
-				showError('Nepietiek vietas tabulā (max '+count_check+')');
-			}
+			// iterate over columns
+			for (var i = start; i <= column_count; i++) {
+				// for each marked machine in left header column
+				for (var key in markedMachines) {
+					// js lagging fix
+				    if (markedMachines.hasOwnProperty(key)) {
+				    	// get cell
+						var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
+						// if inner html in cell is empty
+						if (td_html[0].innerHTML.trim().length == 0 && !td_html.hasClass('dark')) {
+							// update products colors
+							updateColor(product);
+							// put a product in cell
+							td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
+							addedTiles[td_html.attr("name")] = product;
+							// add to last filled products
+							lastFilledProducts.push(td_html.attr("name"));
+							jsonCount--;
+						}
+				    }
+				    if (0 >= jsonCount) { break; } // if all products placed
+				}
+				if (0 >= jsonCount) { break; }
+			};
 			return lastFilledProducts;
 		}
 		else 
