@@ -358,6 +358,76 @@ $( document ).ready(function()
 		loadTable(lastDate, expandDate_formated, false);
 	}
 
+	function fillProducts(product, start, count) {
+		if (Object.keys(markedMachines).length < 1) {
+			showError('Nav atzīmēta neviena mašīna.', 'danger');
+			return;
+		}
+		$.post( "php/products_formula.php", {kg: count, prod: product})
+		// when post is finished
+		/*
+		while (td_html.hasClass('dark')){
+			i++;
+			if (i >= rowLastCellIndex)  {
+				console.log('Expand1');
+				expandTable(machineCount, 7);
+				rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
+			}
+			td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
+		}*/
+		.done(function( data ) {
+			var jsonCount = '';
+			if (data != '') 
+			{
+				jsonCount = Math.ceil(JSON.parse(data));
+				// row column length
+				var column_count = document.getElementById('table2').rows[0].cells.length;
+				var count_check = 0, 
+					lastFilledProducts = [];
+
+				// if products can be filled in table
+				// iterate over columns
+				for (var i = start; i <= column_count; i++) {
+					// for each marked machine in left header column
+					for (var key in markedMachines) {
+						// js lagging fix
+					    if (markedMachines.hasOwnProperty(key)) {
+					    	// get cell
+							var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
+							// if inner html in cell is empty
+							if (td_html[0].innerHTML.trim().length == 0 && !td_html.hasClass('dark')) {
+								if (i >= column_count)  {
+									console.log('Expand1');
+									expandTable(machineCount, 7);
+									column_count = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
+								}
+								// update products colors
+								updateColor(product);
+								// put a product in cell
+								td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
+								addedTiles[td_html.attr("name")] = product;
+								// add to last filled products
+								lastFilledProducts.push(td_html.attr("name"));
+								jsonCount--;
+							}
+					    }
+					    if (0 >= jsonCount) { break; } // if all products placed
+					}
+					if (0 >= jsonCount) { break; }
+				};
+				return lastFilledProducts;
+			}
+			else 
+			{
+				showError("Nekorekts rezultāts.", 'danger');;
+			}
+
+		})
+		.fail( function( data ) {
+		    showError("Nevar pievienot produktu.", 'danger');
+		});
+
+	}
 
 	function loadTable(startD, endD, is_async) {
 		$.ajax({
@@ -424,8 +494,8 @@ $( document ).ready(function()
 			  async:is_async
 		});
 	}
-	drawTable("2015/10/29", "2015/11/1");
-	loadTable("2015/10/29", "2015/11/1", true);
+	drawTable("2015/10/29", "2015/10/31");
+	loadTable("2015/10/29", "2015/10/31", true);
 
 	/* ################################################
 	###################### EVENTS #######################
@@ -596,8 +666,6 @@ $( document ).ready(function()
 				    		markedProducts[key].rEnd = row;
 				    		markedProducts[key].cEnd = col;
 				    		console.log(markedProducts[key].cEnd);
-				    		//console.log('Row:'+row+' '+key);
-				    		//console.log("Col:"+col+' '+key);
 
 				    		var td_html = $( "#table2 tbody tr:nth-child("+row+") td:nth-child("+col+")");
 				    		//console.log("#table2 tbody tr:nth-child("+row+") td:nth-child("+col+")");
@@ -611,6 +679,8 @@ $( document ).ready(function()
 				}
 		    }
 		    else if (Move.mouseStillDown) { // marking products
+		    	Move.move_products['start'] = false;
+		    	markedProducts = {};
 		    	drawRect(e, Move.old_row, Move.old_col);
 		    }
 		}
@@ -625,7 +695,6 @@ $( document ).ready(function()
 			    	// .attr('style',  'background-color:#e3e3e3');
 			    	if ($('[name="'+key+'"]')[0].innerHTML.trim() != '') {
 			    		$('[name="'+key+'"] div').removeClass('marked');
-			    		//console.log($('[name="'+key+'"]')[0].innerHTML);
 			    	}
 			    }
 			}
@@ -671,13 +740,18 @@ $( document ).ready(function()
 
 	document.getElementById('right').oncontextmenu = function(e) {
 	   	console.log(newMarkedCells);
-
 		$('#marked-modal .modal-dialog').attr('style','left: '+(e.clientX)+'px; top: '+(e.clientY-10)+'px;');
 		$('#marked-modal').modal('show');
+		$(".modal-backdrop").remove();
 
 	    return false;
 	}
-
+	// fix to pop up context menu when one already is shown
+	$(document).on('mousedown', '#marked-modal', function(e) {
+		if (e.which == 3) {
+			$('#marked-modal').modal('hide');
+		}
+	})
 	$("body").mouseup(function(e) {
 		if (e.which == 1) {
 
@@ -690,8 +764,9 @@ $( document ).ready(function()
 					}
 				};
 				console.log('M up Move.move_products[start] ' +Move.move_products['start']);
+				console.log('Modal action '+Move.modal_action);
 				if (!Move.move_products['start']) getMarkedProducts();
-				Move.modal_action = true; // true if modal is not canceled
+				 // true if modal is not canceled
 	    		Move.move_products['start'] = true;
 	    		//Move.move_products['move'] = true;
 	    		console.log('Mouse up '+Move.move_products['start']);
@@ -824,6 +899,7 @@ $( document ).ready(function()
 
    	$('#marked-modal').on('hidden.bs.modal', function () {
    		if (!Move.modal_action) {
+   			markedProducts = {};
 			for (var key in newMarkedCells) {
 			    if (newMarkedCells.hasOwnProperty(key)) {
 			    	// .attr('style',  'background-color:#e3e3e3');
@@ -836,6 +912,7 @@ $( document ).ready(function()
 			if (!Move.move_products['start']) { 
 				console.log('#marked-modal');
 				newMarkedCells = {};
+				markedProducts = {};
 			}
 		}
 		Move.modal_action = false;
@@ -844,6 +921,7 @@ $( document ).ready(function()
     $('#move-marked-bttn').click(function(e) { 
     	Move.modal_action = true; // true if modal is not canceled
     	Move.move_products['start'] = true;
+    	Move.move_products['move'] = true;
     });
 
 	// constructs the suggestion engine
@@ -930,62 +1008,6 @@ $( document ).ready(function()
 		#################################################################
 	*/ 
 });
-
-function fillProducts(product, start, count) {
-	if (Object.keys(markedMachines).length < 1) {
-		showError('Nav atzīmēta neviena mašīna.', 'danger');
-		return;
-	}
-	$.post( "php/products_formula.php", {kg: count, prod: product})
-	// when post is finished
-	.done(function( data ) {
-		var jsonCount = '';
-		if (data != '') 
-		{
-			jsonCount = Math.ceil(JSON.parse(data));
-			// row column length
-			var column_count = document.getElementById('table2').rows[0].cells.length;
-			var count_check = 0, 
-				lastFilledProducts = [];
-
-			// if products can be filled in table
-			// iterate over columns
-			for (var i = start; i <= column_count; i++) {
-				// for each marked machine in left header column
-				for (var key in markedMachines) {
-					// js lagging fix
-				    if (markedMachines.hasOwnProperty(key)) {
-				    	// get cell
-						var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
-						// if inner html in cell is empty
-						if (td_html[0].innerHTML.trim().length == 0 && !td_html.hasClass('dark')) {
-							// update products colors
-							updateColor(product);
-							// put a product in cell
-							td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
-							addedTiles[td_html.attr("name")] = product;
-							// add to last filled products
-							lastFilledProducts.push(td_html.attr("name"));
-							jsonCount--;
-						}
-				    }
-				    if (0 >= jsonCount) { break; } // if all products placed
-				}
-				if (0 >= jsonCount) { break; }
-			};
-			return lastFilledProducts;
-		}
-		else 
-		{
-			showError("Nekorekts rezultāts.", 'danger');;
-		}
-
-	})
-	.fail( function( data ) {
-	    showError("Nevar pievienot produktu.", 'danger');
-	});
-
-}
 
 function getMarkedProducts() {
 	markedProducts = {};
