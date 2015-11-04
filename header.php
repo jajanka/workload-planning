@@ -24,8 +24,8 @@
     </div>
     <div>
       <ul class="nav navbar-nav">
-        <li><a href="products.php">Produkti</a></li>
-        <li><a href="calendar.php">Kalendārs</a></li>
+        <li><a href="products.php"><span class="glyphicon glyphicon-th-list"></span> Produkti</a></li>
+        <li><a href="calendar.php"><span class="glyphicon glyphicon-calendar"></span> Kalendārs</a></li>
       </ul>
     </div>
   </div>

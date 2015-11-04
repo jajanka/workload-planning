@@ -307,6 +307,7 @@ $( document ).ready(function()
 		else if ( h >= 14 && h <= 21) whichShift = 2;
 		console.log(whichShift + " " +h);
 
+		// mark today in the table
 		var today_formated = today.getFullYear()+'-'+pad((today.getMonth()+1))+'-'+pad(today.getDate());
 		if ($('#'+today_formated+'H')[0] == undefined) {
 			console.log('Nav datuma');
@@ -323,7 +324,7 @@ $( document ).ready(function()
 			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-toggle', "tooltip");
 			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-placement', "bottom");
 			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-container', "#table2");
-			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('title', "Š o d i e n a");
+			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('title', "T a g a d");
 			$('[data-toggle="tooltip"]').tooltip({trigger: 'manual'}).tooltip('show'); 
 		
 			// fix to correct show todays tooltip when today is not first fenerated in #table2 seenable content
@@ -406,16 +407,6 @@ $( document ).ready(function()
 		}
 		$.post( "php/products_formula.php", {kg: count, prod: product})
 		// when post is finished
-		/*
-		while (td_html.hasClass('dark')){
-			i++;
-			if (i >= rowLastCellIndex)  {
-				console.log('Expand1');
-				expandTable(machineCount, 7);
-				rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
-			}
-			td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
-		}*/
 		.done(function( data ) {
 			var jsonCount = '';
 			if (data != '') 

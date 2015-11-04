@@ -175,10 +175,10 @@ div#redips-drag table td,th {
 }
 .today {
 	//position: relative;
-	-webkit-box-shadow: 1px 1px 4px 2px #FFF;
-	-moz-box-shadow: 1px 1px 4px 2px #FFF;
-	box-shadow: 1px 1px 4px 2px #FFF;
-    background-color: rgb(125, 176, 202) !important;
+	-webkit-box-shadow: 1px 1px 4px 2px #C3E6FF;
+	-moz-box-shadow: 1px 1px 4px 2px #C3E6FF;
+	box-shadow: 1px 1px 4px 2px #C3E6FF;
+    //background-color: rgb(125, 176, 202) !important;
 
 }
 .table1-header{
@@ -221,7 +221,7 @@ div#redips-drag table td,th {
   width: 100%;
   /* Set the fixed height of the footer here */
   height: 60px;
-  background-color: #F8F8F8;
+  //background-color: #F8F8F8;
   text-align: center;
   color: #A77F8B;
   //border-top: 1px solid #E7E7E7;
@@ -319,11 +319,25 @@ div#redips-drag table td,th {
 
 .tooltip {
 	font-size: 16px;
+	z-index: 0 !important;
 }
 .tooltip-inner {
 	min-width: 100px;
+	background-color: transparent !important;
+	color: #000 !important;
 }
-
+.container-fluid {
+	//background-image: url("images/banner-bar-bg.gif");
+}
+#mainNavBar ul.nav.navbar-nav li a, #mainNavBar div.navbar-header a.navbar-brand{
+	color: #5A0000;
+}
+#mainNavBar div.navbar-header a.navbar-brand{
+	 margin-left: 40px;
+}
+#mainNavBar ul.nav.navbar-nav li.active a{
+	background-color: #EAF5FF;
+}
 /*
 ################## CSS LOADER FOR AJAX REQUESTS ##################
 */
