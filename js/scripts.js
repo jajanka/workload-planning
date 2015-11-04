@@ -33,13 +33,14 @@ $(document).ajaxStop(function(ev){
  	if (ev.currentTarget.activeElement.id != 'product' && ev.currentTarget.activeElement.id != 'gen-prod-bttn') {
 	    $("#ajax_loader img").show();
 	    $("#ajax_loader").show();
+	    $("#ajax_loader").offset($("#right").offset());
 	}
  });
 
 $( document ).ready(function() 
 {
 	// Init tooltip
-	$('[data-toggle="tooltip"]').tooltip(); 
+	//$('[data-toggle="tooltip"]').tooltip(); 
 
 	// Button-checkbox
 	/////////////////////////////////////
@@ -297,6 +298,41 @@ $( document ).ready(function()
 		$('#table2 tbody').html(table2_html);
 		// update bttn-checkboxes
 		initBttnCheckbox();
+
+		var today = new Date();
+		var whichShift = 0;
+		var h = today.getHours();
+		if ( (h >= 22 && h <= 23) || h <= 5) whichShift = 0;
+		else if ( h >= 6 && h <= 13) whichShift = 1;
+		else if ( h >= 14 && h <= 21) whichShift = 2;
+		console.log(whichShift + " " +h);
+
+		var today_formated = today.getFullYear()+'-'+pad((today.getMonth()+1))+'-'+pad(today.getDate());
+		if ($('#'+today_formated+'H')[0] == undefined) {
+			console.log('Nav datuma');
+		}
+		else {
+			var date_cellIndex = $('#'+today_formated+'H')[0].cellIndex;
+			var time_index = (date_cellIndex* 3 - 1) + whichShift;
+			//console.log($('.table1-header .header-time td:nth-child('+(time_index)+')'))
+			// iterate through currrent shift column in planning table
+			for (var i = 1; i <= machineCount; i++) {
+				$('#table2 tr:nth-child('+i+') td:nth-child('+(time_index-1)+')').addClass('today');
+			};
+			
+			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-toggle', "tooltip");
+			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-placement', "bottom");
+			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-container', "#table2");
+			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('title', "Š o d i e n a");
+			$('[data-toggle="tooltip"]').tooltip({trigger: 'manual'}).tooltip('show'); 
+		
+			// fix to correct show todays tooltip when today is not first fenerated in #table2 seenable content
+			setTimeout(function (){ 
+				var arrowOffset = $('.tooltip-arrow').offset();
+				$('.tooltip-arrow').css('left', '');
+				$('.tooltip').offset({top: $('.tooltip').offset().top, left: arrowOffset.left-45});
+			}, 1000);
+		}
 	}
 
 	function expandTable(r, c) 
@@ -304,6 +340,11 @@ $( document ).ready(function()
 		// last day date of current table
 		var lastDate = $('.header-day td').last()[0].id;
 		lastDate = lastDate.slice(0, -1);
+
+		var lastDateObj = new Date(lastDate);
+		lastDateObj.setDate(lastDateObj.getDate() + 1);
+		var lastDateObj_formated = lastDateObj.getFullYear()+'-'+pad((lastDateObj.getMonth()+1))+'-'+pad(lastDateObj.getDate());
+
 		// create expandig table last date
 		var expandDate = new Date(lastDate);
 		expandDate.setDate(expandDate.getDate() + 7);
@@ -355,7 +396,7 @@ $( document ).ready(function()
 	  		};
 	  		$('#table2 tr:nth-child('+i+')').append(table2_html);
 		};
-		loadTable(lastDate, expandDate_formated, false);
+		loadTable(lastDateObj_formated, expandDate_formated, false);
 	}
 
 	function fillProducts(product, start, count) {
@@ -409,6 +450,26 @@ $( document ).ready(function()
 								// add to last filled products
 								lastFilledProducts.push(td_html.attr("name"));
 								jsonCount--;
+							} 
+							else if (td_html.hasClass('dark')) 
+							{
+								while (td_html.hasClass('dark')){
+									i++;
+									if (i >= column_count)  {
+										console.log('Expand1');
+										expandTable(machineCount, 7);
+										column_count = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
+									}
+									td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
+								}
+														// update products colors
+								updateColor(product);
+								// put a product in cell
+								td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
+								addedTiles[td_html.attr("name")] = product;
+								// add to last filled products
+								lastFilledProducts.push(td_html.attr("name"));
+								jsonCount--;
 							}
 					    }
 					    if (0 >= jsonCount) { break; } // if all products placed
@@ -452,28 +513,30 @@ $( document ).ready(function()
 	    				var head_id = '#'+shift.week_day+'H';
 	    				// update color for product name
 	    				var head_id_col = $(head_id)[0].cellIndex;
+	    				var calculated_id = head_id_col*3-1;
 	    				// mark free shifts all columns with redips-mark dark
 	    				if (shift.shift1) {
-	    					$('.header-time td:nth-child('+((head_id_col*3-1))+')').html(tableHeaders[0]).addClass('free');
+	    					$('.header-time td:nth-child('+(calculated_id)+')').html(tableHeaders[0]).addClass('free');
 	    					for (var i = 1; i <= machineCount; i++) {
-	    						$('#table2 tr:nth-child('+i+') td:nth-child('+((head_id_col*3-1)-1)+')').addClass('redips-mark  dark');
+	    						$('#table2 tr:nth-child('+i+') td:nth-child('+(calculated_id-1)+')').addClass('redips-mark  dark');
 	    					};
 	    				}
 	    				if (shift.shift2) {
-	    					$('.header-time td:nth-child('+((head_id_col*3-1)+1)+')').html(tableHeaders[1]).addClass('free');
+	    					$('.header-time td:nth-child('+(calculated_id+1)+')').html(tableHeaders[1]).addClass('free');
 	    					for (var i = 1; i <= machineCount; i++) {
-	    						$('#table2 tr:nth-child('+i+') td:nth-child('+(head_id_col*3-1)+')').addClass('redips-mark  dark');
+	    						$('#table2 tr:nth-child('+i+') td:nth-child('+calculated_id+')').addClass('redips-mark  dark');
 	    					};
 	    				}
 	    				if (shift.shift3) {
-	    					$('.header-time td:nth-child('+((head_id_col*3-1)+2)+')').html(tableHeaders[2]).addClass('free');
+	    					$('.header-time td:nth-child('+(calculated_id+2)+')').html(tableHeaders[2]).addClass('free');
 	    					for (var i = 1; i <= machineCount; i++) {
-	    						$('#table2 tr:nth-child('+i+') td:nth-child('+((head_id_col*3-1)+1)+')').addClass('redips-mark  dark');
+	    						$('#table2 tr:nth-child('+i+') td:nth-child('+(calculated_id+1)+')').addClass('redips-mark  dark');
 	    					};
 	    				}
 	    				//loadedTiles[td_name] = plan.product;
 	    			});
 				}
+				console.log('shiftsDone');
 				// place products in table
 				if (jsonData != ''){
 					if (jsonData['products'] !== undefined) {
@@ -494,8 +557,8 @@ $( document ).ready(function()
 			  async:is_async
 		});
 	}
-	drawTable("2015/10/29", "2015/10/31");
-	loadTable("2015/10/29", "2015/10/31", true);
+	drawTable("2015/11/1", "2015/11/5");
+	loadTable("2015/11/1", "2015/11/5", true);
 
 	/* ################################################
 	###################### EVENTS #######################
@@ -506,7 +569,8 @@ $( document ).ready(function()
 		var endDate = $('[name="end"]').val();
 		var sd = new Date(startDate), ed = new Date(endDate);
 		// if start date is less or equal to end date the draw table
-		if (sd <= ed){
+		if (sd <= ed) {
+			$('[data-toggle="tooltip"]').tooltip('destroy');
 			markedMachines = {};
 			markedShift = 1;
 			deletedTiles = {};
@@ -828,8 +892,7 @@ $( document ).ready(function()
 									rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
 								}
 								td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
-							}
-							// id products goes further then showed table dates
+							}							// id products goes further then showed table dates
 							if (startIndex > rowLastCellIndex) {
 								console.log('Expand2');
 								expandTable(machineCount, 7);
@@ -1089,7 +1152,8 @@ function generateTextColor(color) { // generates
 }
 
 function updateColor(product) { // get random color
-	var random_color = '#'+Math.floor(Math.random()*16777215).toString(16);
+	var random_color= '#'+Math.floor(Math.random()*16777215).toString(16);
+	random_color = (random_color.length < 7) ? random_color + random_color[random_color.length -1] : random_color;
 	if(productsColor[product] === undefined) {
 		productsColor[product] = random_color;
 	}

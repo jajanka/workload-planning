@@ -38,8 +38,25 @@
 
 				<div id="right" >
 				
-					<div id='ajax_loader' style="width: 100%; height: 100%; background-color: #EEEEEE; display: none; position: absolute; z-index: 10;">
-					    <img src="css/images/ring-alt.gif" style="display: block; margin: auto; position: relative; top: 50%; transform: translateY(-50%);"></img>
+					<div id='ajax_loader' style="width: 101%; height: 101%; background-color: #EEEEEE; display: none; position: absolute; z-index: 101;">
+					    <!--<img src="css/images/ring-alt.gif" style="display: block; margin: auto; position: relative; top: 50%; transform: translateY(-50%);"></img> -->
+					     <div class="cssload-loader-inner">
+							<div class="cssload-cssload-loader-line-wrap-wrap">
+								<div class="cssload-loader-line-wrap"></div>
+							</div>
+							<div class="cssload-cssload-loader-line-wrap-wrap">
+								<div class="cssload-loader-line-wrap"></div>
+							</div>
+							<div class="cssload-cssload-loader-line-wrap-wrap">
+								<div class="cssload-loader-line-wrap"></div>
+							</div>
+							<div class="cssload-cssload-loader-line-wrap-wrap">
+								<div class="cssload-loader-line-wrap"></div>
+							</div>
+							<div class="cssload-cssload-loader-line-wrap-wrap">
+								<div class="cssload-loader-line-wrap"></div>
+							</div>
+						</div>
 					</div>
 
 
@@ -60,9 +77,6 @@
 						</td>
 						<td class="redips-mark dark">
 							<table id="table2">
-								<colgroup>
-									<col width="70"/>
-								</colgroup>
 								<tbody>
 								</tbody>
 							</table>
@@ -108,7 +122,7 @@
 	                    <button type="button" class="btn btn-default" data-dismiss="modal" id="move-marked-bttn" style="width:100%;"><span class="glyphicon glyphicon-fullscreen"></span> Pārvietot</button><br />
 	                    <button type="button" class="btn btn-default" data-dismiss="modal" id="cut-marked-bttn" style="width:100%;" disabled><span class="glyphicon glyphicon-scissors"></span> Izgriezt</button><br />
 	                    <button type="button" class="btn btn-default" data-dismiss="modal" id="delete-marked-bttn" style="width:100%;"><span class="glyphicon glyphicon-remove"></span> Dzēst</button><br />
-	                    <button type="button" class="btn btn-default" data-dismiss="modal" id="cancel-marked-bttn" title="Atcelt" style="width:100%;"><span class="glyphicon glyphicon-ban-circle"></span> Atcelt</button>
+	                    <button type="button" class="btn btn-default" data-dismiss="modal" id="cancel-marked-bttn" title="Atcelt" style="width:100%;" data-toggle="tooltip" data-placement="bottom"><span class="glyphicon glyphicon-ban-circle"></span> Atcelt</button>
 	                </div>
 	                
 	            </div>

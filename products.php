@@ -15,8 +15,24 @@
 		  <div id="message"></div>
 
 		  <table class="table table-striped" id="productsTable">
-		  	<div id='ajax_loader' style="width: 100%; height: 100px; background-color: #FFF; display: none; z-index: 10; margin: auto 0px;">
-			    <img src="css/images/ring-alt.gif" style="display: block; margin: auto; position: relative; top: 50%; transform: translateY(-50%);"></img>
+		  	<div id='ajax_loader' style="background-color: #FFF; display: none; z-index: 10; margin: auto 0px;">
+			    <div class="cssload-loader-inner">
+					<div class="cssload-cssload-loader-line-wrap-wrap">
+						<div class="cssload-loader-line-wrap"></div>
+					</div>
+					<div class="cssload-cssload-loader-line-wrap-wrap">
+						<div class="cssload-loader-line-wrap"></div>
+					</div>
+					<div class="cssload-cssload-loader-line-wrap-wrap">
+						<div class="cssload-loader-line-wrap"></div>
+					</div>
+					<div class="cssload-cssload-loader-line-wrap-wrap">
+						<div class="cssload-loader-line-wrap"></div>
+					</div>
+					<div class="cssload-cssload-loader-line-wrap-wrap">
+						<div class="cssload-loader-line-wrap"></div>
+					</div>
+				</div>
 			</div>
 		    <thead class="persist-header">
 		      <tr>

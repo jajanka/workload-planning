@@ -4,14 +4,12 @@ var Product = {};
 // use: when post/get data then ajax gif loader shows
 $(document).ajaxStop(function(){
     console.debug("ajaxStop");
-    $("#ajax_loader img").hide();
     $("#ajax_loader").hide();
     $("#productsTable").show();
  });
  $(document).ajaxStart(function(){
      console.debug("ajaxStart");
      $("#productsTable").hide();
-     $("#ajax_loader img").show();
      $("#ajax_loader").show();
  });
 
