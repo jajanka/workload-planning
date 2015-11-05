@@ -552,8 +552,8 @@ $( document ).ready(function()
 			  async:is_async
 		});
 	}
-	drawTable("2015/05/01", "2015/07/30");
-	loadTable("2015/05/01", "2015/07/30", true);
+	drawTable("2015/10/28", "2015/11/02");
+	loadTable("2015/10/28", "2015/11/02", true);
 
 	/* ################################################
 	###################### EVENTS #######################
@@ -643,12 +643,13 @@ $( document ).ready(function()
 				}
 			}*/
 			// clean old marking
-			var rows = [r1,old_r], cols = [c1,old_c];
-			console.log("#table2 tbody tr:nth-child(n+"+Math.min(Math.min(r1,r2),old_r)+"):nth-child(-n+"+Math.max(Math.min(r1,r2),old_r)+") td:nth-child(n+"+Math.min(c1,old_c)+"):nth-child(-n+"+Math.max(c1,old_c)+")");
-			console.log(r1,+' '+old_r);
-			$( "#table2 tbody tr:nth-child(n+"+Math.min(Math.min(r1,r2),old_r)+"):nth-child(-n+"+Math.max(Math.min(r1,r2),old_r)+") td:nth-child(n+"+Math.min(c1,old_c)+"):nth-child(-n+"+Math.max(c1,old_c)+")").css('background-color', '#EEE' ); 
+			var rows = [r1, r2, old_r != 0 ? old_r : r1], cols = [c1,c2, old_c != 0 ? old_c : c1];
+			//console.log("#table2 tbody tr:nth-child(n+"+Math.min(...rows)+"):nth-child(-n+"+Math.max(...rows)+") td:nth-child(n+"+Math.min(...cols)+"):nth-child(-n+"+Math.max(...cols)+")");
+			//console.log("#table2 tbody tr:nth-child(n+"+r1+"):nth-child(-n+"+r2+") td:nth-child(n+"+c1+"):nth-child(-n+"+c2+")");
+			//console.log(r1,+' '+ old_r != 0 ? old_r : r1);
+			$( "#table2 tbody tr:nth-child(n+"+Math.min(...rows)+"):nth-child(-n+"+Math.max(...rows)+") td:nth-child(n+"+Math.min(...cols)+"):nth-child(-n+"+Math.max(...cols)+")").removeClass('temp-marked'); 
 			// draw new marking
-			$( "#table2 tbody tr:nth-child(n+"+r1+"):nth-child(-n+"+r2+") td:nth-child(n+"+c1+"):nth-child(-n+"+c2+")").css('background-color', '#D93600' );
+			$( "#table2 tbody tr:nth-child(n+"+r1+"):nth-child(-n+"+r2+") td:nth-child(n+"+Math.min(c1,c2)+"):nth-child(-n+"+Math.max(c1,c2)+")").addClass('temp-marked'); 
 
 			//$( "#table2 tbody tr:nth-child(n+"+r1+"):nth-child(-n+"+r2+") td:nth-child(n+"+c1+"):nth-child(-n+"+c2+")").addClass('temp-marked');
 		}
