@@ -247,7 +247,7 @@ $( document ).ready(function()
 		var dates = getDates(new Date(startDate), new Date(endDate));
 		var header_time_html = '';
 		var header_day_html = '';
-
+		
 		dates.forEach(function(d) // timeline header
 		{	
 			for (var i = 0; i < tableHeaders.length; i++) { // time
@@ -267,7 +267,7 @@ $( document ).ready(function()
 
 		var left_header_html = ''; //left static column header
 		var table2_html = '';	// table cells
-
+		
 		// generate table cells
 		for (var i = 0; i < machineCount; i++) {	
 			// length for employee change times. There are 3 in 1 day
@@ -296,44 +296,10 @@ $( document ).ready(function()
 		};
 		$('.left-header').html(left_header_html);
 		$('#table2 tbody').html(table2_html);
+
 		// update bttn-checkboxes
 		initBttnCheckbox();
-
-		var today = new Date();
-		var whichShift = 0;
-		var h = today.getHours();
-		if ( (h >= 22 && h <= 23) || h <= 5) whichShift = 0;
-		else if ( h >= 6 && h <= 13) whichShift = 1;
-		else if ( h >= 14 && h <= 21) whichShift = 2;
-		console.log(whichShift + " " +h);
-
-		// mark today in the table
-		var today_formated = today.getFullYear()+'-'+pad((today.getMonth()+1))+'-'+pad(today.getDate());
-		if ($('#'+today_formated+'H')[0] == undefined) {
-			console.log('Nav datuma');
-		}
-		else {
-			var date_cellIndex = $('#'+today_formated+'H')[0].cellIndex;
-			var time_index = (date_cellIndex* 3 - 1) + whichShift;
-			//console.log($('.table1-header .header-time td:nth-child('+(time_index)+')'))
-			// iterate through currrent shift column in planning table
-			for (var i = 1; i <= machineCount; i++) {
-				$('#table2 tr:nth-child('+i+') td:nth-child('+(time_index-1)+')').addClass('today');
-			};
-			
-			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-toggle', "tooltip");
-			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-placement', "bottom");
-			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-container', "#table2");
-			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('title', "T a g a d");
-			$('[data-toggle="tooltip"]').tooltip({trigger: 'manual'}).tooltip('show'); 
-		
-			// fix to correct show todays tooltip when today is not first fenerated in #table2 seenable content
-			setTimeout(function (){ 
-				var arrowOffset = $('.tooltip-arrow').offset();
-				$('.tooltip-arrow').css('left', '');
-				$('.tooltip').offset({top: $('.tooltip').offset().top, left: arrowOffset.left-45});
-			}, 1000);
-		}
+		drawTodaysSign();
 	}
 
 	function expandTable(r, c) 
@@ -397,7 +363,47 @@ $( document ).ready(function()
 	  		};
 	  		$('#table2 tr:nth-child('+i+')').append(table2_html);
 		};
+		drawTodaysSign();
 		loadTable(lastDateObj_formated, expandDate_formated, false);
+	}
+
+	function drawTodaysSign (argument) 
+	{
+		var today = new Date();
+		var whichShift = 0;
+		var h = today.getHours();
+		if ( (h >= 22 && h <= 23) || h <= 5) whichShift = 0;
+		else if ( h >= 6 && h <= 13) whichShift = 1;
+		else if ( h >= 14 && h <= 21) whichShift = 2;
+		console.log(whichShift + " " +h);
+
+		// mark today in the table
+		var today_formated = today.getFullYear()+'-'+pad((today.getMonth()+1))+'-'+pad(today.getDate());
+		if ($('#'+today_formated+'H')[0] == undefined) {
+			console.log('Nav datuma');
+		}
+		else {
+			var date_cellIndex = $('#'+today_formated+'H')[0].cellIndex;
+			var time_index = (date_cellIndex* 3 - 1) + whichShift;
+			//console.log($('.table1-header .header-time td:nth-child('+(time_index)+')'))
+			// iterate through currrent shift column in planning table
+			for (var i = 1; i <= machineCount; i++) {
+				$('#table2 tr:nth-child('+i+') td:nth-child('+(time_index-1)+')').addClass('today');
+			};
+			
+			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-toggle', "tooltip");
+			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-placement', "bottom");
+			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-container', "#table2");
+			$('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('title', "Š o b r ī d");
+			$('[data-toggle="tooltip"]').tooltip({trigger: 'manual'}).tooltip('show'); 
+		
+			// fix to correct show todays tooltip when today is not first fenerated in #table2 seenable content
+			setTimeout(function (){ 
+				var arrowOffset = $('.tooltip-arrow').offset();
+				$('.tooltip-arrow').css('left', '');
+				$('.tooltip').offset({top: $('.tooltip').offset().top, left: arrowOffset.left-45});
+			}, 1000);
+		}
 	}
 
 	function fillProducts(product, start, count) {
@@ -409,6 +415,8 @@ $( document ).ready(function()
 		// when post is finished
 		.done(function( data ) {
 			var jsonCount = '';
+			//alert(data+" "+Math.ceil(JSON.parse(data)));
+			//return;
 			if (data != '') 
 			{
 				jsonCount = Math.ceil(JSON.parse(data));
@@ -482,6 +490,7 @@ $( document ).ready(function()
 	}
 
 	function loadTable(startD, endD, is_async) {
+		//console.log(startD);
 		$.ajax({
 			  type: 'POST',
 			  url: "php/load.php",
@@ -500,6 +509,7 @@ $( document ).ready(function()
 				if (jsonData != ''){
 	    			// iterate over JSON array
 	    			jsonData['shifts'].forEach(function(shift) {
+	    				console.log(shift);
 	    				// make id for tile
 	    				var head_id = '#'+shift.week_day+'H';
 	    				// update color for product name
@@ -508,26 +518,20 @@ $( document ).ready(function()
 	    				// mark free shifts all columns with redips-mark dark
 	    				if (shift.shift1) {
 	    					$('.header-time td:nth-child('+(calculated_id)+')').html(tableHeaders[0]).addClass('free');
-	    					for (var i = 1; i <= machineCount; i++) {
-	    						$('#table2 tr:nth-child('+i+') td:nth-child('+(calculated_id-1)+')').addClass('redips-mark  dark');
-	    					};
+	    					$('#table2 tr:nth-child(n) td:nth-child('+(calculated_id-1)+')').addClass('redips-mark  dark');
 	    				}
 	    				if (shift.shift2) {
 	    					$('.header-time td:nth-child('+(calculated_id+1)+')').html(tableHeaders[1]).addClass('free');
-	    					for (var i = 1; i <= machineCount; i++) {
-	    						$('#table2 tr:nth-child('+i+') td:nth-child('+calculated_id+')').addClass('redips-mark  dark');
-	    					};
+	    					$('#table2 tr:nth-child(n) td:nth-child('+calculated_id+')').addClass('redips-mark  dark');
 	    				}
 	    				if (shift.shift3) {
 	    					$('.header-time td:nth-child('+(calculated_id+2)+')').html(tableHeaders[2]).addClass('free');
-	    					for (var i = 1; i <= machineCount; i++) {
-	    						$('#table2 tr:nth-child('+i+') td:nth-child('+(calculated_id+1)+')').addClass('redips-mark  dark');
-	    					};
+	    					$('#table2 tr:nth-child(n) td:nth-child('+(calculated_id+1)+')').addClass('redips-mark  dark');
 	    				}
 	    				//loadedTiles[td_name] = plan.product;
 	    			});
 				}
-				console.log('shiftsDone');
+				console.log('shiftsDone ');
 				// place products in table
 				if (jsonData != ''){
 					if (jsonData['products'] !== undefined) {
@@ -548,8 +552,8 @@ $( document ).ready(function()
 			  async:is_async
 		});
 	}
-	drawTable("2015/11/1", "2015/11/5");
-	loadTable("2015/11/1", "2015/11/5", true);
+	drawTable("2015/05/01", "2015/07/30");
+	loadTable("2015/05/01", "2015/07/30", true);
 
 	/* ################################################
 	###################### EVENTS #######################
@@ -567,11 +571,14 @@ $( document ).ready(function()
 			deletedTiles = {};
 	    	loadedTiles = {};
 	    	addedTiles = {};
+	    	newMarkedCells = {};
 	    	drawTable(startDate, endDate);
 	    	// replace all '/' in date to '-'. It's for postgres date format
 	    	startDate = startDate.replace(/\//g, '-');
 			endDate = endDate.replace(/\//g, '-');
+			console.log('Start loading table...');
 			loadTable(startDate, endDate, true);
+			console.log('Finished loading!');
 			var start_date_formated = sd.getDate()+'.'+monthNamesShort[sd.getMonth()]+'. '+sd.getFullYear();
 			var end_date_formated = ed.getDate()+'.'+monthNamesShort[ed.getMonth()]+'. '+ed.getFullYear();
 			$('.page-date-header').html(start_date_formated+' - '+end_date_formated);
@@ -590,7 +597,6 @@ $( document ).ready(function()
     });
 
     $('#undo-gen-prod-bttn').click(function() { 
-    	console.log('asd');
     	for (var i = 0; i < lastFilledProducts.length; i++) {
     		$('[name="'+lastFilledProducts[i]+'"]').html('');
     	};
@@ -618,7 +624,9 @@ $( document ).ready(function()
 
 		if ( (old_r != Move.old_row || old_c != Move.old_col) ) {
 		// for each row
-		    for (var i = r1; i <= r2; i++) {
+			console.log('c1: '+c1+", c2: "+c2);
+			console.log('r1: '+r1+", r2: "+r2);
+		    /*for (var i = r1; i <= r2; i++) {
 		    	// for each column
 				for (var j = c1; j <= c2; j++) {
 					// get cell
@@ -626,11 +634,23 @@ $( document ).ready(function()
 					td_html.css('background-color', '#D93600' );
 					newMarkedCells[td_html.attr("name")] = {'r':td_html[0].parentNode.rowIndex+1, 'c':td_html[0].cellIndex+1};
 					// highlight product if cell have product in it
-					if (td_html.children() != []) {
+					if (td_html.children()[0] != undefined) {
 						td_html.children().addClass('marked');
+					}else {
+						td_html.removeClass('dark');
+
 					}
 				}
-			}
+			}*/
+			// clean old marking
+			var rows = [r1,old_r], cols = [c1,old_c];
+			console.log("#table2 tbody tr:nth-child(n+"+Math.min(Math.min(r1,r2),old_r)+"):nth-child(-n+"+Math.max(Math.min(r1,r2),old_r)+") td:nth-child(n+"+Math.min(c1,old_c)+"):nth-child(-n+"+Math.max(c1,old_c)+")");
+			console.log(r1,+' '+old_r);
+			$( "#table2 tbody tr:nth-child(n+"+Math.min(Math.min(r1,r2),old_r)+"):nth-child(-n+"+Math.max(Math.min(r1,r2),old_r)+") td:nth-child(n+"+Math.min(c1,old_c)+"):nth-child(-n+"+Math.max(c1,old_c)+")").css('background-color', '#EEE' ); 
+			// draw new marking
+			$( "#table2 tbody tr:nth-child(n+"+r1+"):nth-child(-n+"+r2+") td:nth-child(n+"+c1+"):nth-child(-n+"+c2+")").css('background-color', '#D93600' );
+
+			//$( "#table2 tbody tr:nth-child(n+"+r1+"):nth-child(-n+"+r2+") td:nth-child(n+"+c1+"):nth-child(-n+"+c2+")").addClass('temp-marked');
 		}
 	}
 
@@ -692,6 +712,7 @@ $( document ).ready(function()
 			console.log('Mouse move '+Move.move_products['start']+ ' '+Move.move_products['move']);
 			console.log(markedProducts);
 		    if (Move.move_products['start'] && Move.move_products['move'] && Object.keys(markedProducts).length > 0) {
+		    	console.log('te nav');
 		    	//////////////////////////////////////////////////
 		    	// MOVING ALREADY MARKED PRODUCTS!!
 		    	//////////////////////////////////////////////////
@@ -815,7 +836,12 @@ $( document ).ready(function()
 				for (var key in newMarkedCells) {
 		    		// if new marked cell not in old then unmark it
 				    if (newMarkedCells.hasOwnProperty(key)) {
-						$('[name="'+key+'"]').css('background-color', '#EEEEEE' );
+				    	var item = $('[name="'+key+'"]');
+				    	if (item.hasClass('redips-mark')) {
+				    		item.addClass('dark');
+				    	} else {
+							item.css('background-color', '#EEEEEE' );
+						}
 					}
 				};
 				console.log('M up Move.move_products[start] ' +Move.move_products['start']);
@@ -942,8 +968,9 @@ $( document ).ready(function()
     	Move.modal_action = true;
     	for (var key in newMarkedCells) {
     		// if new marked cell not in old then unmark it
-		    if (newMarkedCells.hasOwnProperty(key)) {
+		    if (markedProducts.hasOwnProperty(key)) {
 				$('[name="'+key+'"]')[0].innerHTML = "";
+				deletedTiles[key] = markedProducts[key].product;
 			}
 		};
 		newMarkedCells = {};	

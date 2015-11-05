@@ -2,15 +2,19 @@ var prodsToSave = [];
 var Product = {};
 
 // use: when post/get data then ajax gif loader shows
-$(document).ajaxStop(function(){
+$(document).ajaxStop(function(ev){
     console.debug("ajaxStop");
-    $("#ajax_loader").hide();
-    $("#productsTable").show();
+    if (ev.currentTarget.activeElement.id != 'bttn-save-products') {
+	    $("#ajax_loader").hide();
+	    $("#productsTable").show();
+	}
  });
- $(document).ajaxStart(function(){
+ $(document).ajaxStart(function(ev){
      console.debug("ajaxStart");
-     $("#productsTable").hide();
-     $("#ajax_loader").show();
+     if (ev.currentTarget.activeElement.id != 'bttn-save-products') {
+	     $("#productsTable").hide();
+	     $("#ajax_loader").show();
+	 }
  });
 
 

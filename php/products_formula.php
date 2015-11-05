@@ -21,7 +21,8 @@ if (isset($_POST['kg']) && isset($_POST['prod']))
 		if ($pdo->rowCount() > 0)
 		{
 			$kg_h = number_format($res[0][1] * 60 * $res[0][0] / 1000 / 1000 * $res[0][2] / 100, 3); 
-			echo  json_encode(number_format( (($kg / $kg_h) / 7.5), 2));
+			$resultCount = number_format( (($kg / $kg_h) / 7.5), 2);
+			echo  json_encode( (int)str_replace(',', '', $resultCount) );
 		}
 		else {
 			echo '';

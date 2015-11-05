@@ -159,6 +159,9 @@ div#redips-drag table td,th {
 	line-height: 13px !important;
 	background-color: white;
 }
+.temp-marked {
+	background-color: #D93600; 
+}
 
 /* append here cloned object before placing to the target table cell */
 #redips_clone {
@@ -169,9 +172,9 @@ div#redips-drag table td,th {
 }
 
 /* dark cells (first column and table header) */
-.dark {
-	color: #444 !important;
-	background-color: #e0e0e0 !important;
+.dark, .redips-mark {
+	color: #444;
+	background-color: #e0e0e0;
 }
 .today {
 	//position: relative;
