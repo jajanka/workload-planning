@@ -138,7 +138,10 @@ div#redips-drag table td,th {
     //text-shadow: #000 0px 0px 1px;
     //-webkit-font-smoothing: antialiased;  
     //margin:-1px 0 0 -1px; 
-    z-index: 99 !important;
+    z-index: 1 !important;
+    position: absolute;
+    margin-top: -11px;
+    width: 69px;
 }
 
 
@@ -161,6 +164,13 @@ div#redips-drag table td,th {
 }
 .temp-marked {
 	background-color: #D93600; 
+	background-color: rgba(136, 136, 136, 0.62);
+    position: absolute;
+    width: 69px;
+    height: 23px;
+    margin-top: -12px;
+    z-index: 3;
+    //border: 2px solid rgb(99, 99, 99);
 }
 
 /* append here cloned object before placing to the target table cell */
@@ -307,6 +317,8 @@ div#redips-drag table td,th {
 	border-radius: 0px;
 	border-color: #EEE;
 	border-size: 2px;
+	position: relative;
+	z-index: 4;
 }
 
 .cssload-loader-inner {
