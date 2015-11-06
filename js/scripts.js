@@ -260,7 +260,7 @@ $( document ).ready(function()
 			var dateStr = d.getDate()  + "." + monthNamesShort[d.getMonth()] + "  " + d.getFullYear();
 			// format date for header date id
 			var date_formated = d.getFullYear()+'-'+pad((d.getMonth()+1))+'-'+pad(d.getDate())+'H';
-			header_day_html += '<td id="'+date_formated+'" class="" colspan="3">'+dateStr+' '+d.getDay()+'</td>'; //date
+			header_day_html += '<td id="'+date_formated+'" class="" colspan="3">'+dateStr+'</td>'; //date
 		});
 		$('.table1-header .header-time').html('<td class="redips-mark blank"></td>'+header_time_html);
 		$('.table1-header .header-day').html('<td class="redips-mark blank"></td>'+header_day_html);
@@ -337,7 +337,7 @@ $( document ).ready(function()
 			var dateStr = d.getDate()  + "." + monthNamesShort[d.getMonth()] + "  " + d.getFullYear();
 			// format date for header date id
 			var date_formated = d.getFullYear()+'-'+pad((d.getMonth()+1))+'-'+pad(d.getDate())+'H';
-			header_day_html += '<td id="'+date_formated+'" class="" colspan="3">'+dateStr+' '+d.getDay()+'</td>'; //date
+			header_day_html += '<td id="'+date_formated+'" class="" colspan="3">'+dateStr+'</td>'; //date
 		});
 		$('.table1-header .header-time').append(header_time_html);
 		$('.table1-header .header-day').append(header_day_html);
@@ -552,8 +552,8 @@ $( document ).ready(function()
 			  async:is_async
 		});
 	}
-	drawTable("2015/10/30", "2015/11/03");
-	loadTable("2015/10/30", "2015/11/03", true);
+	drawTable("2015/7/30", "2015/11/03");
+	loadTable("2015/7/30", "2015/11/03", true);
 
 	/* ################################################
 	###################### EVENTS #######################
@@ -614,48 +614,9 @@ $( document ).ready(function()
 	Move.old_row = 0, Move.old_col = 0,
 	//Move.last_row = 0, Move.last_col = 0,
 	Move.move_products = {'start':false, 'move':false},
-	Move.modal_action = false;
+	Move.modal_action = false,
 	Move.move_start_mouse_pos = [], // first mouse pos when start to move multiply products
 	Move.mProdCountInRow = {};
-
-	function markCells(r1, r2, c1, c2, old_r, old_c, e) {
-		// new cell indexes
-		Move.old_row = e.parentNode.rowIndex+1;
-		Move.old_col = e.cellIndex+1;
-
-		if ( (old_r != Move.old_row || old_c != Move.old_col) ) {
-		// for each row
-			console.log('c1: '+c1+", c2: "+c2);
-			console.log('r1: '+r1+", r2: "+r2);
-		    /*for (var i = r1; i <= r2; i++) {
-		    	// for each column
-				for (var j = c1; j <= c2; j++) {
-					// get cell
-					var td_html = $( "#table2 tbody tr:nth-child("+i+") td:nth-child("+j+")");
-					td_html.css('background-color', '#D93600' );
-					newMarkedCells[td_html.attr("name")] = {'r':td_html[0].parentNode.rowIndex+1, 'c':td_html[0].cellIndex+1};
-					// highlight product if cell have product in it
-					if (td_html.children()[0] != undefined) {
-						td_html.children().addClass('marked');
-					}else {
-						td_html.removeClass('dark');
-
-					}
-				}
-			}*/
-			// clean old marking
-			var rows = [r1, r2, old_r != 0 ? old_r : r1], cols = [c1,c2, old_c != 0 ? old_c : c1];
-			//console.log("#table2 tbody tr:nth-child(n+"+Math.min(...rows)+"):nth-child(-n+"+Math.max(...rows)+") td:nth-child(n+"+Math.min(...cols)+"):nth-child(-n+"+Math.max(...cols)+")");
-			//console.log("#table2 tbody tr:nth-child(n+"+r1+"):nth-child(-n+"+r2+") td:nth-child(n+"+c1+"):nth-child(-n+"+c2+")");
-			//console.log(r1,+' '+ old_r != 0 ? old_r : r1);
-			//$( "#table2 tbody tr:nth-child(n+"+Math.min(...rows)+"):nth-child(-n+"+Math.max(...rows)+") td:nth-child(n+"+Math.min(...cols)+"):nth-child(-n+"+Math.max(...cols)+")").removeClass('temp-marked'); 
-			$('.temp-marked').remove();
-			// draw new marking
-			$( "#table2 tbody tr:nth-child(n+"+r1+"):nth-child(-n+"+r2+") td:nth-child(n+"+Math.min(c1,c2)+"):nth-child(-n+"+Math.max(c1,c2)+")").append('<div class="temp-marked"></div>'); 
-
-			//$( "#table2 tbody tr:nth-child(n+"+r1+"):nth-child(-n+"+r2+") td:nth-child(n+"+c1+"):nth-child(-n+"+c2+")").addClass('temp-marked');
-		}
-	}
 
 	function drawRect(e, old_r, old_c) {		
 		// save original event
@@ -669,22 +630,49 @@ $( document ).ready(function()
 		else if (e.target.tagName == 'DIV'){
 			e = e.target.parentElement;
 		}
-
 		// if draw cube right down
-		if (old_e.pageY - Move.start_y >= 0 && old_e.pageX - Move.start_x >= 0) {
-    		markCells(Move.start_row, e.parentNode.rowIndex+1, Move.start_col, e.cellIndex+1, old_r, old_c, e);
+		if (old_e.pageY - Move.start_y >= 0 && old_e.pageX - Move.start_x >= 0) 
+		{
+			Move.old_row = e.parentNode.rowIndex+1; Move.old_col = e.cellIndex+1;
+    		if ( (old_r != Move.old_row || old_c != Move.old_col) ) 
+    		{
+    			$('.temp-marked').remove();
+    			var rows = [Move.start_row, e.parentNode.rowIndex+1], cols = [Move.start_col, e.cellIndex+1];
+    			$( "#table2 tr:nth-child(n+"+Math.min(...rows)+"):nth-child(-n+"+Math.max(...rows)+") td:nth-child(n+"+Math.min(...cols)+"):nth-child(-n+"+Math.max(...cols)+")").append('<div class="temp-marked"></div>'); 
+    		}
     	}
     	// draw cube left up
-    	else if (old_e.pageY - Move.start_y < 0 && old_e.pageX - Move.start_x < 0) {
-    		markCells(e.parentNode.rowIndex+1, Move.start_row, e.cellIndex+1, Move.start_col, old_r, old_c, e);
+    	else if (old_e.pageY - Move.start_y < 0 && old_e.pageX - Move.start_x < 0) 
+    	{
+    		Move.old_row = e.parentNode.rowIndex+1; Move.old_col = e.cellIndex+1;
+    		if ( (old_r != Move.old_row || old_c != Move.old_col) ) 
+    		{
+    			$('.temp-marked').remove();
+    			var rows = [e.parentNode.rowIndex+1, Move.start_row], cols = [e.cellIndex+1, Move.start_col];
+    			$( "#table2 tr:nth-child(n+"+Math.min(...rows)+"):nth-child(-n+"+Math.max(...rows)+") td:nth-child(n+"+Math.min(...cols)+"):nth-child(-n+"+Math.max(...cols)+")").append('<div class="temp-marked"></div>'); 
+    		}
     	}
     	// draw cube left down
-    	else if (old_e.pageX - Move.start_x <= 0) {
-    		markCells(Move.start_row, e.parentNode.rowIndex+1, e.cellIndex+1, Move.start_col, old_r, old_c, e);
+    	else if (old_e.pageX - Move.start_x <= 0) 
+    	{
+    		Move.old_row = e.parentNode.rowIndex+1; Move.old_col = e.cellIndex+1;
+    		if ( (old_r != Move.old_row || old_c != Move.old_col) ) 
+    		{
+    			$('.temp-marked').remove();
+    			var rows = [Move.start_row, e.parentNode.rowIndex+1], cols = [e.cellIndex+1, Move.start_col];
+    			$( "#table2 tr:nth-child(n+"+Math.min(...rows)+"):nth-child(-n+"+Math.max(...rows)+") td:nth-child(n+"+Math.min(...cols)+"):nth-child(-n+"+Math.max(...cols)+")").append('<div class="temp-marked"></div>'); 
+    		}
     	}
     	// draw right up
-    	else if (old_e.pageY - Move.start_y <= 0) {
-    		markCells(e.parentNode.rowIndex+1, Move.start_row, Move.start_col, e.cellIndex+1, old_r, old_c, e);
+    	else if (old_e.pageY - Move.start_y <= 0) 
+    	{
+    		Move.old_row = e.parentNode.rowIndex+1; Move.old_col = e.cellIndex+1;
+    		if ( (old_r != Move.old_row || old_c != Move.old_col) ) 
+    		{
+    			$('.temp-marked').remove();
+    			var rows = [e.parentNode.rowIndex+1, Move.start_row], cols = [Move.start_col, e.cellIndex+1];
+    			$( "#table2 tr:nth-child(n+"+Math.min(...rows)+"):nth-child(-n+"+Math.max(...rows)+") td:nth-child(n+"+Math.min(...cols)+"):nth-child(-n+"+Math.max(...cols)+")").append('<div class="temp-marked"></div>'); 
+    		}
     	}
 	}
 
@@ -1150,6 +1138,7 @@ function generateTextColor(color) { // generates
 
 function updateColor(product) { // get random color
 	var random_color= '#'+Math.floor(Math.random()*16777215).toString(16);
+	// fix.. for sometimes it generates 5 char color string insteed of 6
 	random_color = (random_color.length < 7) ? random_color + random_color[random_color.length -1] : random_color;
 	if(productsColor[product] === undefined) {
 		productsColor[product] = random_color;

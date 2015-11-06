@@ -18,7 +18,7 @@ body {
 	background-color: #fff !important;
 	margin: auto;
 	width: 90% !important;
-	//padding-top: 20px;
+	margin-top: 70px;
 	padding-left: 40px;
 	padding-right: 40px;
 }
@@ -73,14 +73,14 @@ body {
 
 
 /* tables */
-div#redips-drag table {
+#redips-drag table {
 	background-color: #EEE;
 	border-collapse: collapse;
 	/* center tables */
 	margin: 0px auto;
 }
 		/* timetable */
-		div#redips-drag #table2 {
+		#redips-drag #table2 {
 			/* align table to the right */
 			margin-left: auto;
 			//width: 430px;
@@ -91,39 +91,29 @@ div#redips-drag table {
 .table1-header td, .table-container td, .table-temp td,
 .table1-header th, .table-container th, .table-temp th
 { min-width: 70px; }
-div#redips-drag table td,th {
+#redips-drag table td,th {
 	border-style: double;
 	height: 23px;
 	text-align: center !important;
 	font-size: 10pt;
-	//line-height: 12px !important;
 }
 
 		/* td */
-		div#redips-drag table td {
+		#redips-drag table td {
 			border-width: 0px 1px 1px 0px;
 			border-color: #DDC5B5;
 			font-weight: normal;
+			table-layout: fixed;
 		}
-
+		#redips-drag table td:hover {
+			background-color: #55aa88;
+		}
 		/* th */
-		div#redips-drag table th {
+		#redips-drag table th {
 			border-width: 0px 1px 1px 1px;
 			border-color: #DDC5B5;
 			font-weight: normal;
 		}
-		
-		/* upper right cell */
-		div#redips-drag table .upper_right {
-			border-width: 0px;
-		}
-
-		/* lower left cell */
-		div#redips-drag table .lower_left {
-			border-width: 0px;
-		}
-
-
 
 /* last row and last column without border */
 .noborder {
@@ -132,12 +122,8 @@ div#redips-drag table td,th {
 
 /* green objects */
 .blue {
-	//border: 1px solid CornflowerBlue;
 	border-style: none !important;
 	height: 22px;
-    //text-shadow: #000 0px 0px 1px;
-    //-webkit-font-smoothing: antialiased;  
-    //margin:-1px 0 0 -1px; 
     z-index: 1 !important;
     position: absolute;
     margin-top: -11px;
@@ -153,18 +139,15 @@ div#redips-drag table td,th {
 
 .marked {
 	border: 3px solid #000 !important;
-	//border-top: 1px solid #eee !important;
-	//border-bottom: 1px solid #eee !important;
-	//border-left: 1px solid #eee !important;
-	//border-right: 1px solid #eee !important;
+
 	width: 69px;
 	height: 22px;
 	line-height: 13px !important;
 	background-color: white;
 }
 .temp-marked {
-	background-color: #D93600; 
-	background-color: rgba(136, 136, 136, 0.62);
+	//background-color: #D93600; 
+	background-color: rgba(64, 149, 201, 0.25);
     position: absolute;
     width: 69px;
     height: 23px;
@@ -173,18 +156,11 @@ div#redips-drag table td,th {
     //border: 2px solid rgb(99, 99, 99);
 }
 
-/* append here cloned object before placing to the target table cell */
-#redips_clone {
-	/* make redips_clone div visible */
-	/* border: 1px solid red; */
-	height: 10px;
-	width: 100px;
-}
 
 /* dark cells (first column and table header) */
 .dark, .redips-mark {
-	color: #444;
-	background-color: #e0e0e0;
+	//color: #444;
+	background-color: #e0e0e0 !important;
 }
 .today {
 	//position: relative;
@@ -280,11 +256,12 @@ div#redips-drag table td,th {
   visibility: hidden;
   background-color: #FFF;
   z-index: 10;
+  margin-top: 44px;
 
 }
 .floatingHeader th {
   line-height: 35px !important;
-  height: 50px !important;
+  //height: 20px !important;
   background-color: white;
 }
 #labelProduct {
@@ -341,8 +318,8 @@ div#redips-drag table td,th {
 	background-color: transparent !important;
 	color: #000 !important;
 }
-.container-fluid {
-	//background-image: url("images/banner-bar-bg.gif");
+#mainNavBar {
+	border: 1px #eee solid;
 }
 #mainNavBar ul.nav.navbar-nav li a, #mainNavBar div.navbar-header a.navbar-brand{
 	color: #5A0000;
