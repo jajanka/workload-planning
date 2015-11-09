@@ -17,90 +17,90 @@ $(document).ajaxStop(function(){
 $(document).ready(function () {
 
   //called when key is pressed in textbox
-	$("#add-year").keypress(function (e) {
-	     //if the letter is not digit then display error and don't type anything
-	    if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) {
-	    	return false;
-	   	}
-	});
+    $("#add-year").keypress(function (e) {
+         //if the letter is not digit then display error and don't type anything
+        if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) {
+            return false;
+        }
+    });
 
-	$("#bttn-add-year").click(function (e) {
-		var	year = parseInt($("#add-year").val());
+    $("#bttn-add-year").click(function (e) {
+        var year = parseInt($("#add-year").val());
 
-		if (year > 2005 && year < 2038) {
-			$.post( "php/calendar_save.php", {year: year})
-			// when post is finished
-			.done(function( data ) {
-				showError(data, 'success')
-				location.reload();
-			})
-			.fail( function( data ) {
-			    showError("Nevar paradīt datus.", 'danger');
-			});
-		}
-		else 
-		{
-			showError("Nederīgs gads.", 'danger');
-			return false;
-		}
-	});
+        if (year > 2005 && year < 2038) {
+            $.post( "php/calendar_save.php", {year: year})
+            // when post is finished
+            .done(function( data ) {
+                showError(data, 'success');
+                location.reload();
+            })
+            .fail( function( data ) {
+                showError("Nevar paradīt datus.", 'danger');
+            });
+        }
+        else 
+        {
+            showError("Nederīgs gads.", 'danger');
+            return false;
+        }
+    });
 
-	$("#bttn-show-year").click(function (e) {
-		var	year = parseInt($("#getYear").val());
+    $("#bttn-show-year").click(function (e) {
+        var year = parseInt($("#getYear").val());
 
-		if (year > 2005 && year < 2038) {
-			$.post( "php/calendar_load.php", {get_year: year})
-			// when post is finished
-			.done(function( data ) {
-				//alert(data);
-				$('#calendarTable tbody').html(data);
-			})
-			.fail( function( data ) {
-			    showError("Nevar paradīt datus.", 'danger');
-			});
-		}
-		else 
-		{
-			showError("Nevar paradīt datus.", 'danger');
-			return false;
-		}
-	});
+        if (year > 2005 && year < 2038) {
+            $.post( "php/calendar_load.php", {get_year: year})
+            // when post is finished
+            .done(function( data ) {
+                //alert(data);
+                $('#calendarTable tbody').html(data);
+            })
+            .fail( function( data ) {
+                showError("Nevar paradīt datus.", 'danger');
+            });
+        }
+        else 
+        {
+            showError("Nevar paradīt datus.", 'danger');
+            return false;
+        }
+    });
 
-	$('#calendarTable tbody').on('change' , '.checkbox' , function() {
-		if($(this).find('input')[0].checked) {
-			$(this).parent().addClass('danger');
-		}
-		else {
-			$(this).parent().removeClass('danger');
-		}
-		// from td input get tr,etc,row. It is twp parents backwards
-		var row = $(this)[0].parentNode.parentNode;
-		// get seconds td text. Split it by ' ' format is 2015-03-23 Pk
-		var date = $(row).find("td:nth-child(2)")[0].textContent.split(' ')[0];
-		//console.log($(row).find("td:nth-child(2)").textContent);
+    $('#calendarTable tbody').on('change' , '.checkbox' , function() {
+        if($(this).find('input')[0].checked) {
+            $(this).parent().addClass('danger');
+        }
+        else {
+            $(this).parent().removeClass('danger');
+        }
+        // from td input get tr,etc,row. It is twp parents backwards
+        var row = $(this)[0].parentNode.parentNode;
+        // get seconds td text. Split it by ' ' format is 2015-03-23 Pk
+        var date = $(row).find("td:nth-child(2)")[0].textContent.split(' ')[0];
+        //console.log($(row).find("td:nth-child(2)").textContent);
 
-		datesToSave[date] = {'shift1': $(row).find("td:nth-child(3)").find('input')[0].checked, 
-								'shift2': $(row).find("td:nth-child(4)").find('input')[0].checked, 
-								'shift3': $(row).find("td:nth-child(5)").find('input')[0].checked
-							};
-		console.log(datesToSave);
-	});
+        datesToSave[date] = {'shift1': $(row).find("td:nth-child(3)").find('input')[0].checked, 
+                                'shift2': $(row).find("td:nth-child(4)").find('input')[0].checked, 
+                                'shift3': $(row).find("td:nth-child(5)").find('input')[0].checked
+                            };
+        console.log(datesToSave);
+    });
 
-	$(document).on('click','#bttn-save-year', function (e) {
-		console.log('asd');
-		$.post( "php/calendar_save.php", {update: JSON.stringify(datesToSave)})
-		// when post is finished
-		.done(function( data ) {
-			showError("Dati saglabāti.", 'success');
-		})
-		.fail( function( data ) {
-		    showError("Nevar saglabāt datus.", 'danger');
-		    console.log(data);
-		});
+    $(document).on('click','#bttn-save-year', function (e) {
+        console.log('asd');
+        $.post( "php/calendar_save.php", {update: JSON.stringify(datesToSave)})
+        // when post is finished
+        .done(function( data ) {
+            showError("Dati saglabāti.", 'success');
+        })
+        .fail( function( data ) {
+            showError("Nevar saglabāt datus.", 'danger');
+            console.log(data);
+        });
 
-	});
+    });
 
-	var clonedHeaderRow;
+    var clonedHeaderRow;
 
    $("#calendarTable").each(function() {
        clonedHeaderRow = $(".persist-header", this);
@@ -119,12 +119,12 @@ $(document).ready(function () {
 });
 
 function showError(text, type) {
-	var alertType = (type == 'danger') ? 'Kļūda!' : '';
-	$('#message').prepend('<div class="alert alert-'+type+' fade in" role="alert" style="display: none; margin-top: 5px;">'+
-		'<a href="#" class="close" data-dismiss="alert">&times;</a>'+
-		'<strong>'+alertType+'</strong> '+text+'</div>');
-	$(".alert").fadeIn(25);
-	setTimeout(function(){ $('.alert').alert('close'); }, 5000);
+    var alertType = (type == 'danger') ? 'Kļūda!' : '';
+    $('#message').prepend('<div class="alert alert-'+type+' fade in" role="alert" style="display: none; margin-top: 5px;">'+
+        '<a href="#" class="close" data-dismiss="alert">&times;</a>'+
+        '<strong>'+alertType+'</strong> '+text+'</div>');
+    $(".alert").fadeIn(25);
+    setTimeout(function(){ $('.alert').alert('close'); }, 5000);
 }
 
 var header_lag_fix = true;
@@ -135,26 +135,26 @@ function UpdateTableHeaders() {
         var el             = $(this),
            offset         = el.offset(),
            scrollTop      = $(window).scrollTop(),
-           floatingHeader = $(".floatingHeader", this)
+           floatingHeader = $(".floatingHeader", this);
        
         if ((scrollTop > offset.top) && (scrollTop < offset.top + el.height())) {
-       		if (header_lag_fix) {
-       			console.log('Static header');
-	       		floatingHeader.css('height','40px');
-	       		for (var i = 1; i <= 5; i++) {
-        			$('#calendarTable thead th:nth-child('+i+')').width(col_widths[i]);
-        		};
-	       	}
+            if (header_lag_fix) {
+                console.log('Static header');
+                floatingHeader.css('height','40px');
+                for (var i = 1; i <= 5; i++) {
+                    $('#calendarTable thead th:nth-child('+i+')').width(col_widths[i]);
+                };
+            }
             floatingHeader.css({
             "visibility": "visible"
             });
-           	header_lag_fix = false;
+            header_lag_fix = false;
         } else {
-        	for (var i = 1; i <= 5; i++) {
-        		col_widths[i] = $('#calendarTable thead th:nth-child('+i+')').width();
-        	};
-        	console.log('Platums');
-        	header_lag_fix = true;
+            for (var i = 1; i <= 5; i++) {
+                col_widths[i] = $('#calendarTable thead th:nth-child('+i+')').width();
+            };
+            console.log('Platums');
+            header_lag_fix = true;
             floatingHeader.css({
             "visibility": "hidden"
             });      
