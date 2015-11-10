@@ -17,7 +17,7 @@ var markedProducts = {};
 var productsColor = {};
 
 var Move = {}; // namespace for marked products variable
-var PBuffer = {} // namespace for buffer, that is, copu, paste, cut and stuff
+var PBuffer = {cut: {}, copy: {}} // namespace for buffer, that is, copy, paste, cut and stuff
 
 // use: when post/get data then ajax gif loader shows
 $(document).ajaxStop(function(ev){
@@ -482,7 +482,6 @@ $( document ).ready(function()
         .fail( function( data ) {
             showError("Nevar pievienot produktu.", 'danger');
         });
-
     }
 
     function loadTable(startD, endD, is_async) {
@@ -548,8 +547,8 @@ $( document ).ready(function()
               async:is_async
         });
     }
-    drawTable("2015/10/30", "2015/11/03");
-    loadTable("2015/10/30", "2015/11/03", true);
+    drawTable("2015/10/30", "2015/11/04");
+    loadTable("2015/10/30", "2015/11/04", true);
 
     /* ################################################
     ###################### EVENTS #######################
@@ -673,7 +672,7 @@ $( document ).ready(function()
 
     Move.prevMovePosProduct = [];
     $("#table2").mousemove(function(e) { // move rect on mousemove over table2
-        console.log("After trigger "+(e.target.parentElement.rowIndex + 1)+' '+(e.target.cellIndex + 1));
+        //console.log("After trigger "+(e.target.parentElement.rowIndex + 1)+' '+(e.target.cellIndex + 1));
         if(e.which == 1) {
             console.log('Mouse move '+Move.move_products['start']+ ' ' +Move.move_products['move']);
             console.log(markedProducts);
@@ -789,12 +788,14 @@ $( document ).ready(function()
         $('#marked-modal').modal('show');
         $(".modal-backdrop").remove();
         Move.start_x = e.pageX, Move.start_y = e.pageY;
-        if (e.target.tagName == "TD") {
-            Move.start_row = e.target.parentNode.rowIndex+1, Move.start_col = e.target.cellIndex+1;
+        /*if (e.target.tagName == "TD") {
+            PBuffer.start_row =  e.target.parentNode.rowIndex+1;
+            PBuffer.start_col =  e.target.cellIndex+1;
         }
         else {
-            Move.start_row = e.target.parentNode.parentNode.rowIndex+1, Move.start_col = e.target.parentNode.cellIndex+1;
-        }
+            PBuffer.start_row =  e.target.parentNode.parentNode.rowIndex+1;
+            PBuffer.start_col =  e.target.parentNode.cellIndex+1;
+        }*/
         PBuffer.mousemove = e;
         return false;
     }
@@ -855,54 +856,57 @@ $( document ).ready(function()
                         }
                     }
                 }
-                for (var key in markedProducts) {
-                    if (markedProducts.hasOwnProperty(key)) {
-                        // old product place. remove all prev products
-                        var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].r+") td:nth-child("+markedProducts[key].c+")");
-                        td_html.css('background-color', '#EEE' );
-                        // if new products is not out of table bounds
-                        if (is_valid) {
-                            td_html.html(''); 
+                // if copy than dont delete prev products. In case of cut and paste del proucts from prev place
+                if (!e.notDelete || e.notDelete === undefined) 
+                {
+                    for (var key in markedProducts) {
+                        if (markedProducts.hasOwnProperty(key)) {
+                            // old product place. remove all prev products
+                            var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].r+") td:nth-child("+markedProducts[key].c+")");
+                            td_html.css('background-color', '#EEE' );
+                            // if new products is not out of table bounds
+                            if (is_valid) {
+                                td_html.html('');
+                            }
                         }
                     }
                 }
-                var dark_counter = -1, prevRow = -1;
+                var prevRow = -1, td_html;
                 for (var key in markedProducts) {
                     if (markedProducts.hasOwnProperty(key)) {
-                        var place_bool = false;
+                        var i;
                         // new product place. place new products in cells
-                        var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")");
+                        if ( $("#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")").hasClass('dark') ) {
+                            td_html = td_html.closest('td').next();
+                            i = td_html[0].cellIndex+1;
+                        }
+                        else if (prevRow == markedProducts[key].rEnd) {
+                            i = td_html[0].cellIndex + ((markedProducts[key].cEnd - td_html[0].cellIndex));
+                            td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
+                        }
+                        else {
+                            i = markedProducts[key].cEnd;
+                            td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
+                        }
                         //console.log(td_html.hasClass('dark'));
                         td_html.css('background-color', '#EEE' );
                         if (is_valid) {
                             // row's last td index
                             var rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
-                            // row's first new product
-                            var i = markedProducts[key].cEnd;
+
                             // if product is landed on free day. then while loop on col till it gets to work shift
-                            if (td_html.hasClass('dark')) {
-                                if (prevRow != markedProducts[key].rEnd) {dark_counter = -1;}
-                                while (true)
-                                {
-                                    if (!td_html.hasClass('dark')) 
-                                    { 
-                                        dark_counter++;
-                                        i += dark_counter;
-                                        place_bool = true; 
-                                    } else 
-                                    {
-                                        i++;
-                                    }
-                                    if (i >= rowLastCellIndex)  {
-                                        console.log('Expand1');
-                                        expandTable(machineCount, 7);
-                                        rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
-                                    }
-                                    td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
-                                    if (place_bool) break;
-                                }  
-                                prevRow = markedProducts[key].rEnd;
+                            while (td_html.hasClass('dark'))
+                            {
+                                i++;
+                                if (i >= rowLastCellIndex)  {
+                                    console.log('Expand1');
+                                    expandTable(machineCount, 7);
+                                    rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
+                                }
+                                td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
                             }
+   
+                            prevRow = markedProducts[key].rEnd;
                             // id products goes further then showed table dates
                             var startIndex = i;
                             if (startIndex > rowLastCellIndex) {
@@ -1010,18 +1014,29 @@ $( document ).ready(function()
 
     $('#cut-marked-bttn').click(function(e) { 
         if (Object.keys(markedProducts).length > 0) {
+            PBuffer.copy = {}
             PBuffer.cut = markedProducts;
+            Move.start_row = PBuffer.cornerY; Move.start_col = PBuffer.cornerX;
+        }
+    });
+    $('#copy-marked-bttn').click(function(e) { 
+        if (Object.keys(markedProducts).length > 0) {
+            PBuffer.cut = {};
+            PBuffer.copy = markedProducts;
+            Move.start_row = PBuffer.cornerY; Move.start_col = PBuffer.cornerX;
         }
     });
     $('#paste-marked-bttn').click(function(e) { 
         console.log(PBuffer.mousemove);
-        // get cut products from buffer, assign that to marked products
-        markedProducts = PBuffer.cut;
+        // cut or paste 
+        notDelete = ( Object.keys(PBuffer.cut).length > 0 ) ? false : true;
+        // get copy or cut products from buffer, assign that to marked products
+        markedProducts = ( Object.keys(PBuffer.cut).length > 0 ) ? PBuffer.cut : PBuffer.copy;
         console.log();
         Move.move_products['start'] = true;  Move.move_products['move'] = true;
 
         // simulate mouse move to get rEnd and cRow defined for markedProducts
-        var $el = $("#table2 tbody tr:nth-child("+Move.start_row+") td:nth-child("+Move.start_col+")");
+        var $el = $("#table2 tbody tr:nth-child("+PBuffer.cornerY+") td:nth-child("+PBuffer.cornerX+")");
         var event = jQuery.Event( "mousemove", {
             target: PBuffer.mousemove.target,
             which: 1
@@ -1029,15 +1044,17 @@ $( document ).ready(function()
         console.log("Before trigger "+(PBuffer.mousemove.target.parentElement.rowIndex + 1)+' '+(PBuffer.mousemove.target.cellIndex + 1));
         $el.trigger(event);
 
-        //Move.move_products['start'] = true;  Move.move_products['move'] = true;
+        Move.move_products['start'] = true;  Move.move_products['move'] = true;
         // trigger mousdown to place products
-        /*var event = jQuery.Event( "mouseup", {
+        var event = jQuery.Event( "mouseup", {
             target: PBuffer.mousemove.target,
             which: 1,
             clientX: PBuffer.mousemove.clientX,
-            clientY: PBuffer.mousemove.clientY
+            clientY: PBuffer.mousemove.clientY,
+            notDelete: notDelete
         });
-        $el.trigger(event);*/
+        $el.trigger(event);
+        //Move.move_products['start'] = false;  Move.move_products['move'] = false;
     });
 
     // constructs the suggestion engine
@@ -1131,9 +1148,14 @@ function getMarkedProducts() {
     // get maximum and minimum values to be able to start the loop properly
     var maxR = Math.max(Move.start_row, Move.old_row), minR = Math.min(Move.start_row, Move.old_row), 
         maxC = Math.max(Move.start_col, Move.old_col), minC = Math.min(Move.start_col, Move.old_col);
+    console.log('MinR: '+minR+', MinC: '+minC);
 
     var markedDivs = $( "#table2 tbody tr:nth-child(n+"+minR+"):nth-child(-n+"+maxR+") td:nth-child(n+"+minC+"):nth-child(-n+"+maxC+") div");
     var mdlen = markedDivs.length;
+    // get corner of marked place area. It's the min col and row combination. Paste from buffer will start there
+    PBuffer.cornerY = markedDivs[0].parentNode.parentNode.rowIndex+1;
+    PBuffer.cornerX = markedDivs[0].parentNode.cellIndex+1;
+
     for (var i = 0; i < mdlen; i++)
     {
         markedDivs[i].className += ' marked';
@@ -1150,8 +1172,36 @@ function getMarkedProducts() {
                                 'cEnd': markedDivs[i].parentNode.cellIndex+1,
                                 'product': markedDivs[i].getAttribute('product')
                                 };
+
+        PBuffer.cornerY = ( PBuffer.cornerY > markedProducts[markedDivs[i].id].r  ) ? markedProducts[markedDivs[i].id].r : PBuffer.cornerY;
+        PBuffer.cornerX = ( PBuffer.cornerX > markedProducts[markedDivs[i].id].c  ) ? markedProducts[markedDivs[i].id].c : PBuffer.cornerX;
     };
     console.log(markedProducts);
+}
+
+function shiftFromFreeDays() {
+    var allFreeDivs = $('.dark div');
+
+    var fdlen = allFreeDivs.length;
+
+    for (var i = 0; i < fdlen; i++)
+    {
+        markedProducts[allFreeDivs[i].id] = {'r': allFreeDivs[i].parentNode.parentNode.rowIndex+1, 
+                                'c': allFreeDivs[i].parentNode.cellIndex+1,
+                                'rEnd': allFreeDivs[i].parentNode.parentNode.rowIndex+1, 
+                                'cEnd': allFreeDivs[i].parentNode.cellIndex+1,
+                                'product': allFreeDivs[i].getAttribute('product')
+                                };
+    }
+    // triger mouseup event to move products from free sifts
+    Move.move_products['start'] = true;  Move.move_products['move'] = true;
+    var event = jQuery.Event( "mouseup", {
+        which: 1,
+        clientX: 500,
+        clientY: 300
+    });
+    allFreeDivs.trigger(event);
+    $('.marked').removeClass('marked');
 }
 
 function showError(text) {

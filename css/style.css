@@ -105,9 +105,6 @@ body {
 			font-weight: normal;
 			table-layout: fixed;
 		}
-		#redips-drag table td:hover {
-			background-color: #EEDEEE;
-		}
 		/* th */
 		#redips-drag table th {
 			border-width: 0px 1px 1px 1px;
@@ -115,6 +112,9 @@ body {
 			font-weight: normal;
 		}
 
+#table2 tbody td:hover {
+	background-color: #EEDEEE;
+}
 /* last row and last column without border */
 .noborder {
 	border-width: 0px;
