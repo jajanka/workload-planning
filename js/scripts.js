@@ -877,11 +877,16 @@ $( document ).ready(function()
                     if (markedProducts.hasOwnProperty(key)) {
                         var i;
                         // new product place. place new products in cells
+                        // if same row
                         if ( prevRow == markedProducts[key].rEnd ) 
-                        {
+                        {	
+                        	// if cell starting or end position is in free shift
 	                        if ( $("#table2 tbody tr:nth-child("+markedProducts[key].r+") td:nth-child("+markedProducts[key].c+")").hasClass('dark') || 
 	                        	$("#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")").hasClass('dark') ) 
 	                        {
+	                        	/* next placement cell is next from previous placed cell becouse this one is landed on free shift 
+	                        	and it should be in front of the previous placed cell
+	                        	*/
 	                            td_html = td_html.closest('td').next();
 	                            i = td_html[0].cellIndex+1;
 	                        }
