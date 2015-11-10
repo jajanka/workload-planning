@@ -543,6 +543,7 @@ $( document ).ready(function()
                         });
                     }
                 }
+                shiftFromFreeDays();
             },
               async:is_async
         });
@@ -876,18 +877,24 @@ $( document ).ready(function()
                     if (markedProducts.hasOwnProperty(key)) {
                         var i;
                         // new product place. place new products in cells
-                        if ( $("#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")").hasClass('dark') ) {
-                            td_html = td_html.closest('td').next();
-                            i = td_html[0].cellIndex+1;
-                        }
-                        else if (prevRow == markedProducts[key].rEnd) {
-                            i = td_html[0].cellIndex + ((markedProducts[key].cEnd - td_html[0].cellIndex));
-                            td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
-                        }
+                        if ( prevRow == markedProducts[key].rEnd ) 
+                        {
+	                        if ( $("#table2 tbody tr:nth-child("+markedProducts[key].r+") td:nth-child("+markedProducts[key].c+")").hasClass('dark') || 
+	                        	$("#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")").hasClass('dark') ) 
+	                        {
+	                            td_html = td_html.closest('td').next();
+	                            i = td_html[0].cellIndex+1;
+	                        }
+	                        else {
+	                            i = td_html[0].cellIndex + ((markedProducts[key].cEnd - td_html[0].cellIndex));
+	                            td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
+	                        }
+	                    }
                         else {
                             i = markedProducts[key].cEnd;
                             td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
                         }
+
                         //console.log(td_html.hasClass('dark'));
                         td_html.css('background-color', '#EEE' );
                         if (is_valid) {
@@ -1180,6 +1187,7 @@ function getMarkedProducts() {
 }
 
 function shiftFromFreeDays() {
+	console.log('Shift free days');
     var allFreeDivs = $('.dark div');
 
     var fdlen = allFreeDivs.length;
@@ -1194,7 +1202,7 @@ function shiftFromFreeDays() {
                                 };
     }
     // triger mouseup event to move products from free sifts
-    Move.move_products['start'] = true;  Move.move_products['move'] = true;
+    Move.move_products = {'start':true, 'move':true};
     var event = jQuery.Event( "mouseup", {
         which: 1,
         clientX: 500,
