@@ -142,7 +142,6 @@ body {
 	width: 69px;
 	height: 22px;
 	line-height: 13px !important;
-	background-color: white;
 }
 .temp-marked {
 	background-color: rgba(64, 149, 201, 0.25);
@@ -220,10 +219,16 @@ body {
 	background-color: #B5FFAB;
 	font-size: 16px;
 }
+#marked-modal .modal-dialog {
+	width: 150px;
+	//margin-bottom: 0px;
+}
 #marked-modal .modal-content{
 	-webkit-box-shadow: none;
 	-moz-box-shadow: none;
 	box-shadow: none; 
+	border-radius: 2px;
+	border: 1px solid #777;
 }
 #marked-modal .modal-dialog, #error-modal .modal-dialog {
     margin-top: 0% !important;
@@ -234,6 +239,7 @@ body {
 }
 #marked-modal .btn {
 	border-radius: 0px;
+	border-width: 1px;
 }
 #calendarTable, #productsTable {
 	max-width: 960px;

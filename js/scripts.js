@@ -501,7 +501,7 @@ $( document ).ready(function()
                 console.log(jsonData);
                 // if json is parsed
                 // place free shifts
-                if (jsonData != ''){
+                if (jsonData != '' && jsonData['shifts'] !== undefined) {
                     // iterate over JSON array
                     jsonData['shifts'].forEach(function(shift) {
                         console.log(shift);
@@ -528,7 +528,7 @@ $( document ).ready(function()
                 }
                 console.log('shiftsDone ');
                 // place products in table
-                if (jsonData != ''){
+                if (jsonData != '' && jsonData['products'] !== undefined){
                     if (jsonData['products'] !== undefined) {
                         // iterate over JSON array
                         jsonData['products'].forEach(function(plan) {
@@ -785,18 +785,11 @@ $( document ).ready(function()
 ============================================================
 */
     document.getElementById('table2').oncontextmenu = function(e) {
-        $('#marked-modal .modal-dialog').attr('style','left: '+(e.clientX)+'px; top: '+(e.clientY-10)+'px;');
+        $('#marked-modal .modal-dialog').attr('style','left: '+(e.clientX)+'px; top: '+(e.clientY)+'px;');
         $('#marked-modal').modal('show');
         $(".modal-backdrop").remove();
         Move.start_x = e.pageX, Move.start_y = e.pageY;
-        /*if (e.target.tagName == "TD") {
-            PBuffer.start_row =  e.target.parentNode.rowIndex+1;
-            PBuffer.start_col =  e.target.cellIndex+1;
-        }
-        else {
-            PBuffer.start_row =  e.target.parentNode.parentNode.rowIndex+1;
-            PBuffer.start_col =  e.target.parentNode.cellIndex+1;
-        }*/
+
         PBuffer.mousemove = e;
         return false;
     }
@@ -872,114 +865,143 @@ $( document ).ready(function()
                         }
                     }
                 }
-                var prevRow = -1, td_html;
-                for (var key in markedProducts) {
-                    if (markedProducts.hasOwnProperty(key)) {
-                        var i;
-                        // new product place. place new products in cells
-                        // if same row
-                        if ( prevRow == markedProducts[key].rEnd ) 
-                        {	
-                        	// if cell starting or end position is in free shift
-	                        if ( $("#table2 tbody tr:nth-child("+markedProducts[key].r+") td:nth-child("+markedProducts[key].c+")").hasClass('dark') || 
-	                        	$("#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")").hasClass('dark') ) 
-	                        {
-	                        	/* next placement cell is next from previous placed cell becouse this one is landed on free shift 
-	                        	and it should be in front of the previous placed cell
-	                        	*/
-	                            td_html = td_html.closest('td').next();
-	                            i = td_html[0].cellIndex+1;
-	                        }
-	                        else {
-	                            i = td_html[0].cellIndex + ((markedProducts[key].cEnd - td_html[0].cellIndex));
-	                            td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
-	                        }
-	                    }
-                        else {
-                            i = markedProducts[key].cEnd;
-                            td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
-                        }
 
-                        //console.log(td_html.hasClass('dark'));
-                        td_html.css('background-color', '#EEE' );
-                        if (is_valid) {
+                if ( is_valid ) 
+                {
+                    var prevRow = -1, td_html, darkCell = false, darkCounter = 0, freeShiftGroup = 0, rowLastCellIndex, last_i = -1;
+                    for (var key in markedProducts) {
+                        if (markedProducts.hasOwnProperty(key)) 
+                        {
+                            var i; 
+                            darkCell = false;
                             // row's last td index
-                            var rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
+                            rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
+                            // new product place. place new products in cells
+                            // if same row
+                            if ( prevRow == markedProducts[key].rEnd ) 
+                            {	
+                                var endCell = $("#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")");
+                                
+                                if ( td_html[0].cellIndex + 1 < endCell[0].cellIndex + 1) {
+                                    i = markedProducts[key].cEnd;
+                                }
+                            	// if cell starting or end position is in free shift
+    	                        else if ( $("#table2 tbody tr:nth-child("+markedProducts[key].r+") td:nth-child("+markedProducts[key].c+")").hasClass('dark') || 
+    	                        	endCell.hasClass('dark') ) 
+    	                        {
+    	                        	/* next placement cell is next from previous placed cell becouse this one is landed on free shift 
+    	                        	and it should be in front of the previous placed cell
+    	                        	*/
+    	                            td_html = td_html.closest('td').next();
+    	                            i = td_html[0].cellIndex+1;
+                                    darkCell = true;
+                                    darkCounter++;
+    	                        }
+    	                        else {
+    	                            i = td_html[0].cellIndex + ((markedProducts[key].cEnd - td_html[0].cellIndex)) + darkCounter;
+                                    // if the next cell is placed on the prev cell or behind that cell then next cell is previous + 1
+                                    i = (last_i < i) ? i : last_i+1;
+    	                        }
+    	                    }
+                            else {
+                                i = markedProducts[key].cEnd;
+                                darkCounter = ( $("#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")").hasClass('dark') ) ? 1 : 0;
+                            }
 
-                            // if product is landed on free day. then while loop on col till it gets to work shift
-                            while (td_html.hasClass('dark'))
-                            {
-                                i++;
-                                if (i >= rowLastCellIndex)  {
-                                    console.log('Expand1');
+                            if ( !darkCell ) {
+                                // if placement cell is out of borders then expand table to get the cell
+                                if (i > rowLastCellIndex) {
+                                    console.log('Expand2');
                                     expandTable(machineCount, 7);
                                     rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
                                 }
                                 td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
                             }
-   
-                            prevRow = markedProducts[key].rEnd;
-                            // id products goes further then showed table dates
-                            var startIndex = i;
-                            if (startIndex > rowLastCellIndex) {
-                                console.log('Expand2');
-                                expandTable(machineCount, 7);
-                                rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
-                            }
 
-                            $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(startIndex)+") div").removeClass('marked');
-                            var nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(startIndex)+")")[0].innerHTML;
-                            // next cell  
-                            var nextCell = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(startIndex)+")");
+                            //console.log(td_html.hasClass('dark'));
+                            td_html.css('background-color', '#EEE' );
+                            if (is_valid) {
 
-                            for (var i = startIndex; i <= rowLastCellIndex; i++) {
-                                // if next cell have no products then break
-                                if (nextCell_html == "" && !nextCell.hasClass('dark')) break; 
-
-                                if (i >= rowLastCellIndex) {
-                                    console.log('Expand3');
-                                    expandTable(machineCount, 7);
-                                    rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
-                                }
-                                // current cell in next cell innerHTML
-                                var currentCell = nextCell_html;
-                                // next cell
-                                nextCell = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")");
-                                // next cell html
-                                $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+") div").removeClass('marked');
-                                nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")")[0].innerHTML;
-                                // if cell is in free shift then while loop till it gets out of free shifts
-                                while (nextCell.hasClass('dark')){
-                                    i += 1;
-                                    if (i >= rowLastCellIndex) {
-                                        console.log('Expand4');
+                                // if product is landed on free day. then while loop on col till it gets to work shift
+                                while (td_html.hasClass('dark'))
+                                {
+                                    i++;
+                                    if (i >= rowLastCellIndex)  {
+                                        console.log('Expand1');
                                         expandTable(machineCount, 7);
                                         rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
-                                        //break;
                                     }
-                                    nextCell = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")");
-                                    nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")")[0].innerHTML;
+                                    td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
                                 }
-                                nextCell[0].innerHTML = currentCell;
-                            };
-                            // make new row and column positon when product is placed
-                            markedProducts[key].c = td_html[0].cellIndex + 1;
-                            markedProducts[key].r = td_html[0].parentNode.rowIndex + 1;
-                            // draw product
-                            td_html.html( setProductDiv(key, markedProducts[key].product, true));
+       
+                                prevRow = markedProducts[key].rEnd;
+                                // id products goes further then showed table dates
+                                var startIndex = i;
+
+                                $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(startIndex)+") div").removeClass('marked');
+                                var nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(startIndex)+")")[0].innerHTML;
+                                // next cell  
+                                var nextCell = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(startIndex)+")");
+
+                                for (var i = startIndex; i <= rowLastCellIndex; i++) 
+                                {
+                                    // if next cell have no products then break
+                                    if (nextCell_html == "" && !nextCell.hasClass('dark')) break; 
+
+                                    if (i >= rowLastCellIndex) {
+                                        console.log('Expand3');
+                                        expandTable(machineCount, 7);
+                                        rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
+                                    }
+                                    // current cell in next cell innerHTML
+                                    var currentCell = nextCell_html;
+                                    // next cell
+                                    nextCell = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")");
+                                    // next cell html
+                                    $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+") div").removeClass('marked');
+                                    nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")")[0].innerHTML;
+                                   
+                                    // if cell is in free shift then while loop till it gets out of free shifts
+                                    while (nextCell.hasClass('dark'))
+                                    {
+                                        i += 1;
+                                        if (i >= rowLastCellIndex) {
+                                            console.log('Expand4');
+                                            expandTable(machineCount, 7);
+                                            rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
+                                            //break;
+                                        }
+                                        nextCell = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")");
+                                        nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")")[0].innerHTML;
+                                    }
+                                    nextCell[0].innerHTML = currentCell;
+                                };
+                                last_i = i;
+                                // make new row and column positon when product is placed
+                                markedProducts[key].c = td_html[0].cellIndex + 1;
+                                markedProducts[key].r = td_html[0].parentNode.rowIndex + 1;
+                                // draw product
+                                td_html.html( setProductDiv(td_html.attr('name'), markedProducts[key].product, true));
+                            }
                         }
                     }
-                }
-                //Move.move_products['start'] = false; Move.move_products['move'] = false;
-                // new array for new td ids
-                var newProds = {};
-                // get new row and column position for marked products when they are released to be able to move them again
-                for (var key in markedProducts) {
-                    if (markedProducts.hasOwnProperty(key)) {
-                        newProds[$('#table2 tr:nth-child('+markedProducts[key].r+') td:nth-child('+markedProducts[key].c+')').attr('name')] = markedProducts[key];
+
+                    // get first hash key
+                    for (var firstKey in markedProducts) { if ( markedProducts.hasOwnProperty(key) ) break; }
+
+                    // new array for new td ids
+                    var newProds = {};
+                    // get new row and column position for marked products when they are released to be able to move them again
+                    for (var key in markedProducts) {
+                        if (markedProducts.hasOwnProperty(key)) {
+                            newProds[$('#table2 tr:nth-child('+markedProducts[key].r+') td:nth-child('+markedProducts[key].c+')').attr('name')] = markedProducts[key];
+                        }
                     }
+                    markedProducts = newProds;
                 }
-                markedProducts = newProds;
+                else {
+                    // TODO: atkraspt sarkanos selus, kas rodas kad kustina produktus
+                }
             }
 
             Move.mouseStillDown = false;
@@ -1028,20 +1050,33 @@ $( document ).ready(function()
         if (Object.keys(markedProducts).length > 0) {
             PBuffer.copy = {}
             PBuffer.cut = markedProducts;
-            Move.start_row = PBuffer.cornerY; Move.start_col = PBuffer.cornerX;
+            //Move.start_row = PBuffer.cornerY; Move.start_col = PBuffer.cornerX;
         }
     });
     $('#copy-marked-bttn').click(function(e) { 
         if (Object.keys(markedProducts).length > 0) {
             PBuffer.cut = {};
             PBuffer.copy = markedProducts;
-            Move.start_row = PBuffer.cornerY; Move.start_col = PBuffer.cornerX;
+            //Move.start_row = PBuffer.cornerY; Move.start_col = PBuffer.cornerX;
         }
     });
     $('#paste-marked-bttn').click(function(e) { 
-        console.log(PBuffer.mousemove);
+        // get first hash key
+        for (var firstKey in markedProducts) { break; }
+
+        PBuffer.cornerY = markedProducts[firstKey].r;
+        PBuffer.cornerX = markedProducts[firstKey].c;
+        for (var key in markedProducts) {
+            if (markedProducts.hasOwnProperty(key)) {
+                PBuffer.cornerY = ( PBuffer.cornerY > markedProducts[key].r  ) ? markedProducts[key].r : PBuffer.cornerY;
+                PBuffer.cornerX = ( PBuffer.cornerX > markedProducts[key].c  ) ? markedProducts[key].c : PBuffer.cornerX;
+            }
+        }
+
+        Move.start_row = PBuffer.cornerY; Move.start_col = PBuffer.cornerX;
         // cut or paste 
         notDelete = ( Object.keys(PBuffer.cut).length > 0 ) ? false : true;
+
         // get copy or cut products from buffer, assign that to marked products
         markedProducts = ( Object.keys(PBuffer.cut).length > 0 ) ? PBuffer.cut : PBuffer.copy;
         console.log();
@@ -1192,7 +1227,10 @@ function getMarkedProducts() {
 }
 
 function shiftFromFreeDays() {
-	console.log('Shift free days');
+    // make a copy of marked products becouse npw marked products will be modified
+	markedProductsCopy = markedProducts;
+    markedProducts = {};
+
     var allFreeDivs = $('.dark div');
 
     var fdlen = allFreeDivs.length;
@@ -1215,6 +1253,9 @@ function shiftFromFreeDays() {
     });
     allFreeDivs.trigger(event);
     $('.marked').removeClass('marked');
+
+    // get back markedProducts value
+    markedProducts = markedProductsCopy;
 }
 
 function showError(text) {
