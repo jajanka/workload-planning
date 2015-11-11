@@ -548,8 +548,8 @@ $( document ).ready(function()
               async:is_async
         });
     }
-    drawTable("2015/10/30", "2015/11/04");
-    loadTable("2015/10/30", "2015/11/04", true);
+    drawTable("2015/10/31", "2015/11/04");
+    loadTable("2015/10/31", "2015/11/04", true);
 
     /* ################################################
     ###################### EVENTS #######################
@@ -743,6 +743,7 @@ $( document ).ready(function()
             if (!ctrlPressed) {
                 // button pressed on now marked products
                 if (e.target.className == 'blue marked' && Move.move_products['start']) {
+                	console.log('Down1'+' '+Move.move_products['start']+' '+Move.move_products['move']);
                     Move.start_row = e.target.parentNode.parentNode.rowIndex+1, 
                     Move.start_col = e.target.parentNode.cellIndex+1;
                     // if marked products start to move and it starts from product div not empty cell
@@ -751,8 +752,19 @@ $( document ).ready(function()
                     }
                 }
                 // if buton pressed on already moved marked products
-                else if ((e.target.className == 'blue' || e.target.className == 'blue marked') && !Move.move_products['start']) {
+                else if (e.target.className == 'blue marked' && !Move.move_products['start']) {
+                	console.log('Down2'+' '+Move.move_products['start']+' '+Move.move_products['move']);
                     Move.move_products['start'] = true; Move.move_products['move'] = true;
+                    Move.old_row = Move.start_row = e.target.parentNode.parentNode.rowIndex+1, 
+                    Move.old_col = Move.start_col = e.target.parentNode.cellIndex+1;
+                    // place it in marked cells not products
+                    var curCell = e.target.parentNode;
+                    // get cell in marked products
+                    getMarkedProducts();
+                }
+                else if (e.target.className == 'blue') {
+                	console.log('Down3'+' '+Move.move_products['start']+' '+Move.move_products['move']);
+                	Move.move_products['start'] = true; Move.move_products['move'] = true;
                     Move.old_row = Move.start_row = e.target.parentNode.parentNode.rowIndex+1, 
                     Move.old_col = Move.start_col = e.target.parentNode.cellIndex+1;
                     // place it in marked cells not products
@@ -762,6 +774,7 @@ $( document ).ready(function()
                 }
                 else
                 {
+                	console.log('Down4'+' '+Move.move_products['start']+' '+Move.move_products['move']);
                     for (var i = Move.prevMovePosProduct.length - 1; i >= 0; i--) {
                         Move.prevMovePosProduct[i].children().removeClass('marked');
                     };
@@ -900,7 +913,7 @@ $( document ).ready(function()
     	                        else {
     	                            i = td_html[0].cellIndex + ((markedProducts[key].cEnd - td_html[0].cellIndex)) + darkCounter;
                                     // if the next cell is placed on the prev cell or behind that cell then next cell is previous + 1
-                                    i = (last_i < i) ? i : last_i+1;
+                                    i = (last_i < i) ? i : td_html[0].cellIndex+2;
     	                        }
     	                    }
                             else {
@@ -975,6 +988,8 @@ $( document ).ready(function()
                                         nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")")[0].innerHTML;
                                     }
                                     nextCell[0].innerHTML = currentCell;
+                                    // give next replaced product the id of cell name
+                                    nextCell.find('div').attr('id', nextCell.attr('name'));
                                 };
                                 last_i = i;
                                 // make new row and column positon when product is placed
@@ -1001,6 +1016,14 @@ $( document ).ready(function()
                 }
                 else {
                     // TODO: atkraspt sarkanos selus, kas rodas kad kustina produktus
+                    for (var key in markedProducts) {
+                        if (markedProducts.hasOwnProperty(key)) {
+                            // old product place. remove all prev products
+                            var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")");
+                            td_html.css('background-color', '#EEE' );
+                        }
+                    }
+                    markedProducts = {};
                 }
             }
 
@@ -1061,15 +1084,17 @@ $( document ).ready(function()
         }
     });
     $('#paste-marked-bttn').click(function(e) { 
+    	
         // get first hash key
-        for (var firstKey in markedProducts) { break; }
+        var clipBoard = ( Object.keys(PBuffer.cut).length > 0 ) ? PBuffer.cut : PBuffer.copy;
+        for (var firstKey in clipBoard) { break; }
 
-        PBuffer.cornerY = markedProducts[firstKey].r;
-        PBuffer.cornerX = markedProducts[firstKey].c;
-        for (var key in markedProducts) {
-            if (markedProducts.hasOwnProperty(key)) {
-                PBuffer.cornerY = ( PBuffer.cornerY > markedProducts[key].r  ) ? markedProducts[key].r : PBuffer.cornerY;
-                PBuffer.cornerX = ( PBuffer.cornerX > markedProducts[key].c  ) ? markedProducts[key].c : PBuffer.cornerX;
+        PBuffer.cornerY = clipBoard[firstKey].r;
+        PBuffer.cornerX = clipBoard[firstKey].c;
+        for (var key in clipBoard) {
+            if (clipBoard.hasOwnProperty(key)) {
+                PBuffer.cornerY = ( PBuffer.cornerY > clipBoard[key].r  ) ? clipBoard[key].r : PBuffer.cornerY;
+                PBuffer.cornerX = ( PBuffer.cornerX > clipBoard[key].c  ) ? clipBoard[key].c : PBuffer.cornerX;
             }
         }
 
@@ -1079,7 +1104,6 @@ $( document ).ready(function()
 
         // get copy or cut products from buffer, assign that to marked products
         markedProducts = ( Object.keys(PBuffer.cut).length > 0 ) ? PBuffer.cut : PBuffer.copy;
-        console.log();
         Move.move_products['start'] = true;  Move.move_products['move'] = true;
 
         // simulate mouse move to get rEnd and cRow defined for markedProducts
