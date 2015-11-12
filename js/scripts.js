@@ -17,24 +17,33 @@ var markedProducts = {};
 var productsColor = {};
 
 var Move = {}; // namespace for marked products variable
-var PBuffer = {cut: {}, copy: {}} // namespace for buffer, that is, copy, paste, cut and stuff
+var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste, cut and stuff
 
 // use: when post/get data then ajax gif loader shows
-$(document).ajaxStop(function(ev){
-    console.debug("ajaxStop");
-    if (ev.currentTarget.activeElement.id != 'product' && ev.currentTarget.activeElement.id != 'gen-prod-bttn') { 
-        $("#ajax_loader img").hide();
-        $("#ajax_loader").fadeOut( 200 );
-    }
- });
- $(document).ajaxStart(function(ev) {
-    console.debug("ajaxStart");
-    if (ev.currentTarget.activeElement.id != 'product' && ev.currentTarget.activeElement.id != 'gen-prod-bttn') {
-        $("#ajax_loader img").show();
-        $("#ajax_loader").show();
-        $("#ajax_loader").offset($("#right").offset());
-    }
- });
+// scope the jQuery
+( function($) {
+    $(document).ajaxStop(function(ev){
+        console.debug("ajaxStop");
+        if (ev.currentTarget.activeElement.id != 'product' && ev.currentTarget.activeElement.id != 'gen-prod-bttn') { 
+            $("#ajax_loader img").hide();
+            $("#ajax_loader").fadeOut( 200 );
+        }
+     });
+})( jQuery );
+
+( function($) {
+     $(document).ajaxStart(function(ev) {
+        console.debug("ajaxStart");
+        if (ev.currentTarget.activeElement.id != 'product' && ev.currentTarget.activeElement.id != 'gen-prod-bttn') {
+            $("#ajax_loader img").show();
+            $("#ajax_loader").show();
+            $("#ajax_loader").offset($("#right").offset());
+        }
+     });
+})( jQuery );
+
+// scope the jQuery
+( function($) {
 
 $( document ).ready(function() 
 {
@@ -212,7 +221,7 @@ $( document ).ready(function()
         if(prevLeft != currentLeft) { // horizontall scroll
             prevLeft = currentLeft;
             var prevOffset =$('.left-header').offset();
-            $('.left-header').offset({top: prevOffset.top, left: initColOffset.left});
+            $('.left-header').offset({top: prevOffset.top, left: initColOffset.left-1});
             //console.log("I scrolled horizontally.");
         }
     });
@@ -256,10 +265,11 @@ $( document ).ready(function()
             var dateStr = d.getDate()  + "." + monthNamesShort[d.getMonth()] + "  " + d.getFullYear();
             // format date for header date id
             var date_formated = d.getFullYear()+'-'+pad((d.getMonth()+1))+'-'+pad(d.getDate())+'H';
-            header_day_html += '<td id="'+date_formated+'" class="" colspan="3">'+dateStr+'</td>'; //date
+            header_day_html += '<td id="'+date_formated+'" class="day-td" colspan="3">'+dateStr+'</td>'; //date
         });
-        $('.table1-header .header-time').html('<td class="redips-mark blank"></td>'+header_time_html);
-        $('.table1-header .header-day').html('<td class="redips-mark blank"></td>'+header_day_html);
+
+        $('.table1-header .header-time').html('<td class="blank"></td>'+header_time_html);
+        $('.table1-header .header-day').html('<td class="blank"></td>'+header_day_html);
 
         var left_header_html = ''; //left static column header
         var table2_html = '';   // table cells
@@ -290,7 +300,8 @@ $( document ).ready(function()
             };
             table2_html += '</tr>';
         };
-        $('.left-header').html(left_header_html);
+        var tableLeftUpperCorner = '<div id="leftUppercorner"></div>';
+        $('.left-header').html(tableLeftUpperCorner+left_header_html);
         $('#table2 tbody').html(table2_html);
 
         // update bttn-checkboxes
@@ -548,8 +559,8 @@ $( document ).ready(function()
               async:is_async
         });
     }
-    drawTable("2015/10/31", "2015/11/04");
-    loadTable("2015/10/31", "2015/11/04", true);
+    drawTable("2015/10/30", "2015/11/04");
+    loadTable("2015/10/30", "2015/11/04", true);
 
     /* ################################################
     ###################### EVENTS #######################
@@ -674,8 +685,8 @@ $( document ).ready(function()
     Move.prevMovePosProduct = [];
     $("#table2").mousemove(function(e) { // move rect on mousemove over table2
         //console.log("After trigger "+(e.target.parentElement.rowIndex + 1)+' '+(e.target.cellIndex + 1));
-        if(e.which == 1) {
-            console.log('Mouse move '+Move.move_products['start']+ ' ' +Move.move_products['move']);
+        if(e.which == 1 && e.buttons > 0) {
+            console.log('Mouse move '+Move.move_products['start']+ ' ' +Move.move_products['move']+'  which:'+e.which);
             console.log(markedProducts);
             if (Move.move_products['start'] && Move.move_products['move'] && Object.keys(markedProducts).length > 0) {
                 console.log('te nav');
@@ -770,6 +781,7 @@ $( document ).ready(function()
                     // place it in marked cells not products
                     var curCell = e.target.parentNode;
                     // get cell in marked products
+                    $('.marked').removeClass('marked');
                     getMarkedProducts();
                 }
                 else
@@ -818,7 +830,11 @@ $( document ).ready(function()
            ######### CONTEXT MENU END #########
 ============================================================
 */
-
+    /*$("body").mouseup(function(e) {
+        if ($('.temp-marked')[0] !== undefined) { 
+            $("body").trigger(e);
+        }
+    })*/
     $("body").mouseup(function(e) {
         if (e.which == 1) {
 
@@ -1015,15 +1031,18 @@ $( document ).ready(function()
                     markedProducts = newProds;
                 }
                 else {
+                    // remove marked class from products 
+                    $('.marked').removeClass('marked');
                     // TODO: atkraspt sarkanos selus, kas rodas kad kustina produktus
                     for (var key in markedProducts) {
                         if (markedProducts.hasOwnProperty(key)) {
                             // old product place. remove all prev products
-                            var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")");
-                            td_html.css('background-color', '#EEE' );
+                            $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")").css('background-color', '#EEE' );
+                            // mark products that was moved
+                            $( "#table2 tbody tr:nth-child("+markedProducts[key].r+") td:nth-child("+markedProducts[key].c+") div").addClass('marked');
                         }
                     }
-                    markedProducts = {};
+                    //markedProducts = {};
                 }
             }
 
@@ -1110,7 +1129,8 @@ $( document ).ready(function()
         var $el = $("#table2 tbody tr:nth-child("+PBuffer.cornerY+") td:nth-child("+PBuffer.cornerX+")");
         var event = jQuery.Event( "mousemove", {
             target: PBuffer.mousemove.target,
-            which: 1
+            which: 1,
+            buttons: 1
         });
         console.log("Before trigger "+(PBuffer.mousemove.target.parentElement.rowIndex + 1)+' '+(PBuffer.mousemove.target.cellIndex + 1));
         $el.trigger(event);
@@ -1212,6 +1232,7 @@ $( document ).ready(function()
         #################################################################
     */ 
 });
+})( jQuery );
 
 function getMarkedProducts() {
     markedProducts = {};

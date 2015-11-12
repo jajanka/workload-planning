@@ -2,9 +2,7 @@
 		$title = 'Kalendārs';
 		include("header.php");
 	?>
-		<script type="text/javascript" src="js/calendar.js"></script>
 		<div class="container">
-
 
 		<div class="panel panel-primary" style="margin-top: 20px;">
 	    <div class="panel-heading">Kalendārs</div>
@@ -104,4 +102,7 @@
       © 2015 - Jānis Mateuss  
 	</footer>
 	</body>
+	
+	<?php include("footer.html"); ?>
+	<script type="text/javascript" src="js/calendar.js"></script>
 </html>

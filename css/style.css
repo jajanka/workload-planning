@@ -9,13 +9,14 @@ May, 2010.
 body {
 	font-family: arial;
 	margin: 0px; /* for IE6 / IE7 */
-	background-color: #F8F8F8 !important; /* e2e2e2 */
+	//background-color: #F8F8F8 !important; /* e2e2e2 */
+	background-image: url('http://api.thumbr.it/whitenoise-361x370.png?background=dde6f0ff&noise=8d949e&density=15&opacity=15');
 }
 
 /* drag container */
 .container {
 	border: 1px solid #e7e7e7;
-	background-color: #fff !important;
+	background-color: #F5F7FA !important;
 	margin: auto;
 	width: 90% !important;
 	margin-top: 70px;
@@ -82,7 +83,7 @@ body {
 		/* timetable */
 		#redips-drag #table2 {
 			/* align table to the right */
-			margin-left: auto;
+			margin-left: -3px;
 			//width: 430px;
 		}
 
@@ -104,6 +105,7 @@ body {
 			border-color: #DDC5B5;
 			font-weight: normal;
 			table-layout: fixed;
+			//background-color: #F8F8F8;
 		}
 		/* th */
 		#redips-drag table th {
@@ -130,13 +132,6 @@ body {
     width: 69px;
 }
 
-
-/* blank cells (upper left corner) */
-.blank {
-	background-color: #EEE !important;
-	border-color: #EEE !important;
-}
-
 .marked {
 	border: 3px solid #000 !important;
 	width: 69px;
@@ -151,7 +146,9 @@ body {
     margin-top: -12px;
     z-index: 3;
 }
-
+.free {
+	background-color: #EEE;
+}
 
 /* dark cells (first column and table header) */
 .dark, .redips-mark {
@@ -163,12 +160,11 @@ body {
 	-moz-box-shadow: 1px 1px 4px 2px #C3E6FF;
 	box-shadow: 1px 1px 4px 2px #C3E6FF;
     //background-color: rgb(125, 176, 202) !important;
-
 }
+
 .table1-header{
-	//float: left; 
 	z-index: 1; 
-	margin-left: 2px !important;
+	margin-left: 1px !important;
 }
 .left-header{
 	float:left; 
@@ -177,25 +173,37 @@ body {
 .left-header th label, .left-header input[type=checkbox]{
 	margin: 0px;
 }
-
 .table-container{
 	float:left;
 }
-
-.table1-header .header-day td{
-	background-color: #337AB7;
+#leftUppercorner {
+	width:73px; 
+	height:48px; 
+	background-color: #E0E0E0; 
+	margin-top:-48px; 
+	position: relative; 
+	z-index:4;
+}
+.day-td{
+	background: #3379b7;
+	background: -moz-linear-gradient(top, #3379b7 0%, #3379b7 0%, #639dcf 0%, #639dcf 0%, #3379b7 100%);
+	background: -webkit-gradient(left top, left bottom, color-stop(0%, #3379b7), color-stop(0%, #3379b7), color-stop(0%, #639dcf), color-stop(0%, #639dcf), color-stop(100%, #3379b7));
+	background: -webkit-linear-gradient(top, #3379b7 0%, #3379b7 0%, #639dcf 0%, #639dcf 0%, #3379b7 100%);
+	background: -o-linear-gradient(top, #3379b7 0%, #3379b7 0%, #639dcf 0%, #639dcf 0%, #3379b7 100%);
+	background: -ms-linear-gradient(top, #3379b7 0%, #3379b7 0%, #639dcf 0%, #639dcf 0%, #3379b7 100%);
+	background: linear-gradient(to bottom, #3379b7 0%, #3379b7 0%, #639dcf 0%, #639dcf 0%, #3379b7 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3379b7', endColorstr='#3379b7', GradientType=0 );
 	color: white !important;
 	font-size: 12pt !important;
 	font-weight: bold !important;
 }
-
-.table1-header .header-time td{
-	background-color: #CCC;
-	//color: white !important;
+.blank {
+	background-color: #E0E0E0 !important;
+	border-color: #E0E0E0 !important;
 }
-#trash {
-	float: left; 
-	margin-top: 0px;
+.table1-header .header-time td{
+	background-color: #CCC ;
+	//color: white !important;
 }
 
 .footer {
@@ -300,7 +308,7 @@ body {
 
 .button-checkbox .btn-xs, .button-checkbox-time .btn-xs {
 	border-radius: 0px;
-	border-color: #EEE;
+	border-color: #FFF;
 	border-size: 2px;
 	position: relative;
 	z-index: 4;

@@ -2,21 +2,9 @@ var prodsToSave = [];
 var Product = {};
 
 // use: when post/get data then ajax gif loader shows
-$(document).ajaxStop(function(ev){
-    console.debug("ajaxStop");
-    if (ev.currentTarget.activeElement.id != 'bttn-save-products') {
-	    $("#ajax_loader").hide();
-	    $("#productsTable").show();
-	}
- });
- $(document).ajaxStart(function(ev){
-     console.debug("ajaxStart");
-     if (ev.currentTarget.activeElement.id != 'bttn-save-products') {
-	     $("#productsTable").hide();
-	     $("#ajax_loader").show();
-	 }
- });
 
+// scope the jQuery
+( function($) {
 
 $(document).ready(function () {
 	// reckons only deleted loaded products
@@ -183,18 +171,18 @@ $(document).ready(function () {
 		clonedHeaderRow.find('button').prop('disabled', false);
 	}
 
-$('body').on('focus', '[contenteditable]', function() {
+	$('body').on('focus', '[contenteditable]', function() {
 
-}).on('blur keyup paste input', '[contenteditable]', function() {
-	var t = $(this).parent();
-    var v1 = t.find('td:nth-child(3)')[0].innerHTML;
-    var v2 = t.find('td:nth-child(4)')[0].innerHTML;
-    var v3 = t.find('td:nth-child(6)')[0].innerHTML;
-    var v4 = t.find('td:nth-child(8)')[0].innerHTML;
-    var kgh = (v2 * 60 * v1 / 1000 / 1000 * v4 / 100).toFixed(3);
-    t.find('td:nth-child(5)')[0].innerHTML = kgh;
-    t.find('td:nth-child(7)')[0].innerHTML = (kgh * 1).toFixed(3);
-});
+	}).on('blur keyup paste input', '[contenteditable]', function() {
+		var t = $(this).parent();
+	    var v1 = t.find('td:nth-child(3)')[0].innerHTML;
+	    var v2 = t.find('td:nth-child(4)')[0].innerHTML;
+	    var v3 = t.find('td:nth-child(6)')[0].innerHTML;
+	    var v4 = t.find('td:nth-child(8)')[0].innerHTML;
+	    var kgh = (v2 * 60 * v1 / 1000 / 1000 * v4 / 100).toFixed(3);
+	    t.find('td:nth-child(5)')[0].innerHTML = kgh;
+	    t.find('td:nth-child(7)')[0].innerHTML = (kgh * 1).toFixed(3);
+	});
 
 
 
@@ -346,6 +334,7 @@ $('body').on('focus', '[contenteditable]', function() {
 
 });
 
+} ) ( jQuery );
 
 function showError(text, type) {
 	var alertType = (type == 'danger') ? 'Kļūda!' : '';

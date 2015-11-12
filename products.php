@@ -2,7 +2,6 @@
 		$title = 'Produkti';
 		include("header.php");
 	?>
-		<script type="text/javascript" src="js/product.js"></script>
 		<div class="container">
 		                        
 		  <div class="table-responsive" style="margin-top: 20px;">  
@@ -92,4 +91,8 @@
       © 2015 - Jānis Mateuss  
 	</footer>
 	</body>
+
+	<?php include("footer.html"); ?>
+	<script type="text/javascript" src="js/product.js"></script>
+
 </html>

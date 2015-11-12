@@ -1,19 +1,29 @@
 var datesToSave = {};
 
-// use: when post/get data then ajax gif loader shows
-$(document).ajaxStop(function(){
-    console.debug("ajaxStop");
-    $("#ajax_loader img").hide();
-    $("#ajax_loader").hide();
-    $("#calendarTable").show();
- });
+// scope the jQuery
+( function($) {
+    // use: when post/get data then ajax gif loader shows
+    $(document).ajaxStop(function(){
+        console.debug("ajaxStop");
+        $("#ajax_loader img").hide();
+        $("#ajax_loader").hide();
+        $("#calendarTable").show();
+     });
+})( jQuery );
+
+// scope the jQuery
+( function($) {
  $(document).ajaxStart(function(){
      console.debug("ajaxStart");
      $("#calendarTable").hide();
      $("#ajax_loader img").show();
      $("#ajax_loader").show();
  });
+})( jQuery );
 
+// scope the jQuery
+( function($) {
+    
 $(document).ready(function () {
 
   //called when key is pressed in textbox
@@ -117,6 +127,7 @@ $(document).ready(function () {
 
 
 });
+})( jQuery );
 
 function showError(text, type) {
     var alertType = (type == 'danger') ? 'Kļūda!' : '';
