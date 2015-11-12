@@ -1040,6 +1040,9 @@ $( document ).ready(function()
                             $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")").css('background-color', '#EEE' );
                             // mark products that was moved
                             $( "#table2 tbody tr:nth-child("+markedProducts[key].r+") td:nth-child("+markedProducts[key].c+") div").addClass('marked');
+                            // reset cell end position to start position becouse there is out of table bounds error
+                            markedProducts[key].rEnd = markedProducts[key].r;
+                            markedProducts[key].cEnd = markedProducts[key].c;
                         }
                     }
                     //markedProducts = {};
