@@ -344,7 +344,7 @@ $( document ).ready(function()
             var dateStr = d.getDate()  + "." + monthNamesShort[d.getMonth()] + "  " + d.getFullYear();
             // format date for header date id
             var date_formated = d.getFullYear()+'-'+pad((d.getMonth()+1))+'-'+pad(d.getDate())+'H';
-            header_day_html += '<td id="'+date_formated+'" class="" colspan="3">'+dateStr+'</td>'; //date
+            header_day_html += '<td id="'+date_formated+'" class="day-td" colspan="3">'+dateStr+'</td>'; //date
         });
         $('.table1-header .header-time').append(header_time_html);
         $('.table1-header .header-day').append(header_day_html);
@@ -486,7 +486,7 @@ $( document ).ready(function()
             }
             else 
             {
-                showError("Nekorekts rezultāts.", 'danger');;
+                showError("Nekorekts rezultāts.", 'danger');
             }
 
         })
@@ -534,7 +534,6 @@ $( document ).ready(function()
                             $('.header-time td:nth-child('+(calculated_id+2)+')').html(tableHeaders[2]).addClass('free');
                             $('#table2 tr:nth-child(n) td:nth-child('+(calculated_id+1)+')').addClass('redips-mark  dark');
                         }
-                        //loadedTiles[td_name] = plan.product;
                     });
                 }
                 console.log('shiftsDone ');
@@ -559,8 +558,8 @@ $( document ).ready(function()
               async:is_async
         });
     }
-    drawTable("2015/10/30", "2015/11/04");
-    loadTable("2015/10/30", "2015/11/04", true);
+    drawTable("2015/11/01", "2015/11/04");
+    loadTable("2015/11/01", "2015/11/04", true);
 
     /* ################################################
     ###################### EVENTS #######################
@@ -897,7 +896,9 @@ $( document ).ready(function()
 
                 if ( is_valid ) 
                 {
-                    var prevRow = -1, td_html, darkCell = false, darkCounter = 0, freeShiftGroup = 0, rowLastCellIndex, last_i = -1;
+                    var prevRow = -1, td_html, darkCell = false, darkCounter = 0, 
+                        freeShiftGroup = 0, rowLastCellIndex, 
+                        last_i = -1, cellName;
                     for (var key in markedProducts) {
                         if (markedProducts.hasOwnProperty(key)) 
                         {
@@ -1004,15 +1005,43 @@ $( document ).ready(function()
                                         nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")")[0].innerHTML;
                                     }
                                     nextCell[0].innerHTML = currentCell;
+                                    cellName = nextCell.attr('name');
                                     // give next replaced product the id of cell name
-                                    nextCell.find('div').attr('id', nextCell.attr('name'));
+                                    nextCell.find('div').attr('id', cellName);
+
+                                    if ( key in loadedTiles ) {
+                                        deletedTiles[key] = markedProducts[key].product;
+                                    }
+                                    else if ( key in addedTiles ) {
+                                        console.log('added89 08');
+                                    }
+                                    
+                                    delete deletedTiles[cellName];
+                                    addedTiles[cellName] = markedProducts[key].product;
                                 };
+
                                 last_i = i;
                                 // make new row and column positon when product is placed
                                 markedProducts[key].c = td_html[0].cellIndex + 1;
                                 markedProducts[key].r = td_html[0].parentNode.rowIndex + 1;
                                 // draw product
-                                td_html.html( setProductDiv(td_html.attr('name'), markedProducts[key].product, true));
+                                cellName = td_html.attr('name');
+                                td_html.html( setProductDiv(cellName, markedProducts[key].product, true));
+
+                                // updating tile statuses
+                                if ( key in loadedTiles ) {
+                                    addedTiles[cellName] = loadedTiles[key];
+                                    // if loaded tile is moved and placed else where. 
+                                    if ( cellName != key ) {
+                                        deletedTiles[key] = markedProducts[key].product;
+                                    }
+                                } else {
+                                    if ( key in addedTiles ) {
+                                        delete addedTiles[key];
+                                    }   
+                                }
+                                delete deletedTiles[cellName];
+                                addedTiles[cellName] = markedProducts[key].product;
                             }
                         }
                     }
@@ -1057,9 +1086,13 @@ $( document ).ready(function()
         Move.modal_action = true;
         for (var key in markedProducts) {
             // if new marked cell not in old then unmark it
-            if (markedProducts.hasOwnProperty(key)) {
+            if (markedProducts.hasOwnProperty(key)) 
+            {
                 $('[name="'+key+'"]')[0].innerHTML = "";
-                deletedTiles[key] = markedProducts[key].product;
+                if (key in loadedTiles) {
+                    deletedTiles[key] = markedProducts[key].product;
+                }
+                delete addedTiles[key];
             }
         };
         markedProducts = {};
@@ -1069,11 +1102,10 @@ $( document ).ready(function()
     $('#marked-modal').on('hidden.bs.modal', function () {
         if (!Move.modal_action) {
             for (var key in markedProducts) {
-                if (markedProducts.hasOwnProperty(key)) {
-                    // .attr('style',  'background-color:#e3e3e3');
+                if (markedProducts.hasOwnProperty(key)) 
+                {
                     if ($('[name="'+key+'"]')[0].innerHTML.trim() != '') {
                         $('[name="'+key+'"] div').removeClass('marked');
-                        //console.log($('[name="'+key+'"]')[0].innerHTML);
                     }
                 }
             }
@@ -1110,45 +1142,47 @@ $( document ).ready(function()
         // get first hash key
         var clipBoard = ( Object.keys(PBuffer.cut).length > 0 ) ? PBuffer.cut : PBuffer.copy;
         for (var firstKey in clipBoard) { break; }
-
-        PBuffer.cornerY = clipBoard[firstKey].r;
-        PBuffer.cornerX = clipBoard[firstKey].c;
-        for (var key in clipBoard) {
-            if (clipBoard.hasOwnProperty(key)) {
-                PBuffer.cornerY = ( PBuffer.cornerY > clipBoard[key].r  ) ? clipBoard[key].r : PBuffer.cornerY;
-                PBuffer.cornerX = ( PBuffer.cornerX > clipBoard[key].c  ) ? clipBoard[key].c : PBuffer.cornerX;
+        // if clipboard not empty
+        if (firstKey !== undefined) 
+        {
+            PBuffer.cornerY = clipBoard[firstKey].r;
+            PBuffer.cornerX = clipBoard[firstKey].c;
+            for (var key in clipBoard) {
+                if (clipBoard.hasOwnProperty(key)) {
+                    PBuffer.cornerY = ( PBuffer.cornerY > clipBoard[key].r  ) ? clipBoard[key].r : PBuffer.cornerY;
+                    PBuffer.cornerX = ( PBuffer.cornerX > clipBoard[key].c  ) ? clipBoard[key].c : PBuffer.cornerX;
+                }
             }
+
+            Move.start_row = PBuffer.cornerY; Move.start_col = PBuffer.cornerX;
+            // cut or paste 
+            notDelete = ( Object.keys(PBuffer.cut).length > 0 ) ? false : true;
+
+            // get copy or cut products from buffer, assign that to marked products
+            markedProducts = ( Object.keys(PBuffer.cut).length > 0 ) ? PBuffer.cut : PBuffer.copy;
+            Move.move_products['start'] = true;  Move.move_products['move'] = true;
+
+            // simulate mouse move to get rEnd and cRow defined for markedProducts
+            var $el = $("#table2 tbody tr:nth-child("+PBuffer.cornerY+") td:nth-child("+PBuffer.cornerX+")");
+            var event = jQuery.Event( "mousemove", {
+                target: PBuffer.mousemove.target,
+                which: 1,
+                buttons: 1
+            });
+            console.log("Before trigger "+(PBuffer.mousemove.target.parentElement.rowIndex + 1)+' '+(PBuffer.mousemove.target.cellIndex + 1));
+            $el.trigger(event);
+
+            Move.move_products['start'] = true;  Move.move_products['move'] = true;
+            // trigger mousdown to place products
+            var event = jQuery.Event( "mouseup", {
+                target: PBuffer.mousemove.target,
+                which: 1,
+                clientX: PBuffer.mousemove.clientX,
+                clientY: PBuffer.mousemove.clientY,
+                notDelete: notDelete
+            });
+            $el.trigger(event);
         }
-
-        Move.start_row = PBuffer.cornerY; Move.start_col = PBuffer.cornerX;
-        // cut or paste 
-        notDelete = ( Object.keys(PBuffer.cut).length > 0 ) ? false : true;
-
-        // get copy or cut products from buffer, assign that to marked products
-        markedProducts = ( Object.keys(PBuffer.cut).length > 0 ) ? PBuffer.cut : PBuffer.copy;
-        Move.move_products['start'] = true;  Move.move_products['move'] = true;
-
-        // simulate mouse move to get rEnd and cRow defined for markedProducts
-        var $el = $("#table2 tbody tr:nth-child("+PBuffer.cornerY+") td:nth-child("+PBuffer.cornerX+")");
-        var event = jQuery.Event( "mousemove", {
-            target: PBuffer.mousemove.target,
-            which: 1,
-            buttons: 1
-        });
-        console.log("Before trigger "+(PBuffer.mousemove.target.parentElement.rowIndex + 1)+' '+(PBuffer.mousemove.target.cellIndex + 1));
-        $el.trigger(event);
-
-        Move.move_products['start'] = true;  Move.move_products['move'] = true;
-        // trigger mousdown to place products
-        var event = jQuery.Event( "mouseup", {
-            target: PBuffer.mousemove.target,
-            which: 1,
-            clientX: PBuffer.mousemove.clientX,
-            clientY: PBuffer.mousemove.clientY,
-            notDelete: notDelete
-        });
-        $el.trigger(event);
-        //Move.move_products['start'] = false;  Move.move_products['move'] = false;
     });
 
     // constructs the suggestion engine
@@ -1247,9 +1281,12 @@ function getMarkedProducts() {
 
     var markedDivs = $( "#table2 tbody tr:nth-child(n+"+minR+"):nth-child(-n+"+maxR+") td:nth-child(n+"+minC+"):nth-child(-n+"+maxC+") div");
     var mdlen = markedDivs.length;
-    // get corner of marked place area. It's the min col and row combination. Paste from buffer will start there
-    PBuffer.cornerY = markedDivs[0].parentNode.parentNode.rowIndex+1;
-    PBuffer.cornerX = markedDivs[0].parentNode.cellIndex+1;
+
+    if (mdlen > 0) { // checks if there is some marked product
+        // get corner of marked place area. It's the min col and row combination. Paste from buffer will start there
+        PBuffer.cornerY = markedDivs[0].parentNode.parentNode.rowIndex+1;
+        PBuffer.cornerX = markedDivs[0].parentNode.cellIndex+1;
+    }
 
     for (var i = 0; i < mdlen; i++)
     {
@@ -1275,7 +1312,7 @@ function getMarkedProducts() {
 }
 
 function shiftFromFreeDays() {
-    // make a copy of marked products becouse npw marked products will be modified
+    // make a copy of marked products becouse new marked products will be modified
 	markedProductsCopy = markedProducts;
     markedProducts = {};
 
@@ -1296,6 +1333,7 @@ function shiftFromFreeDays() {
     Move.move_products = {'start':true, 'move':true};
     var event = jQuery.Event( "mouseup", {
         which: 1,
+        buttons: 1,
         clientX: 500,
         clientY: 300
     });
