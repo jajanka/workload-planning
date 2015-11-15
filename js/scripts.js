@@ -4,8 +4,6 @@ var monthNamesShort = ['jan','feb','mar','apr','mai','jūn','jūl','aug','sep','
 var machineCount = 21;
 
 var loadedTiles = {}; // loaded products from DB
-var addedTiles = {}; // new placed products in table
-var deletedTiles = {}; // deleted products from table that were load from DB
 
 var markedMachines = {}; // marked machines where to place products
 var markedShift = 1; // marked employee shift
@@ -452,7 +450,6 @@ $( document ).ready(function()
                                 updateColor(product);
                                 // put a product in cell
                                 td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
-                                addedTiles[td_html.attr("name")] = product;
                                 // add to last filled products
                                 lastFilledProducts.push(td_html.attr("name"));
                                 jsonCount--;
@@ -472,7 +469,6 @@ $( document ).ready(function()
                                 updateColor(product);
                                 // put a product in cell
                                 td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
-                                addedTiles[td_html.attr("name")] = product;
                                 // add to last filled products
                                 lastFilledProducts.push(td_html.attr("name"));
                                 jsonCount--;
@@ -558,8 +554,8 @@ $( document ).ready(function()
               async:is_async
         });
     }
-    drawTable("2015/11/01", "2015/11/04");
-    loadTable("2015/11/01", "2015/11/04", true);
+    drawTable("2015/10/30", "2015/11/04");
+    loadTable("2015/10/30", "2015/11/04", true);
 
     /* ################################################
     ###################### EVENTS #######################
@@ -574,9 +570,7 @@ $( document ).ready(function()
             $('[data-toggle="tooltip"]').tooltip('destroy');
             markedMachines = {};
             markedShift = 1;
-            deletedTiles = {};
             loadedTiles = {};
-            addedTiles = {};
             drawTable(startDate, endDate);
             // replace all '/' in date to '-'. It's for postgres date format
             startDate = startDate.replace(/\//g, '-');
@@ -896,9 +890,7 @@ $( document ).ready(function()
 
                 if ( is_valid ) 
                 {
-                    var prevRow = -1, td_html, darkCell = false, darkCounter = 0, 
-                        freeShiftGroup = 0, rowLastCellIndex, 
-                        last_i = -1, cellName;
+                    var prevRow = -1, td_html, darkCell = false, darkCounter = 0, freeShiftGroup = 0, rowLastCellIndex, last_i = -1;
                     for (var key in markedProducts) {
                         if (markedProducts.hasOwnProperty(key)) 
                         {
@@ -1005,19 +997,8 @@ $( document ).ready(function()
                                         nextCell_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+(i+1)+")")[0].innerHTML;
                                     }
                                     nextCell[0].innerHTML = currentCell;
-                                    cellName = nextCell.attr('name');
                                     // give next replaced product the id of cell name
-                                    nextCell.find('div').attr('id', cellName);
-
-                                    if ( key in loadedTiles ) {
-                                        deletedTiles[key] = markedProducts[key].product;
-                                    }
-                                    else if ( key in addedTiles ) {
-                                        console.log('added89 08');
-                                    }
-                                    
-                                    delete deletedTiles[cellName];
-                                    addedTiles[cellName] = markedProducts[key].product;
+                                    nextCell.find('div').attr('id', nextCell.attr('name'));
                                 };
 
                                 last_i = i;
@@ -1025,23 +1006,8 @@ $( document ).ready(function()
                                 markedProducts[key].c = td_html[0].cellIndex + 1;
                                 markedProducts[key].r = td_html[0].parentNode.rowIndex + 1;
                                 // draw product
-                                cellName = td_html.attr('name');
-                                td_html.html( setProductDiv(cellName, markedProducts[key].product, true));
+                                td_html.html( setProductDiv(td_html.attr('name'), markedProducts[key].product, true));
 
-                                // updating tile statuses
-                                if ( key in loadedTiles ) {
-                                    addedTiles[cellName] = loadedTiles[key];
-                                    // if loaded tile is moved and placed else where. 
-                                    if ( cellName != key ) {
-                                        deletedTiles[key] = markedProducts[key].product;
-                                    }
-                                } else {
-                                    if ( key in addedTiles ) {
-                                        delete addedTiles[key];
-                                    }   
-                                }
-                                delete deletedTiles[cellName];
-                                addedTiles[cellName] = markedProducts[key].product;
                             }
                         }
                     }
@@ -1089,10 +1055,6 @@ $( document ).ready(function()
             if (markedProducts.hasOwnProperty(key)) 
             {
                 $('[name="'+key+'"]')[0].innerHTML = "";
-                if (key in loadedTiles) {
-                    deletedTiles[key] = markedProducts[key].product;
-                }
-                delete addedTiles[key];
             }
         };
         markedProducts = {};
@@ -1406,21 +1368,42 @@ function setProductDiv (name, product,marked) {
 
 save = function () {
     // declare local variables
-    var JSONobjNew = addedTiles,    // prepare JSON object
-        JSONobjDel = deletedTiles;
+    //var JSONobjNew, JSONobjDel;
+    var addedTiles = {}, deletedTiles = {}, newLoadedTiles = {};
 
-    console.log(JSON.stringify(addedTiles));
+    var allProducts = $( "#table2 tbody tr td div");
+    $.each(allProducts, function(prod) {
+    	if ( this.id in loadedTiles ) {
+    		if ( loadedTiles[this.id] != this.getAttribute('product') ) {
+    			addedTiles[this.id] = this.getAttribute('product');
+    		}
+    	} else {
+    		addedTiles[this.id] = this.getAttribute('product');
+    	}
+    	newLoadedTiles[this.id] = this.getAttribute('product');
+    })
 
-    $.post( "php/save.php", {upsert: JSON.stringify(JSONobjNew), del: JSON.stringify(JSONobjDel)})
+    for (var key in loadedTiles) {
+        if (loadedTiles.hasOwnProperty(key)) {
+        	if ( document.getElementsByName(key)[0].innerHTML == "" ) {
+				deletedTiles[key] = loadedTiles[key];
+        	}	
+        }
+    }
+    console.log('SAVE POST');
+    console.log(addedTiles);
+    console.log(deletedTiles);
+    $.post( "php/save.php", {upsert: JSON.stringify(addedTiles), del: JSON.stringify(deletedTiles)})
     // when post is finished
     .done(function( data ) {
         console.log('psuccess');
+        loadedTiles = newLoadedTiles;
     })
     .fail( function( data ) {
         console.log('pfail');
         console.log(data);
     });
-};
+};	
 
 
 // checks if Ctrl button is pressed
@@ -1434,5 +1417,3 @@ $(window).keydown(function(evt) {
     ctrlPressed = false;
   }
 });
-
-function p(){ console.log(loadedTiles); console.log(addedTiles); console.log(deletedTiles); }
