@@ -71,7 +71,7 @@ body {
 		/* timetable */
 		#table2 {
 			/* align table to the right */
-			margin-left: -3px;
+			margin-left: -3px !important;
 			//width: 430px;
 		}
 
@@ -170,7 +170,7 @@ body {
 	background-color: #E0E0E0; 
 	margin-top:-48px; 
 	position: relative; 
-	z-index:4;
+	z-index:5;
 }
 .day-td{
 	background: #3379b7;
@@ -299,7 +299,7 @@ body {
 	border-color: #FFF;
 	border-size: 2px;
 	position: relative;
-	z-index: 4;
+	z-index: 5;
 }
 
 .cssload-loader-inner {

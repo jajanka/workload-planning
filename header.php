@@ -5,6 +5,7 @@
 		<meta name="Janis Mateuss" content=""/>
 		<meta name="description" content="Planning"/>
 		<meta name="viewport" content="width=device-width, user-scalable=no"/><!-- "position: fixed" fix for Android 2.2+ -->
+		<link rel="icon" href="css/images/logo.ico" type="image/ico" />
 		<link rel="stylesheet" href="css/style.css" type="text/css" media="screen"/>
 		<link rel="stylesheet" media="screen" href="bootstrap/css/bootstrap.min.css">
     	<link href="datepicker/jquery.datepick.css" rel="stylesheet" media="screen">

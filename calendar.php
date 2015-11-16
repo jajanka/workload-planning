@@ -34,9 +34,9 @@
 
 	  <div id="message"></div>
 		                        
-		  <div class="table-responsive" style="margin-top: 20px;">      
-		  <h2>Kalendārs</h2>    
+		  <div class="table-responsive" style="margin-top: 20px;">        
 		  <table class="table table-striped" id="calendarTable">
+		  	<h2>Kalendārs</h2>  
 		  	<div id='ajax_loader' style="width: 100%; height: 100px; background-color: #FFF; display: none; z-index: 10; margin: auto 0px;">
 			    <div class="cssload-loader-inner">
 					<div class="cssload-cssload-loader-line-wrap-wrap">

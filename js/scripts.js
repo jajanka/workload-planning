@@ -8,8 +8,7 @@ var loadedTiles = {}; // loaded products from DB
 var markedMachines = {}; // marked machines where to place products
 var markedShift = 1; // marked employee shift
 
-var lastFilledProducts = []; // used to undo last placed products
-var oldMarkedCells = {}; // one event previous: all td or cells marked
+var undoProducts = []; // used to undo last 10 placed products
 
 var markedProducts = {};
 var productsColor = {};
@@ -242,9 +241,6 @@ $( document ).ready(function()
         return dates;
     };
 
-    // add leading zero function
-    function pad(n){return n<10 ? '0'+n : n;}
-
     function drawTable(startDate, endDate)
     {
         var dates = getDates(new Date(startDate), new Date(endDate));
@@ -304,7 +300,7 @@ $( document ).ready(function()
 
         // update bttn-checkboxes
         initBttnCheckbox();
-        drawTodaysSign();
+        drawTodaysSign(1000);
     }
 
     function expandTable(r, c) 
@@ -350,7 +346,7 @@ $( document ).ready(function()
 
         // add table main table cells
         // generate table cells
-        for (var i = 1; i <= r; i++) {  
+        for (var i = 0; i < r; i++) {  
             var table2_html = '';   // table cells
             // length for employee change times. There are 3 in 1 day
             var cellLen = dates.length*3;
@@ -366,49 +362,10 @@ $( document ).ready(function()
                 //console.log(cur_date_formated);
                 table2_html += '<td name="'+cur_date_formated+'"></td>';
             };
-            $('#table2 tr:nth-child('+i+')').append(table2_html);
+            $('#table2 tr:nth-child('+(i+1)+')').append(table2_html);
         };
-        drawTodaysSign();
+        drawTodaysSign(1000);
         loadTable(lastDateObj_formated, expandDate_formated, false);
-    }
-
-    function drawTodaysSign (argument) 
-    {
-        var today = new Date();
-        var whichShift = 0;
-        var h = today.getHours();
-        if ( (h >= 22 && h <= 23) || h <= 5) whichShift = 0;
-        else if ( h >= 6 && h <= 13) whichShift = 1;
-        else if ( h >= 14 && h <= 21) whichShift = 2;
-        console.log(whichShift + " " +h);
-
-        // mark today in the table
-        var today_formated = today.getFullYear()+'-'+pad((today.getMonth()+1))+'-'+pad(today.getDate());
-        if ($('#'+today_formated+'H')[0] == undefined) {
-            console.log('Nav datuma');
-        }
-        else {
-            var date_cellIndex = $('#'+today_formated+'H')[0].cellIndex;
-            var time_index = (date_cellIndex* 3 - 1) + whichShift;
-            //console.log($('.table1-header .header-time td:nth-child('+(time_index)+')'))
-            // iterate through currrent shift column in planning table
-            for (var i = 1; i <= machineCount; i++) {
-                $('#table2 tr:nth-child('+i+') td:nth-child('+(time_index-1)+')').addClass('today');
-            };
-            
-            $('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-toggle', "tooltip");
-            $('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-placement', "bottom");
-            $('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-container', "#table2");
-            $('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('title', "Š o b r ī d");
-            $('[data-toggle="tooltip"]').tooltip({trigger: 'manual'}).tooltip('show'); 
-        
-            // fix to correct show todays tooltip when today is not first fenerated in #table2 seenable content
-            setTimeout(function (){ 
-                var arrowOffset = $('.tooltip-arrow').offset();
-                $('.tooltip-arrow').css('left', '');
-                $('.tooltip').offset({top: $('.tooltip').offset().top, left: arrowOffset.left-45});
-            }, 1000);
-        }
     }
 
     function fillProducts(product, start, count) {
@@ -419,16 +376,17 @@ $( document ).ready(function()
         $.post( "php/products_formula.php", {kg: count, prod: product})
         // when post is finished
         .done(function( data ) {
-            var jsonCount = '';
+            var jsonCount = 0;
             //alert(data+" "+Math.ceil(JSON.parse(data)));
             //return;
             if (data != '') 
             {
+                updateUndo();
+
                 jsonCount = Math.ceil(JSON.parse(data));
                 // row column length
                 var column_count = document.getElementById('table2').rows[0].cells.length;
-                var count_check = 0, 
-                    lastFilledProducts = [];
+                var count_check = 0;
 
                 // if products can be filled in table
                 // iterate over columns
@@ -440,45 +398,25 @@ $( document ).ready(function()
                             // get cell
                             var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
                             // if inner html in cell is empty
-                            if (td_html[0].innerHTML.trim().length == 0 && !td_html.hasClass('dark')) {
+                            while (td_html[0].innerHTML.trim().length != 0 || td_html.hasClass('dark')){
+                                i++;
                                 if (i >= column_count)  {
                                     console.log('Expand1');
                                     expandTable(machineCount, 7);
                                     column_count = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
                                 }
-                                // update products colors
-                                updateColor(product);
-                                // put a product in cell
-                                td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
-                                // add to last filled products
-                                lastFilledProducts.push(td_html.attr("name"));
-                                jsonCount--;
-                            } 
-                            else if (td_html.hasClass('dark')) 
-                            {
-                                while (td_html.hasClass('dark')){
-                                    i++;
-                                    if (i >= column_count)  {
-                                        console.log('Expand1');
-                                        expandTable(machineCount, 7);
-                                        column_count = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
-                                    }
-                                    td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
-                                }
-                                                        // update products colors
-                                updateColor(product);
-                                // put a product in cell
-                                td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
-                                // add to last filled products
-                                lastFilledProducts.push(td_html.attr("name"));
-                                jsonCount--;
+                                td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
                             }
+                                                    // update products colors
+                            updateColor(product);
+                            // put a product in cell
+                            td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
+                            jsonCount--;
                         }
                         if (0 >= jsonCount) { break; } // if all products placed
                     }
                     if (0 >= jsonCount) { break; }
                 };
-                return lastFilledProducts;
             }
             else 
             {
@@ -554,8 +492,8 @@ $( document ).ready(function()
               async:is_async
         });
     }
-    drawTable("2015/10/30", "2015/11/04");
-    loadTable("2015/10/30", "2015/11/04", true);
+    drawTable("2015/10/31", "2015/11/21");
+    loadTable("2015/10/31", "2015/11/21", true);
 
     /* ################################################
     ###################### EVENTS #######################
@@ -591,14 +529,19 @@ $( document ).ready(function()
     $('#gen-prod-bttn').click(function() { 
         var p = $('#product').val();
         var q = $('#quantity').val();
-        lastFilledProducts = fillProducts(p, markedShift, q);
-        console.log(lastFilledProducts);
+        fillProducts(p, markedShift, q);
     });
 
     $('#undo-gen-prod-bttn').click(function() { 
-        for (var i = 0; i < lastFilledProducts.length; i++) {
-            $('[name="'+lastFilledProducts[i]+'"]').html('');
-        };
+        Move.move_products['start'] = false; Move.move_products['move'] = false;
+
+        if ( undoProducts.length > 0 ) {
+            var undoHTML = undoProducts.pop();
+            $('.table1-header').html(undoHTML['header']);
+            $('#table2').html(undoHTML['table']);
+            loadedTiles = undoHTML['loadedTiles'];
+            drawTodaysSign(0);
+        }
     });
 
     $('#save-bttn').click(function() { 
@@ -736,12 +679,18 @@ $( document ).ready(function()
         if(e.which == 1) {
             $('.temp-marked').remove();
 
+            // update undo array on keydown and when there is no marked products.
+            //console.log(loadedTiles);
+            updateUndo();
+
             Move.mouseStillDown = true;
             Move.start_x = e.pageX, Move.start_y = e.pageY;
             if (!ctrlPressed) {
                 Move.start_row = e.target.parentNode.rowIndex+1, Move.start_col = e.target.cellIndex+1;
             }
             else {
+                $('.marked').removeClass('marked');
+                markedProducts = {};
                 Move.start_row = e.target.parentNode.parentNode.rowIndex+1, Move.start_col = e.target.parentNode.cellIndex+1;
             }
             if (!ctrlPressed) {
@@ -890,7 +839,8 @@ $( document ).ready(function()
 
                 if ( is_valid ) 
                 {
-                    var prevRow = -1, td_html, darkCell = false, darkCounter = 0, freeShiftGroup = 0, rowLastCellIndex, last_i = -1;
+                    var prevRow = -1, td_html, darkCell = false, darkCounter = 0, 
+                    freeShiftGroup = 0, rowLastCellIndex, last_i = -1;
                     for (var key in markedProducts) {
                         if (markedProducts.hasOwnProperty(key)) 
                         {
@@ -1028,7 +978,7 @@ $( document ).ready(function()
                 else {
                     // remove marked class from products 
                     $('.marked').removeClass('marked');
-                    // TODO: atkraspt sarkanos selus, kas rodas kad kustina produktus
+                    // TODO: atkrasot sarkanos selus, kas rodas kad kustina produktus
                     for (var key in markedProducts) {
                         if (markedProducts.hasOwnProperty(key)) {
                             // old product place. remove all prev products
@@ -1050,6 +1000,9 @@ $( document ).ready(function()
 
     $('#delete-marked-bttn').click(function() { 
         Move.modal_action = true;
+
+        updateUndo();
+
         for (var key in markedProducts) {
             // if new marked cell not in old then unmark it
             if (markedProducts.hasOwnProperty(key)) 
@@ -1100,7 +1053,9 @@ $( document ).ready(function()
         }
     });
     $('#paste-marked-bttn').click(function(e) { 
-    	
+    
+        updateUndo();
+
         // get first hash key
         var clipBoard = ( Object.keys(PBuffer.cut).length > 0 ) ? PBuffer.cut : PBuffer.copy;
         for (var firstKey in clipBoard) { break; }
@@ -1305,6 +1260,77 @@ function shiftFromFreeDays() {
     // get back markedProducts value
     markedProducts = markedProductsCopy;
 }
+// add leading zero function
+function pad(n){return n<10 ? '0'+n : n;}
+
+function drawTodaysSign (draw_time) 
+{
+    var today = new Date();
+    var whichShift = 0;
+    var h = today.getHours();
+    if ( (h >= 22 && h <= 23) || h <= 5) whichShift = 0;
+    else if ( h >= 6 && h <= 13) whichShift = 1;
+    else if ( h >= 14 && h <= 21) whichShift = 2;
+    console.log(whichShift + " " +h);
+
+    // mark today in the table
+    var today_formated = today.getFullYear()+'-'+pad((today.getMonth()+1))+'-'+pad(today.getDate());
+    if ($('#'+today_formated+'H')[0] === undefined) {
+        console.log('Nav datuma');
+    }
+    else {
+        var date_cellIndex = $('#'+today_formated+'H')[0].cellIndex;
+        var time_index = (date_cellIndex* 3 - 1) + whichShift;
+        //console.log($('.table1-header .header-time td:nth-child('+(time_index)+')'))
+        // iterate through currrent shift column in planning table
+        for (var i = 1; i <= machineCount; i++) {
+            $('#table2 tr:nth-child('+i+') td:nth-child('+(time_index-1)+')').addClass('today');
+        };
+        
+        $('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-toggle', "tooltip");
+        $('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-placement', "bottom");
+        $('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-container', "#table2");
+        $('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('title', "Š o b r ī d");
+        $('[data-toggle="tooltip"]').tooltip({trigger: 'manual'}).tooltip('show'); 
+    
+        // fix to correct show todays tooltip when today is not first fenerated in #table2 seenable content
+        setTimeout(function (){ 
+            var arrowOffset = $('.tooltip-arrow').offset();
+            $('.tooltip-arrow').css('left', '');
+            $('.tooltip').offset({top: $('.tooltip').offset().top, left: arrowOffset.left-45});
+        }, draw_time);
+
+        // test code for making history uneditable
+        var todaysCol = $(".today")[0].cellIndex + 1;
+        if ( todaysCol > 7 ) {
+            var todaysPos =  $(".today").position().left - $("#table2").position().left - (70*3*7);
+            $('#history-mark').css('height', $('#table2').css('height'));
+            $('#history-mark').css('width', todaysPos);
+        }
+    }
+}
+function updateUndo () {
+    console.log('update undo.');
+    var h = $('.table1-header').html();
+    var t = $('#table2').html();
+
+    if ( undoProducts.length > 0 ) {
+        // if last saved undo is not equal with this table, then update
+        if ( undoProducts[undoProducts.length - 1]['table'] != t ) {
+            if ( undoProducts.length > 19 ) {
+                undoProducts.shift();
+            }
+            undoProducts.push( {'header': h, 'table': t, 'loadedTiles': JSON.parse(JSON.stringify(loadedTiles)) } );
+        }
+    } 
+    else {
+        if ( undoProducts.length > 19 ) {
+                undoProducts.shift();
+        }
+        // JSON is needed to clone the loadedTitles value, becouse otherwise it's passed by ref and this line loses a meaning
+        undoProducts.push( {'header': h, 'table': t, 'loadedTiles': JSON.parse(JSON.stringify(loadedTiles)) } );
+    }
+}
 
 function showError(text) {
     $('#message').prepend('<div class="alert alert-danger fade in" role="alert" style="display: none; margin-top: 5px;">'+
@@ -1385,6 +1411,7 @@ save = function () {
 
     for (var key in loadedTiles) {
         if (loadedTiles.hasOwnProperty(key)) {
+            console.log(key);
         	if ( document.getElementsByName(key)[0].innerHTML == "" ) {
 				deletedTiles[key] = loadedTiles[key];
         	}	
