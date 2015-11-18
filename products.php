@@ -2,7 +2,7 @@
 		$title = 'Produkti';
 		include("header.php");
 	?>
-		<div class="container">
+		<div class="container-other">
 		                        
 		  <div class="table-responsive" style="margin-top: 20px;">  
 		  <div class="form-inline" style="max-width: 960px; margin: 0px auto">
@@ -43,7 +43,7 @@
 		        <th>Mašīnu skaits</th>
 		        <th>Kopējais kg/h</th>
 		        <th>Efektivitāte %</th>
-		        <th style="width: 50px;"><button type="submit" class="btn btn-primary" id="bttn-save-products" style="margin-bottom: 20px">Saglabāt</button></th>
+		        <th style="width: 50px;"></th>
 		      </tr>
 		    </thead>
 		    <tbody>

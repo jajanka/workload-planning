@@ -292,7 +292,7 @@ $( document ).ready(function()
             table2_html += '</tr>';
         };
         // var tableLeftUpperCorner = '<div id="leftUppercorner"></div>';
-        $('.left-header').append(left_header_html);
+        $('.left-header').html(left_header_html);
         $('#table2 tbody').html(table2_html);
 
         // update bttn-checkboxes
@@ -1298,12 +1298,12 @@ function drawTodaysSign (draw_time)
         }, draw_time);
 
         // test code for making history uneditable
-        /*var todaysCol = $(".today")[0].cellIndex + 1;
+        var todaysCol = $(".today")[0].cellIndex + 1;
         if ( todaysCol > 7 ) {
             var todaysPos =  $(".today").position().left - $("#table2").position().left - (70*3*7);
             $('#history-mark').css('height', $('#table2').css('height'));
             $('#history-mark').css('width', todaysPos);
-        }*/
+        }
     }
 }
 function updateUndo () {

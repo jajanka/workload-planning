@@ -32,7 +32,7 @@ if (isset($_POST['get_year']) && is_numeric($_POST['get_year']))
 			$curMonth = date("n",strtotime($value[0]));
 			//$curMonth = ($curMonth > 10) ? 11 : $curMonth;
 			echo '<tr>
-		        <td>'.$curDay.'</td>
+		        <td style="color: #999;">'.$curDay.'.</td>
 		        <td id="'.$value[0].'">'.$value[0].' <span style="font-weight: bold;">'.$week_days[date("N", strtotime($value[0]))-1].'</span></td>
 		        <td class="'.(($value[1])? "danger":"").'"><div class="checkbox">
 					  <label>

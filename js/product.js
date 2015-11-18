@@ -302,7 +302,7 @@ $(document).ready(function () {
 		console.log(Modal);
 	})
 
-	$("#productsTable").on('click', '#bttn-save-products', function (e) {
+	$("#save-bttn").click(function (e) {
 		console.log('sd');
 		var upsertData = [];
 		for (var i = prodsToSave.length - 1; i >= 0; i--) {

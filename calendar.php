@@ -2,7 +2,7 @@
 		$title = 'Kalendārs';
 		include("header.php");
 	?>
-		<div class="container">
+		<div class="container-other">
 
 		<div class="panel panel-primary" style="margin-top: 20px;">
 	    <div class="panel-heading">Kalendārs</div>
@@ -63,7 +63,6 @@
 		        <th>1. maiņa 22:00 - 06:00</th>
 		        <th>2. maiņa 06:00 - 14:00</th>
 		        <th>3. maiņa 14:00 - 22:00</th>
-		        <th style="width: 50px;"><button type="submit" class="btn btn-primary" id="bttn-save-year">Saglabāt</button></th>
 		      </tr>
 		    </thead>
 		    <tbody>

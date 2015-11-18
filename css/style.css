@@ -1,13 +1,14 @@
 body {
 	font-family: arial;
-	margin: 0px; /* for IE6 / IE7 */
+	//margin: 0px; /* for IE6 / IE7 */
 	//background-color: #F8F8F8 !important; /* e2e2e2 */
 	background-image: url('http://api.thumbr.it/whitenoise-361x370.png?background=dde6f0ff&noise=8d949e&density=15&opacity=15');
 }
 
-/* drag container */
-.container {
-
+.container-other {
+	max-width: 960px;
+	margin: 0px auto;
+	margin-top: 60px;
 }
 /* make left and right DIV container scrollable */
 #right {
@@ -22,7 +23,7 @@ body {
 	width: 100%;
 	height:600px;
 	/* make it visible */
-	margin-top: 88px;
+	margin-top: 98px;
 	//background-color: #eee;
 }
 
@@ -33,18 +34,19 @@ body {
 	//width: 430px;
 }
 .panel-fixed {
-	margin-top: 52px;
+	margin-top: 47px;
 	min-width: 1200px;
 	left: 0;
 	right: 0;
 	border-color: #EEE !important;
 	border-radius: 0px !important;
+	border-bottom: 6px solid #DDD !important;
 	z-index: 99;
 	position: fixed;
 	-webkit-transform: translateZ(0);
 }
 .panel-fixed .panel-body {
-	padding: 5px;
+	padding: 10px;
 }
 
 /* table cells */
@@ -118,7 +120,7 @@ body {
 .left-header{
 	float:left; 
 	border-left: 7px solid #BBB;
-	margin-top: 135px;
+	margin-top: 145px;
 	position: fixed;
 	z-index: 10;
 	-webkit-transform: translateZ(0); 
@@ -133,7 +135,7 @@ body {
 	width:69px; 
 	height:47px; 
 	background-color: #E0E0E0; 
-	margin-top:88px; 
+	margin-top:98px; 
 	border-top: 7px solid #5C98CC;
 	border-left: 7px solid #BBB;
 	position: fixed; 
