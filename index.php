@@ -3,9 +3,9 @@
 		include("header.php");
 	?>
 		<link rel="stylesheet" href="css/noselect.css" type="text/css" media="screen"/>
-		<div class="container">
+		
  		<?php include("plan.html") ;?>
-		</div><!-- main container -->
+		
 
 	<footer class="footer">
       © 2015 - Jānis Mateuss  

@@ -202,24 +202,21 @@ $( document ).ready(function()
     ////////////////////////////////////////////////////////
     var initHeaderOffset = $('.table1-header').offset();
     var initColOffset = $('.left-header').offset();
+    console.log(initColOffset)
     
     var prevTop = 0;
     var prevLeft = 0;
-    $("#right").scroll(function() {
-        var currentTop = $("#right").scrollTop();
-        var currentLeft = $("#right").scrollLeft();
+    $(window).scroll(function() {
+        var currentTop = $(window).scrollTop();
+        var currentLeft = $(window).scrollLeft();
 
         if(prevTop != currentTop) { // vertical scroll
             prevTop = currentTop;
-            var prevOffset =$('.table1-header').offset();
-            $('.table1-header').offset({top: initHeaderOffset.top, left: prevOffset.left});
-            //console.log("I scrolled vertically.");
-        }
-        if(prevLeft != currentLeft) { // horizontall scroll
-            prevLeft = currentLeft;
-            var prevOffset =$('.left-header').offset();
-            $('.left-header').offset({top: prevOffset.top, left: initColOffset.left-1});
-            //console.log("I scrolled horizontally.");
+            var prevOffset = $('.table1-header').offset();
+            var prevOffsetLeft = $('.left-header').offset();
+            $('.table1-header').offset({top: initHeaderOffset.top+currentTop, left: prevOffset.left});
+            $('.left-header').offset({top: 144, left: prevOffsetLeft.left}); //
+            console.log("I scrolled vertically.");
         }
     });
 
@@ -294,8 +291,8 @@ $( document ).ready(function()
             };
             table2_html += '</tr>';
         };
-        var tableLeftUpperCorner = '<div id="leftUppercorner"></div>';
-        $('.left-header').html(tableLeftUpperCorner+left_header_html);
+        // var tableLeftUpperCorner = '<div id="leftUppercorner"></div>';
+        $('.left-header').append(left_header_html);
         $('#table2 tbody').html(table2_html);
 
         // update bttn-checkboxes
@@ -1301,12 +1298,12 @@ function drawTodaysSign (draw_time)
         }, draw_time);
 
         // test code for making history uneditable
-        var todaysCol = $(".today")[0].cellIndex + 1;
+        /*var todaysCol = $(".today")[0].cellIndex + 1;
         if ( todaysCol > 7 ) {
             var todaysPos =  $(".today").position().left - $("#table2").position().left - (70*3*7);
             $('#history-mark').css('height', $('#table2').css('height'));
             $('#history-mark').css('width', todaysPos);
-        }
+        }*/
     }
 }
 function updateUndo () {

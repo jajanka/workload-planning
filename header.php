@@ -26,5 +26,11 @@
         <li><a href="calendar.php"><span class="glyphicon glyphicon-calendar"></span> Kalendārs</a></li>
       </ul>
     </div>
+    <div class='btn-toolbar pull-right' style="margin-top: 5px;">
+      <div class='btn-group'>
+        <button type="button" class="btn btn-danger" id="undo-gen-prod-bttn"><span class="glyphicon glyphicon-circle-arrow-left"></span> Atcelt</button>
+        <button type="button" class="btn btn-success" id="save-bttn"><span class="glyphicon glyphicon-floppy-save"></span> Saglabāt</button>
+      </div>
+    </div>
   </div>
 </nav>
