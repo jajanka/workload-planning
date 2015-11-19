@@ -2,6 +2,7 @@ var tableLen = 10;
 var tableHeaders =['22-06', '06-14', '14-22'];
 var monthNamesShort = ['jan','feb','mar','apr','mai','jūn','jūl','aug','sep','okt','nov','dec'];
 var machineCount = 21;
+var historyEndCell = 1;
 
 var loadedTiles = {}; // loaded products from DB
 
@@ -160,7 +161,7 @@ $( document ).ready(function()
                     // get toggled bttn-checkbox number. It's machine number
                     var toggledChkBox = $button.context.getElementsByTagName('button')[0].childNodes[2].textContent;
                     // color row with this number
-                    $( "#table2 tbody tr:nth-child("+toggledChkBox+") td").attr('style',  'background-color:#e3e3e3');
+                    $( "#table2 tbody tr:nth-child("+toggledChkBox+") td").addClass('machine-row');
                     markedMachines[toggledChkBox] = true;
                     console.log(markedMachines);
                 }
@@ -171,7 +172,7 @@ $( document ).ready(function()
                        // get toggled bttn-checkbox number. It's machine number
                        var toggledChkBox = $button.context.getElementsByTagName('button')[0].childNodes[2].textContent;
                        // color row with this number
-                        $( "#table2 tbody tr:nth-child("+toggledChkBox+") td").attr('style',  'background-color:#eeeeee');
+                        $( "#table2 tbody tr:nth-child("+toggledChkBox+") td").removeClass('machine-row');
                         delete markedMachines[toggledChkBox];
                         console.log(markedMachines);  
                     }
@@ -202,7 +203,6 @@ $( document ).ready(function()
     ////////////////////////////////////////////////////////
     var initHeaderOffset = $('.table1-header').offset();
     var initColOffset = $('.left-header').offset();
-    console.log(initColOffset)
     
     var prevTop = 0;
     var prevLeft = 0;
@@ -215,8 +215,7 @@ $( document ).ready(function()
             var prevOffset = $('.table1-header').offset();
             var prevOffsetLeft = $('.left-header').offset();
             $('.table1-header').offset({top: initHeaderOffset.top+currentTop, left: prevOffset.left});
-            $('.left-header').offset({top: 144, left: prevOffsetLeft.left}); //
-            console.log("I scrolled vertically.");
+            $('.left-header').offset({top: 155, left: prevOffsetLeft.left}); //
         }
     });
 
@@ -489,8 +488,17 @@ $( document ).ready(function()
               async:is_async
         });
     }
-    drawTable("2015/10/31", "2015/11/21");
-    loadTable("2015/10/31", "2015/11/21", true);
+
+    var endDate = new Date();
+    endDate.setDate(endDate.getDate() + 21);
+    var endDate_formated = endDate.getFullYear()+'/'+(endDate.getMonth()+1)+'/'+endDate.getDate();
+
+    var startDate = new Date();
+    startDate.setDate(startDate.getDate() - 1);
+    var startDate_formated = startDate.getFullYear()+'/'+(startDate.getMonth()+1)+'/'+startDate.getDate();
+
+    drawTable('2015/11/10', endDate_formated);
+    loadTable('2015/11/10', endDate_formated, true);
 
     /* ################################################
     ###################### EVENTS #######################
@@ -627,20 +635,14 @@ $( document ).ready(function()
                 // MOVING ALREADY MARKED PRODUCTS!!
                 //////////////////////////////////////////////////
                 // unhighlight previous cells when moving products
-                for (var i = Move.prevMovePosProduct.length - 1; i >= 0; i--) {
-                    Move.prevMovePosProduct[i].css('background-color', '#EEE' );
-                    // unhighlight product
-                    if (Move.prevMovePosProduct[i].children() != []) {
-                        Move.prevMovePosProduct[i].children().removeClass('marked');
-                    }
-                };
+                $('.marked').removeClass('marked');
+                $('.td-marked').removeClass('td-marked');
+
                 Move.prevMovePosProduct = [];
 
                 // highligt cells on moving products
                 for (var key in markedProducts) { 
                     if (markedProducts.hasOwnProperty(key)) {
-                        //console.log('markedProducts'+key);
-                        // .attr('style',  'background-color:#e3e3e3');
                             var row,col;
                             if (e.target.tagName == "TD") {
                                 row = markedProducts[key].r - (Move.start_row - e.target.parentNode.rowIndex)+1;
@@ -654,11 +656,13 @@ $( document ).ready(function()
                             console.log(markedProducts[key].cEnd);
 
                             var td_html = $( "#table2 tbody tr:nth-child("+row+") td:nth-child("+col+")");
-                            //console.log("#table2 tbody tr:nth-child("+row+") td:nth-child("+col+")");
-                            td_html.css('background-color', '#D93600' );
                             // highlight product
-                            if (td_html.children() != []) {
+                            if ( td_html.children()[0] !== undefined ) {
                                 td_html.children().addClass('marked');
+                            } 
+                            else {
+                                console.log('td_marked');
+                                td_html.addClass('td-marked');
                             }
                             Move.prevMovePosProduct.push(td_html);   
                     }
@@ -808,7 +812,7 @@ $( document ).ready(function()
                     if (markedProducts.hasOwnProperty(key)) {
                         // new place is out of table bounds then don't placed
                         if (markedProducts[key].rEnd < 1 || markedProducts[key].rEnd > machineCount ||
-                            markedProducts[key].cEnd < 1 /*|| markedProducts[key].cEnd > lastTdIndex*/) { 
+                            markedProducts[key].cEnd < historyEndCell /*|| markedProducts[key].cEnd > lastTdIndex*/) { 
                             //showError('Produkti neietilpst tabulā.');
                             is_valid = false;
                             $('#error-modal .modal-dialog').attr('style','left: '+(e.clientX-80)+'px; top: '+(e.clientY-10)+'px;');
@@ -823,9 +827,7 @@ $( document ).ready(function()
                 {
                     for (var key in markedProducts) {
                         if (markedProducts.hasOwnProperty(key)) {
-                            // old product place. remove all prev products
                             var td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].r+") td:nth-child("+markedProducts[key].c+")");
-                            td_html.css('background-color', '#EEE' );
                             // if new products is not out of table bounds
                             if (is_valid) {
                                 td_html.html('');
@@ -833,6 +835,7 @@ $( document ).ready(function()
                         }
                     }
                 }
+                $('.td-marked').removeClass('td-marked');
 
                 if ( is_valid ) 
                 {
@@ -887,8 +890,6 @@ $( document ).ready(function()
                                 td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
                             }
 
-                            //console.log(td_html.hasClass('dark'));
-                            td_html.css('background-color', '#EEE' );
                             if (is_valid) {
 
                                 // if product is landed on free day. then while loop on col till it gets to work shift
@@ -975,11 +976,11 @@ $( document ).ready(function()
                 else {
                     // remove marked class from products 
                     $('.marked').removeClass('marked');
+                    // old product place. remove all prev products
+                    $('.td-marked').removeClass('td-marked');
                     // TODO: atkrasot sarkanos selus, kas rodas kad kustina produktus
                     for (var key in markedProducts) {
                         if (markedProducts.hasOwnProperty(key)) {
-                            // old product place. remove all prev products
-                            $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+markedProducts[key].cEnd+")").css('background-color', '#EEE' );
                             // mark products that was moved
                             $( "#table2 tbody tr:nth-child("+markedProducts[key].r+") td:nth-child("+markedProducts[key].c+") div").addClass('marked');
                             // reset cell end position to start position becouse there is out of table bounds error
@@ -1296,16 +1297,45 @@ function drawTodaysSign (draw_time)
             $('.tooltip-arrow').css('left', '');
             $('.tooltip').offset({top: $('.tooltip').offset().top, left: arrowOffset.left-45});
         }, draw_time);
+    }
+    drawHistoryDiv(today, whichShift);
+}
 
-        // test code for making history uneditable
+function drawHistoryDiv (today, whichShift) {
+    // test code for making history uneditable
+    if ( $(".today")[0] !== undefined ) {
         var todaysCol = $(".today")[0].cellIndex + 1;
         if ( todaysCol > 7 ) {
-            var todaysPos =  $(".today").position().left - $("#table2").position().left - (70*3*7);
+            var todaysPos =  $(".today").position().left - $("#table2").position().left - (70*3*7) + 2;
             $('#history-mark').css('height', $('#table2').css('height'));
             $('#history-mark').css('width', todaysPos);
+            historyEndCell = $(".today")[0].cellIndex - $("#table2 tr:nth-child(1) td")[0].cellIndex - 3*7+1;
+        } else {
+            $('#history-mark').css('height', 0);
+            $('#history-mark').css('width', 0);
+            historyEndCell = 1;
+        }
+    } else {
+        // there is not today in the plan
+        var oneDay = 24*60*60*1000; // hours*minutes*seconds*milliseconds
+        var lastTDname = $('#table2 tr:nth-child(1) td').last().attr('name').split('/')[0].replace(/-/g, '/');
+        var lastDate = new Date(lastTDname);
+        var daysBetween = Math.round( (today.getTime() - lastDate.getTime()) / oneDay );
+
+        if ( daysBetween > 0) {
+            $('#history-mark').css('height', $('#table2').css('height'));
+            var back = 7 - daysBetween+2;
+            $('#history-mark').css('width', $('#table2 tr:nth-child(1) td').last().position().left - (70*3*back)+whichShift*70 + 2);
+            historyEndCell = $('#table2 tr:nth-child(1) td').last()[0].cellIndex - 3 * back + whichShift;
+        }
+        else {
+            $('#history-mark').css('height', 0);
+            $('#history-mark').css('width', 0);
+            historyEndCell = 1;
         }
     }
 }
+
 function updateUndo () {
     console.log('update undo.');
     var h = $('.table1-header').html();

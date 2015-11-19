@@ -1,3 +1,5 @@
+html {height: 101%;}
+
 body {
 	font-family: arial;
 	//margin: 0px; /* for IE6 / IE7 */
@@ -24,7 +26,6 @@ body {
 	height:600px;
 	/* make it visible */
 	margin-top: 98px;
-	//background-color: #eee;
 }
 
 /* timetable */
@@ -99,10 +100,12 @@ body {
 .free {
 	background-color: #EEE;
 }
-
+.td-marked {
+	background-color: #F27979 !important;
+}
 /* dark cells (first column and table header) */
 .dark, .redips-mark {
-	background-color: #e0e0e0 !important;
+	background-color: #e0e0e0;
 	width: 65px;	
 }
 .today {
@@ -112,10 +115,13 @@ body {
 	box-shadow: 1px 1px 4px 2px #C3E6FF;
     //background-color: rgb(125, 176, 202) !important;
 }
-
+.machine-row {
+	background-color: #C3D8E8;
+}
 .table1-header{
 	z-index: 8; 
 	margin-left: -2px !important;
+	//position: relative;
 }
 .left-header{
 	float:left; 
@@ -184,9 +190,11 @@ body {
 	background-color: #B5FFAB;
 	font-size: 16px;
 }
+.modal-open {
+    overflow: scroll !important;
+}
 #marked-modal .modal-dialog {
-	width: 150px;
-	//margin-bottom: 0px;
+	width: 150px !important;
 }
 #marked-modal .modal-content{
 	-webkit-box-shadow: none;
