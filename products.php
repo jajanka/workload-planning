@@ -70,7 +70,7 @@
 			    <thead>
 			      <tr>
 			        <th>Mašīna</th>
-			        <th>Komantārs</th>
+			        <th>Komentārs</th>
 			      </tr>
 			    </thead>
 			    <tbody>

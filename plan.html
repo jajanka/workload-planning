@@ -12,7 +12,7 @@
 			                    <span class="input-group-addon">līdz</span>
 			                    <input id="datepickerFrom" type="text" class="input form-control popupDatepicker" name="end" />
 			                </div>
-		                	<button type="button" class="btn btn-primary" id="gen-table-bttn">Parādīt laika periodu</button>
+		                	<button type="button" class="btn btn-primary" id="gen-table-bttn" data-placement="bottom" title="">Parādīt laika periodu</button>
 		                </div>
 		            </div>
 		            <div class="form-group">
@@ -22,17 +22,15 @@
 							</button>
 							<input id="product" type="text" class="input-small form-control" data-provide="typeahead" autocomplete="off" placeholder="Produkts"/>
 				            <input id="quantity" type="number" min="0" step="1" class="input-small form-control" placeholder="Kg" />
-						  <button type="button" class="btn btn-primary" id="gen-prod-bttn">Pievienot produktu</button>
+						  <button type="button" class="btn btn-primary" id="gen-prod-bttn" data-placement="bottom" title="">Pievienot produktu</button>
 						</div>
 					</div>
 				</div>
 			</div>
 			</div>
-			
-			<div id="message"></div>
 			</div>
+				<div id="message"></div>
 				<!-- right container -->
-				<div class="rect" style="width: 100%; height: 20px; background-color: #EEE; margin: 0px auto; margin-bottom: -10px; border-bottom: 2px #8CA2B8 solid"></div>
 				<table class="left-header">
 					<div id="leftUppercorner"></div>
 				</table>
@@ -145,7 +143,7 @@
 				    <thead>
 				      <tr>
 				        <th>Mašīna</th>
-				        <th>Komantārs</th>
+				        <th>Komentārs</th>
 				      </tr>
 				    </thead>
 				    <tbody>

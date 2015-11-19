@@ -7,7 +7,7 @@ var historyEndCell = 1;
 var loadedTiles = {}; // loaded products from DB
 
 var markedMachines = {}; // marked machines where to place products
-var markedShift = 1; // marked employee shift
+var markedShift = 0 // marked employee shift
 
 var undoProducts = []; // used to undo last 10 placed products
 
@@ -84,7 +84,6 @@ $( document ).ready(function()
                     // get index of pressed bttn-chkbox cell
                     markedShift = $widget.parent().index();
                     // on click disable all remaining bttn-chkbox. allows only one active bttn-chkbox
-                    console.log(markedShift);
                     if ( $button.hasClass('active') ) {
                         // iterate over bttn-chkbox time
                         $('.button-checkbox-time').each(function () {
@@ -101,7 +100,7 @@ $( document ).ready(function()
                 else {
                     $button.removeClass('btn-' + color + ' active').addClass('btn-default');
                     if (clicked == true) {
-                        markedShift = 1;
+                        markedShift = 0;
                         $('.button-checkbox-time').each(function () {
                             var $widget2 = $(this),
                                 $button2 = $widget2.find('button');
@@ -296,7 +295,7 @@ $( document ).ready(function()
 
         // update bttn-checkboxes
         initBttnCheckbox();
-        drawTodaysSign(1000);
+        drawTodaysSign(1000, true);
     }
 
     function expandTable(r, c) 
@@ -360,13 +359,13 @@ $( document ).ready(function()
             };
             $('#table2 tr:nth-child('+(i+1)+')').append(table2_html);
         };
-        drawTodaysSign(1000);
+        drawTodaysSign(1000, false);
         loadTable(lastDateObj_formated, expandDate_formated, false);
     }
 
     function fillProducts(product, start, count) {
         if (Object.keys(markedMachines).length < 1) {
-            showError('Nav atzīmēta neviena mašīna.', 'danger');
+            showError('Nav atzīmēta neviena mašīna.', 'gen-prod-bttn');
             return;
         }
         $.post( "php/products_formula.php", {kg: count, prod: product})
@@ -416,12 +415,12 @@ $( document ).ready(function()
             }
             else 
             {
-                showError("Nekorekts rezultāts.", 'danger');
+                showError("Nekorekts rezultāts.", 'gen-prod-bttn');
             }
 
         })
         .fail( function( data ) {
-            showError("Nevar pievienot produktu.", 'danger');
+            showError("Nevar pievienot produktu.", 'gen-prod-bttn');
         });
     }
 
@@ -512,7 +511,7 @@ $( document ).ready(function()
         if (sd <= ed) {
             $('[data-toggle="tooltip"]').tooltip('destroy');
             markedMachines = {};
-            markedShift = 1;
+            markedShift = 0;
             loadedTiles = {};
             drawTable(startDate, endDate);
             // replace all '/' in date to '-'. It's for postgres date format
@@ -526,7 +525,7 @@ $( document ).ready(function()
             $('.page-date-header').html(start_date_formated+' - '+end_date_formated);
         }
         else {
-            showError('Nav korekti ievadīts datums.');
+            showError('Nav korekti ievadīts datums.', 'gen-table-bttn');
         }
     });
 
@@ -534,6 +533,10 @@ $( document ).ready(function()
     $('#gen-prod-bttn').click(function() { 
         var p = $('#product').val();
         var q = $('#quantity').val();
+        if ( markedShift < 1 ) {
+        	showError("Nav atzīmēta starta maiņa!", 'gen-prod-bttn');
+        	return;
+        }
         fillProducts(p, markedShift, q);
     });
 
@@ -545,13 +548,23 @@ $( document ).ready(function()
             $('.table1-header').html(undoHTML['header']);
             $('#table2').html(undoHTML['table']);
             loadedTiles = undoHTML['loadedTiles'];
-            drawTodaysSign(0);
+            drawTodaysSign(0, false);
         }
     });
 
     $('#save-bttn').click(function() { 
         save();
     });
+
+    $( "#gen-prod-bttn" ).mouseout(function() {
+	  $( "#gen-prod-bttn" ).tooltip('destroy');
+	});
+	$( "#gen-table-bttn" ).mouseout(function() {
+	 	$( "#gen-table-bttn" ).tooltip('destroy');
+	});
+	$( "#save-bttn" ).mouseout(function() {
+	 	$( "#save-bttn" ).tooltip('destroy');
+	});
 
     //// Rectangle draw, marking products
     ///////////////////////// 
@@ -1171,11 +1184,12 @@ $( document ).ready(function()
                 $('#productModal').modal({'show': true, });
             }
             else {
-                showError("Šāds '"+$('#product').val()+"' produkts neeksistē.", 'danger');
+
+                showError("Šāds '"+$('#product').val()+"' produkts neeksistē.", 'gen-prod-bttn');
             }
         })
         .fail( function( data ) {
-            showError("Nevar saglabāt datus.", 'danger');
+            showError("Nevar saglabāt datus.", 'save-bttn');
         });
 
     });
@@ -1261,7 +1275,7 @@ function shiftFromFreeDays() {
 // add leading zero function
 function pad(n){return n<10 ? '0'+n : n;}
 
-function drawTodaysSign (draw_time) 
+function drawTodaysSign (draw_time, draw_history) 
 {
     var today = new Date();
     var whichShift = 0;
@@ -1298,11 +1312,11 @@ function drawTodaysSign (draw_time)
             $('.tooltip').offset({top: $('.tooltip').offset().top, left: arrowOffset.left-45});
         }, draw_time);
     }
-    drawHistoryDiv(today, whichShift);
+    if ( draw_history ) drawHistoryDiv(today, whichShift);
 }
 
 function drawHistoryDiv (today, whichShift) {
-    // test code for making history uneditable
+    var disableButtons = false;
     if ( $(".today")[0] !== undefined ) {
         var todaysCol = $(".today")[0].cellIndex + 1;
         if ( todaysCol > 7 ) {
@@ -1310,7 +1324,9 @@ function drawHistoryDiv (today, whichShift) {
             $('#history-mark').css('height', $('#table2').css('height'));
             $('#history-mark').css('width', todaysPos);
             historyEndCell = $(".today")[0].cellIndex - $("#table2 tr:nth-child(1) td")[0].cellIndex - 3*7+1;
-        } else {
+            disableButtons = true;
+        } 
+        else {
             $('#history-mark').css('height', 0);
             $('#history-mark').css('width', 0);
             historyEndCell = 1;
@@ -1327,6 +1343,7 @@ function drawHistoryDiv (today, whichShift) {
             var back = 7 - daysBetween+2;
             $('#history-mark').css('width', $('#table2 tr:nth-child(1) td').last().position().left - (70*3*back)+whichShift*70 + 2);
             historyEndCell = $('#table2 tr:nth-child(1) td').last()[0].cellIndex - 3 * back + whichShift;
+            disableButtons = true;
         }
         else {
             $('#history-mark').css('height', 0);
@@ -1334,6 +1351,14 @@ function drawHistoryDiv (today, whichShift) {
             historyEndCell = 1;
         }
     }
+    if ( disableButtons ) {
+	    var rangeBttns = $( '.header-time td:nth-child(n+2):nth-child(-n+'+(historyEndCell-1)+') button' );
+	    $.each( rangeBttns, function() {
+	    	this.parentNode.parentNode.style.backgroundColor = "#EEE";
+	    	// get a shift text and place it in td
+	    	this.parentNode.parentNode.innerHTML = this.innerHTML.split(';')[1];
+	    })
+	}
 }
 
 function updateUndo () {
@@ -1359,12 +1384,11 @@ function updateUndo () {
     }
 }
 
-function showError(text) {
-    $('#message').prepend('<div class="alert alert-danger fade in" role="alert" style="display: none; margin-top: 5px;">'+
-        '<a href="#" class="close" data-dismiss="alert">&times;</a>'+
-        '<strong>Kļūda!</strong> '+text+'</div>');
-    $(".alert").fadeIn(25);
-    setTimeout(function(){ $('.alert').alert('close'); }, 5000);
+function showError(text, bttn_id) {
+    //$('#'+bttn_id).tooltip('destroy');
+    $('#'+bttn_id).attr('title', text);
+    $('#'+bttn_id).tooltip('show');
+    console.log($('#'+bttn_id)[0]);
 }
 
 
