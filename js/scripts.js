@@ -1303,6 +1303,10 @@ function drawTodaysSign (draw_time, draw_history)
     var today = new Date();
     var whichShift = 0;
     var h = today.getHours();
+    // fix a bug when, for example today is 2015/11/20  22:52, but 2015/11/21 first shift starts on 2015/11/20 22:00
+    // so today in this time interval is already next day
+    if ( h >= 22 && h <= 23 ) today.setDate(today.getDate() + 1);
+
     if ( (h >= 22 && h <= 23) || h <= 5) whichShift = 0;
     else if ( h >= 6 && h <= 13) whichShift = 1;
     else if ( h >= 14 && h <= 21) whichShift = 2;
