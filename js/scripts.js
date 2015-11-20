@@ -35,7 +35,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         if (ev.currentTarget.activeElement.id != 'product' && ev.currentTarget.activeElement.id != 'gen-prod-bttn') {
             $("#ajax_loader img").show();
             $("#ajax_loader").show();
-            $("#ajax_loader").offset($("#right").offset());
+            //$("#ajax_loader").offset($("#right").offset());
         }
      });
 })( jQuery );
@@ -393,20 +393,35 @@ $( document ).ready(function()
                             // get cell
                             var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
                             // if inner html in cell is empty
-                            while (td_html[0].innerHTML.trim().length != 0 || td_html.hasClass('dark')){
-                                i++;
+                            if (td_html[0].innerHTML.trim() == "" && !td_html.hasClass('dark')) {
                                 if (i >= column_count)  {
                                     console.log('Expand1');
                                     expandTable(machineCount, 7);
                                     column_count = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
                                 }
-                                td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
+                                // update products colors
+                                updateColor(product);
+                                // put a product in cell
+                                td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
+                                jsonCount--;
+                            } 
+                            else if (td_html.hasClass('dark')) 
+                            {
+                                while (td_html.hasClass('dark')){
+                                    i++;
+                                    if (i >= column_count)  {
+                                        console.log('Expand1');
+                                        expandTable(machineCount, 7);
+                                        column_count = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
+                                    }
+                                    td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
+                                }
+                                                        // update products colors
+                                updateColor(product);
+                                // put a product in cell
+                                td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
+                                jsonCount--;
                             }
-                                                    // update products colors
-                            updateColor(product);
-                            // put a product in cell
-                            td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
-                            jsonCount--;
                         }
                         if (0 >= jsonCount) { break; } // if all products placed
                     }
@@ -496,8 +511,8 @@ $( document ).ready(function()
     startDate.setDate(startDate.getDate() - 1);
     var startDate_formated = startDate.getFullYear()+'/'+(startDate.getMonth()+1)+'/'+startDate.getDate();
 
-    drawTable('2015/11/10', endDate_formated);
-    loadTable('2015/11/10', endDate_formated, true);
+    drawTable(startDate_formated, endDate_formated);
+    loadTable(startDate_formated, endDate_formated, true);
 
     /* ################################################
     ###################### EVENTS #######################
@@ -544,11 +559,16 @@ $( document ).ready(function()
         Move.move_products['start'] = false; Move.move_products['move'] = false;
 
         if ( undoProducts.length > 0 ) {
+            initBttnCheckbox(); // unpressable bttn fix
+            markedShift = 0;
+
             var undoHTML = undoProducts.pop();
             $('.table1-header').html(undoHTML['header']);
             $('#table2').html(undoHTML['table']);
             loadedTiles = undoHTML['loadedTiles'];
-            drawTodaysSign(0, false);
+
+            drawTodaysSign(0, true);
+            initBttnCheckbox();
         }
     });
 
@@ -557,14 +577,17 @@ $( document ).ready(function()
     });
 
     $( "#gen-prod-bttn" ).mouseout(function() {
-	  $( "#gen-prod-bttn" ).tooltip('destroy');
+        setTimeout( function() { $( "#gen-prod-bttn" ).tooltip('destroy') }, 3000 );
 	});
 	$( "#gen-table-bttn" ).mouseout(function() {
-	 	$( "#gen-table-bttn" ).tooltip('destroy');
+         setTimeout( function() { $( "#gen-table-bttn" ).tooltip('destroy') }, 3000 );
 	});
 	$( "#save-bttn" ).mouseout(function() {
-	 	$( "#save-bttn" ).tooltip('destroy');
+         setTimeout( function() { $( "#save-bttn" ).tooltip('destroy') }, 3000 );
 	});
+    $( "#bttn-prod-info" ).mouseout(function() {
+         setTimeout( function() { $( "#bttn-prod-info" ).tooltip('destroy') }, 3000 );
+    });
 
     //// Rectangle draw, marking products
     ///////////////////////// 
@@ -1185,7 +1208,7 @@ $( document ).ready(function()
             }
             else {
 
-                showError("Šāds '"+$('#product').val()+"' produkts neeksistē.", 'gen-prod-bttn');
+                showError("Šāds '"+$('#product').val()+"' produkts neeksistē.", 'bttn-prod-info');
             }
         })
         .fail( function( data ) {
@@ -1307,9 +1330,10 @@ function drawTodaysSign (draw_time, draw_history)
     
         // fix to correct show todays tooltip when today is not first fenerated in #table2 seenable content
         setTimeout(function (){ 
-            var arrowOffset = $('.tooltip-arrow').offset();
-            $('.tooltip-arrow').css('left', '');
-            $('.tooltip').offset({top: $('.tooltip').offset().top, left: arrowOffset.left-45});
+            var arrowOffset = $('#table2 .tooltip-arrow').offset();
+            var innerWidth = $('#table2 .tooltip-inner').width();
+            $('#table2 .tooltip-arrow').css('left', '');
+            $('#table2 .tooltip').offset({top: $('.tooltip').offset().top, left: arrowOffset.left - innerWidth/2});
         }, draw_time);
     }
     if ( draw_history ) drawHistoryDiv(today, whichShift);
@@ -1320,10 +1344,10 @@ function drawHistoryDiv (today, whichShift) {
     if ( $(".today")[0] !== undefined ) {
         var todaysCol = $(".today")[0].cellIndex + 1;
         if ( todaysCol > 7 ) {
-            var todaysPos =  $(".today").position().left - $("#table2").position().left - (70*3*7) + 2;
+            var todaysPos =  $(".today").position().left - $("#table2").position().left - (70*3*7) + whichShift*70+ 2;
             $('#history-mark').css('height', $('#table2').css('height'));
             $('#history-mark').css('width', todaysPos);
-            historyEndCell = $(".today")[0].cellIndex - $("#table2 tr:nth-child(1) td")[0].cellIndex - 3*7+1;
+            historyEndCell = $(".today")[0].cellIndex - $("#table2 tr:nth-child(1) td")[0].cellIndex - 3*7+1+whichShift;
             disableButtons = true;
         } 
         else {
@@ -1340,8 +1364,9 @@ function drawHistoryDiv (today, whichShift) {
 
         if ( daysBetween > 0) {
             $('#history-mark').css('height', $('#table2').css('height'));
-            var back = 7 - daysBetween+2;
-            $('#history-mark').css('width', $('#table2 tr:nth-child(1) td').last().position().left - (70*3*back)+whichShift*70 + 2);
+            var back = 7 - daysBetween;
+            var endOffset = (70*3*back)+whichShift*70 + 2;
+            $('#history-mark').css('width', $('#table2 tr:nth-child(1) td').last().position().left - endOffset);
             historyEndCell = $('#table2 tr:nth-child(1) td').last()[0].cellIndex - 3 * back + whichShift;
             disableButtons = true;
         }
@@ -1385,10 +1410,13 @@ function updateUndo () {
 }
 
 function showError(text, bttn_id) {
-    //$('#'+bttn_id).tooltip('destroy');
     $('#'+bttn_id).attr('title', text);
-    $('#'+bttn_id).tooltip('show');
-    console.log($('#'+bttn_id)[0]);
+    $('#'+bttn_id).tooltip({trigger: 'manual', container: '#'+bttn_id}).tooltip('show');
+
+    var arrowOffset = $('#'+bttn_id+' .tooltip-arrow').offset();
+    var innerWidth = $('#'+bttn_id+' .tooltip-inner').width();
+    // top remains the same, only left is changed
+    $('#'+bttn_id+' .tooltip-inner').offset({top: $('#'+bttn_id+' .tooltip-inner').offset().top, left: arrowOffset.left-innerWidth / 2});
 }
 
 

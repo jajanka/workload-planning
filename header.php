@@ -32,7 +32,7 @@
       if ( end(explode('/',$_SERVER['PHP_SELF'])) == 'index.php' ) 
       {
       	echo '<button type="button" class="btn btn-danger" id="undo-gen-prod-bttn"><span class="glyphicon glyphicon-circle-arrow-left"></span> Atcelt</button>
-       		<button type="button" class="btn btn-success" id="save-bttn" data-placement="bottom" title=""><span class="glyphicon glyphicon-floppy-save"></span> Saglabāt</button>';
+       		<button type="button" class="btn btn-success tooltip-error" id="save-bttn" data-placement="bottom" title=""><span class="glyphicon glyphicon-floppy-save"></span> Saglabāt</button>';
       } else 
       {
       	echo '<button type="button" class="btn btn-success" id="save-bttn"><span class="glyphicon glyphicon-floppy-save"></span> Saglabāt</button>';

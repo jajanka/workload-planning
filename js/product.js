@@ -357,9 +357,6 @@ function isNumber(n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
-var header_lag_fix = true;
-var col_widths = {};
-var head_width = 960;
 function UpdateTableHeaders() {
    $("#productsTable").each(function() {
    
@@ -368,26 +365,21 @@ function UpdateTableHeaders() {
            scrollTop      = $(window).scrollTop(),
            floatingHeader = $(".floatingHeader", this)
        
-        if ((scrollTop > offset.top) && (scrollTop < offset.top + el.height())) {
-        	// fixes problem when header is at top fixed and not having correct th width. 
-       		if (header_lag_fix) {
-       			console.log('Static header');
-       			for (var i = 1; i <= 8; i++) {
-        			$('#productsTable thead th:nth-child('+i+')').width(col_widths[i]);
-        		};
-        		$('#productsTable thead').width(head_width);
-	       		floatingHeader.css('height','40px');
-	       	}
+        if ((scrollTop > offset.top) && (scrollTop < offset.top + el.height())) 
+        {
+        	// get satic thead the same width as original table thead
+   			for (var i = 1; i <= 8; i++) {
+    			$('.floatingHeader th:nth-child('+i+')').width( $('.persist-header th:nth-child('+i+')').width() );
+    		};
+    		$('.floatingHeader').width( $('.persist-header').width() );
+       		floatingHeader.css('height','40px');
+	       		
             floatingHeader.css({
             "visibility": "visible"
             });
-           	header_lag_fix = false;
-        } else {
-        	header_lag_fix = true;
-        	for (var i = 1; i <= 8; i++) {
-        		col_widths[i] = $('#productsTable thead th:nth-child('+i+')').width();
-        	};
-        	head_width = $('#productsTable thead').width();
+        } 
+        else 
+        {
             floatingHeader.css({
             "visibility": "hidden"
             });      

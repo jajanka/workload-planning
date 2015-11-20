@@ -22,8 +22,10 @@ if (isset($_POST['get_year']) && is_numeric($_POST['get_year']))
 		$pdo->execute();
 		$res = $pdo->fetchAll(PDO::FETCH_NUM);
 		
+		$today = date("Y-m-d", strtotime('-7 days'));
 		$curMonth = 0;
 		$curDay = 1;
+
 		foreach ($res as $key => $value) {
 			if ( date("n",strtotime($value[0])) != $curMonth)
 			{		
@@ -34,28 +36,37 @@ if (isset($_POST['get_year']) && is_numeric($_POST['get_year']))
 			echo '<tr>
 		        <td style="color: #999;">'.$curDay.'.</td>
 		        <td id="'.$value[0].'">'.$value[0].' <span style="font-weight: bold;">'.$week_days[date("N", strtotime($value[0]))-1].'</span></td>
-		        <td class="'.(($value[1])? "danger":"").'"><div class="checkbox">
+		        <td class="'.(($value[1])? "danger":"").'">
+		        	<div class="checkbox">
 					  <label>
 					    <label class="checkbox-inline">
-						  <input type="checkbox" id="inlineCheckbox1" value="option1" '.(($value[1])? "checked":"unchecked").'> Brīvs
+						  <input type="checkbox" id="inlineCheckbox1" value="option1" '.(($value[1])? "checked":"unchecked").'
+						  	'.( ($value[0] <= $today ) ? "disabled":"").'> Brīvs
+						</label>
+					  </label>
+					</div>
+				</td>
+		        <td class="'.(($value[2])? "danger":"").'">
+		        	<div class="checkbox">
+					  <label>
+					    <label class="checkbox-inline">
+						  <input type="checkbox" id="inlineCheckbox1" value="option1" '.(($value[2])? "checked":"unchecked").'
+						  	'.( ($value[0] <= $today ) ? "disabled":"").'> Brīvs
+						</label>
+					  </label>
+					</div>
+				</td>
+		        <td class="'.(($value[3])? "danger":"").'">
+		        	<div class="checkbox">
+					  <label>
+					    <label class="checkbox-inline">
+						  <input type="checkbox" id="inlineCheckbox1" value="option1" '.(($value[3])? "checked":"unchecked").'
+						  	'.( ($value[0] <= $today ) ? "disabled":"").'> Brīvs
 						</label>
 					  </label>
 					</div></td>
-		        <td class="'.(($value[2])? "danger":"").'"><div class="checkbox">
-					  <label>
-					    <label class="checkbox-inline">
-						  <input type="checkbox" id="inlineCheckbox1" value="option1" '.(($value[2])? "checked":"unchecked").'> Brīvs
-						</label>
-					  </label>
-					</div></td>
-		        <td class="'.(($value[3])? "danger":"").'"><div class="checkbox">
-					  <label>
-					    <label class="checkbox-inline">
-						  <input type="checkbox" id="inlineCheckbox1" value="option1" '.(($value[3])? "checked":"unchecked").'> Brīvs
-						</label>
-					  </label>
-					</div></td>
-				<td></td>
+				<td>
+				</td>
 
 		      </tr>';
 		      $curDay++;

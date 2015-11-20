@@ -7,9 +7,9 @@
  		<?php include("plan.html") ;?>
 		
 
-	<footer class="footer">
+	<!-- <footer class="footer">
       © 2015 - Jānis Mateuss  
-	</footer>
+	</footer> -->
 	</body>
 
 	<?php include("footer.html") ;?>

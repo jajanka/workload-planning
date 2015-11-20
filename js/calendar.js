@@ -1,4 +1,3 @@
-var datesToSave = {};
 
 // scope the jQuery
 ( function($) {
@@ -26,7 +25,9 @@ var datesToSave = {};
     
 $(document).ready(function () {
 
-  //called when key is pressed in textbox
+    var datesToSave = {};
+
+    //called when key is pressed in textbox
     $("#add-year").keypress(function (e) {
          //if the letter is not digit then display error and don't type anything
         if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) {
@@ -149,23 +150,18 @@ function UpdateTableHeaders() {
            floatingHeader = $(".floatingHeader", this);
        
         if ((scrollTop > offset.top) && (scrollTop < offset.top + el.height())) {
-            if (header_lag_fix) {
-                console.log('Static header');
-                floatingHeader.css('height','40px');
-                for (var i = 1; i <= 5; i++) {
-                    $('#calendarTable thead th:nth-child('+i+')').width(col_widths[i]);
-                };
-            }
+            // get satic thead the same width as original table thead
+            for (var i = 1; i <= 5; i++) {
+                $('.floatingHeader th:nth-child('+i+')').width( $('.persist-header th:nth-child('+i+')').width() );
+            };
+            floatingHeader.css('height','40px');
+
             floatingHeader.css({
             "visibility": "visible"
             });
-            header_lag_fix = false;
-        } else {
-            for (var i = 1; i <= 5; i++) {
-                col_widths[i] = $('#calendarTable thead th:nth-child('+i+')').width();
-            };
-            console.log('Platums');
-            header_lag_fix = true;
+        } 
+        else 
+        {
             floatingHeader.css({
             "visibility": "hidden"
             });      
