@@ -567,6 +567,11 @@ $( document ).ready(function()
             $('#table2').html(undoHTML['table']);
             loadedTiles = undoHTML['loadedTiles'];
 
+            $('.button-checkbox-time').each(function () {
+            	$(this).find('button').attr('class', 'btn btn-xs btn-default');
+            	$(this).find('i').attr('class', 'state-icon glyphicon glyphicon-unchecked');
+            })
+
             drawTodaysSign(0, true);
             initBttnCheckbox();
         }
