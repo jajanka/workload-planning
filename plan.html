@@ -29,10 +29,10 @@
 			</div>
 			</div>
 			</div>
-				<div id="message"></div>
+				<div id="status"><div>Iezīmēts: 0</div></div>
 				<!-- right container -->
 				<table class="left-header">
-					<div id="leftUppercorner"></div>
+					<div id="leftUppercorner"><button type="submit" class="btn btn-default" id="deselect-machine-bttn"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button></div>
 				</table>
 				<div id="right" >
 					<div id='ajax_loader' style="position: fixed; left: auto; width: 100%; height: 100%; background-color: #EEEEEE; display: block; z-index: 101;">
@@ -116,14 +116,10 @@
 
 	    <div class="modal bs-example-modal-sm" id="error-modal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
 		  <div class="modal-dialog modal-sm">
-		    <div class="modal-content">
-		      <div class="modal-header">
+		    <div class="modal-content panel-danger">
+		      <div class="modal-header panel-heading">
 		        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-		      </div>
-		      <div class="modal-body">
-		      	<div class="alert alert-danger fade in" role="alert" style="margin-top: 5px;">
-					<a href="#" class="close" data-dismiss="alert">&times;</a>
-					<strong>Kļūda!</strong> Produkti neietilpst tabulā.</div>
+		        <p class="modal-title"><strong>Kļūda!</strong> Produkti neietilpst tabulā.</p>
 		      </div>
 		    </div>
 		  </div>
@@ -152,6 +148,23 @@
 				  </table>
 				  </div>
 			    </div>
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-default" data-dismiss="modal">Aizvērt</button>
+		      </div>
+		    </div><!-- /.modal-content -->
+		  </div><!-- /.modal-dialog -->
+		</div><!-- /.modal -->
+
+		<div class="modal" id="successModal">
+		  <div class="modal-dialog">
+		    <div class="modal-content panel-success">
+		      <div class="modal-header panel-heading">
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		        <h4 class="modal-title">Pievienots</h4>
+		      </div>
+		      <div class="modal-body">
+		        <p>One fine body</p>
+		      </div>
 		      <div class="modal-footer">
 		        <button type="button" class="btn btn-default" data-dismiss="modal">Aizvērt</button>
 		      </div>

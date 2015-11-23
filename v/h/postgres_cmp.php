@@ -1,3 +1,3 @@
 <?php
-	$pgc = new PDO('pgsql:user=postgres; host=localhost; dbname=cmPlanning; password=race2012');
+	include_once('../../../../h/postgres_cmp.php');
 ?>

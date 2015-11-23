@@ -45,6 +45,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
 
 $( document ).ready(function() 
 {
+    var statusBar = {'marked': {'label': 'Iezīmēts', 'count': 0}}
     // Init tooltip
     //$('[data-toggle="tooltip"]').tooltip(); 
 
@@ -372,13 +373,15 @@ $( document ).ready(function()
         // when post is finished
         .done(function( data ) {
             var jsonCount = 0;
-            //alert(data+" "+Math.ceil(JSON.parse(data)));
-            //return;
+            var usedShifts = {}; // set of columns where products is landed;
+            var firstPlacedIndex = -1;
+
             if (data != '') 
             {
                 updateUndo();
-
+                console.log(JSON.parse(data));
                 jsonCount = Math.ceil(JSON.parse(data));
+                uneditable_jsonCount = jsonCount;
                 // row column length
                 var column_count = document.getElementById('table2').rows[0].cells.length;
                 var count_check = 0;
@@ -404,6 +407,8 @@ $( document ).ready(function()
                                 // put a product in cell
                                 td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
                                 jsonCount--;
+                                usedShifts[i] = true;
+                                if ( firstPlacedIndex == -1 ) firstPlacedIndex = i;
                             } 
                             else if (td_html.hasClass('dark')) 
                             {
@@ -421,12 +426,40 @@ $( document ).ready(function()
                                 // put a product in cell
                                 td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
                                 jsonCount--;
+                                usedShifts[i] = true;
+                                if ( firstPlacedIndex == -1 ) firstPlacedIndex = i;
                             }
                         }
                         if (0 >= jsonCount) { break; } // if all products placed
                     }
                     if (0 >= jsonCount) { break; }
                 };
+
+                // Preperation for message that is shoen when products is added to plan.
+                var endDateCol = (i % 3 == 0) ? i / 3 + 1 : parseInt(i/3) + 2;
+                var startDateCol = (firstPlacedIndex % 3 == 0) ? firstPlacedIndex / 3 + 1 : parseInt(firstPlacedIndex/3) + 2;
+
+                var endDate = new Date( $('.header-day td:nth-child('+endDateCol+')')[0].id.slice(0, -1) );
+                var startDate = new Date( $('.header-day td:nth-child('+startDateCol+')')[0].id.slice(0, -1) );
+
+                endDate_formated = endDate.getFullYear()+'.gada '+endDate.getDate()+'.'+ monthNamesShort[endDate.getMonth()];
+                if ( firstPlacedIndex % 3 == 1 ) {
+                    startDate.setDate(startDate.getDate() - 1);
+                }
+                startDate_formated = startDate.getFullYear()+'.gada '+startDate.getDate()+'.'+ monthNamesShort[startDate.getMonth()];
+
+                if (i % 3 == 0) endDate_formated += ' 22:00';
+                if (i % 3 == 1) endDate_formated += ' 06:00';
+                if (i % 3 == 2) endDate_formated += ' 14:00';
+
+                if (firstPlacedIndex % 3 == 0) startDate_formated += ' 14:00';
+                if (firstPlacedIndex % 3 == 1) startDate_formated += ' 22:00';
+                if (firstPlacedIndex % 3 == 2) startDate_formated += ' 06:00';
+
+                $('#successModal .modal-body p').html('Pievienota/as <b>'+Object.keys(usedShifts).length+'</b> maiņa/as uz <b>'+Object.keys(markedMachines).length+'</b> mašīnas/ām ('+uneditable_jsonCount+' vienības)<br />');
+                $('#successModal .modal-body p').append('<b>Sākums:</b> '+startDate_formated+'<br />');
+                $('#successModal .modal-body p').append('<b>Beigas:</b> '+endDate_formated);
+                $('#successModal').modal('show');
             }
             else 
             {
@@ -579,6 +612,16 @@ $( document ).ready(function()
 
     $('#save-bttn').click(function() { 
         save();
+    });
+
+    $('#deselect-machine-bttn').click(function() { 
+        $('.button-checkbox').each(function () 
+        {
+            // deselect checked machines bttn-chckbxs.
+            if ( $(this).find('input:checkbox').is(':checked') ){
+                $(this).find('button').click();
+            }
+        });
     });
 
     $( "#gen-prod-bttn" ).mouseout(function() {
@@ -785,6 +828,8 @@ $( document ).ready(function()
                 }
             }
             console.log('Mouse down '+Move.move_products['start']);
+            statusBar['marked']['count'] = $('.marked').length;
+            $('#status div').html( statusBar['marked']['label']+': '+statusBar['marked']['count'] );
         }
     });
 
@@ -829,6 +874,8 @@ $( document ).ready(function()
                 console.log(Move.start_row+" "+Move.old_row+" : "+Move.start_col+" "+ Move.old_col);
                 // get products
                 getMarkedProducts();
+                statusBar['marked']['count'] = $('.marked').length;
+                $('#status div').html( statusBar['marked']['label']+': '+statusBar['marked']['count'] );
                 
             }
             if ( Object.keys(markedProducts).length > 0) {
@@ -919,6 +966,13 @@ $( document ).ready(function()
                             else {
                                 i = markedProducts[key].cEnd;
                                 darkCounter = ( $("#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")").hasClass('dark') ) ? 1 : 0;
+                            }
+
+                            if (i >= rowLastCellIndex)  {
+                                console.log('Expand11');
+                                expandTable(machineCount, 7);
+                                rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
+                                td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
                             }
 
                             if ( !darkCell ) {
@@ -1158,7 +1212,7 @@ $( document ).ready(function()
        }
     });
     $('#product').typeahead({
-      hint: true,
+      hint: false,
       highlight: true,
       minLength: 1
     },
@@ -1221,7 +1275,6 @@ $( document ).ready(function()
         });
 
     });
-
     /* ####################### END OF EVENTS #############################
         #################################################################
     */ 
@@ -1473,7 +1526,7 @@ function updateColor(product) { // get random color
     ###########################
 */
 
-function setProductDiv (name, product,marked) {
+function setProductDiv (name, product, marked) {
     cls = (marked) ? ' marked' : '';
     return '<div id="'+name+'" class="blue'+cls+'" product="'+product+'"'+ 
             'style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+product+'</div';
