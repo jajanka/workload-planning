@@ -410,9 +410,9 @@ $( document ).ready(function()
                                 usedShifts[i] = true;
                                 if ( firstPlacedIndex == -1 ) firstPlacedIndex = i;
                             } 
-                            else if (td_html.hasClass('dark')) 
+                            else if (td_html.hasClass('dark') || td_html[0].innerHTML.trim() != "") 
                             {
-                                while (td_html.hasClass('dark')){
+                                while (td_html.hasClass('dark') || td_html[0].innerHTML.trim() != ""){
                                     i++;
                                     if (i >= column_count)  {
                                         console.log('Expand1');
@@ -599,6 +599,7 @@ $( document ).ready(function()
             $('.table1-header').html(undoHTML['header']);
             $('#table2').html(undoHTML['table']);
             loadedTiles = undoHTML['loadedTiles'];
+            markedProducts = undoHTML['marked'];
 
             $('.button-checkbox-time').each(function () {
             	$(this).find('button').attr('class', 'btn btn-xs btn-default');
@@ -1459,7 +1460,9 @@ function updateUndo () {
             if ( undoProducts.length > 19 ) {
                 undoProducts.shift();
             }
-            undoProducts.push( {'header': h, 'table': t, 'loadedTiles': JSON.parse(JSON.stringify(loadedTiles)) } );
+            undoProducts.push( {'header': h, 
+                                'table': t, 'loadedTiles': JSON.parse(JSON.stringify(loadedTiles)),
+                                'marked': markedProducts } );
         }
     } 
     else {
@@ -1467,7 +1470,9 @@ function updateUndo () {
                 undoProducts.shift();
         }
         // JSON is needed to clone the loadedTitles value, becouse otherwise it's passed by ref and this line loses a meaning
-        undoProducts.push( {'header': h, 'table': t, 'loadedTiles': JSON.parse(JSON.stringify(loadedTiles)) } );
+        undoProducts.push( {'header': h, 
+                            'table': t, 'loadedTiles': JSON.parse(JSON.stringify(loadedTiles)),
+                            'marked': markedProducts } );
     }
 }
 
