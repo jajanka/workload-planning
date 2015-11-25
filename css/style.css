@@ -120,6 +120,9 @@ body {
 	z-index: 8; 
 	margin-left: -2px !important;
 }
+.datepick-popup {
+	z-index: 10000 !important;
+}
 .left-header{
 	float:left; 
 	border-left: 7px solid #BBB;
@@ -151,6 +154,7 @@ body {
 	background-color: #DDD;
 	margin-top: 93px;
 	position: fixed;
+	z-index: 11;
 	-webkit-transform: translateZ(0);
 }
 #status div {

@@ -24,22 +24,34 @@
       <ul class="nav navbar-nav">
         <li><a href="products.php"><span class="glyphicon glyphicon-th-list"></span> Produkti</a></li>
         <li><a href="calendar.php"><span class="glyphicon glyphicon-calendar"></span> Kalendārs</a></li>
+        <?php 
+        $phpself = explode('/',$_SERVER['PHP_SELF']);
+        if ( end($phpself) == 'index.php' ) 
+        {
+          echo '<li>';
+          echo '<button style="margin-top: 7px;" type="button" class="btn btn-default tooltip-error" id="production-bttn" data-placement="bottom" title=""><span class="glyphicon glyphicon-time"></span> Ražošana</button>';
+          echo "</li>";
+        }
+        ?>
       </ul>
     </div>
     <div class='btn-toolbar pull-right' style="margin-top: 5px;">
-      <div class='btn-group'>
       <?php 
       $phpself = explode('/',$_SERVER['PHP_SELF']);
       if ( end($phpself) == 'index.php' ) 
       {
+        echo '<div class="btn-group">';
       	echo '<button type="button" class="btn btn-danger" id="undo-gen-prod-bttn"><span class="glyphicon glyphicon-circle-arrow-left"></span> Atcelt</button>
        		<button type="button" class="btn btn-success tooltip-error" id="save-bttn" data-placement="bottom" title=""><span class="glyphicon glyphicon-floppy-save"></span> Saglabāt</button>';
-      } else 
+        echo "</div>";
+      } 
+      else 
       {
+        echo '<div class="btn-group">';
       	echo '<button type="button" class="btn btn-success" id="save-bttn"><span class="glyphicon glyphicon-floppy-save"></span> Saglabāt</button>';
+        echo "</div>";
       }
       ?>
-      </div>
     </div>
   </div>
 </nav>

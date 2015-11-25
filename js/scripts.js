@@ -195,7 +195,6 @@ $( document ).ready(function()
 
     // End button-checkbox
     /////////////////////////////////////////////////////////
-    
     $('.popupDatepicker').datepick({dateFormat: 'yyyy/mm/dd'});
 
 
@@ -410,9 +409,9 @@ $( document ).ready(function()
                                 usedShifts[i] = true;
                                 if ( firstPlacedIndex == -1 ) firstPlacedIndex = i;
                             } 
-                            else if (td_html.hasClass('dark')) 
+                            else if (td_html.hasClass('dark') || td_html[0].innerHTML.trim() != "") 
                             {
-                                while (td_html.hasClass('dark')){
+                                while (td_html.hasClass('dark') || td_html[0].innerHTML.trim() != ""){
                                     i++;
                                     if (i >= column_count)  {
                                         console.log('Expand1');
@@ -560,6 +559,7 @@ $( document ).ready(function()
             $('[data-toggle="tooltip"]').tooltip('destroy');
             markedMachines = {};
             markedShift = 0;
+            markedProducts = {};
             loadedTiles = {};
             drawTable(startDate, endDate);
             // replace all '/' in date to '-'. It's for postgres date format
@@ -599,6 +599,7 @@ $( document ).ready(function()
             $('.table1-header').html(undoHTML['header']);
             $('#table2').html(undoHTML['table']);
             loadedTiles = undoHTML['loadedTiles'];
+            markedProducts = undoHTML['marked'];
 
             $('.button-checkbox-time').each(function () {
             	$(this).find('button').attr('class', 'btn btn-xs btn-default');
@@ -624,6 +625,10 @@ $( document ).ready(function()
         });
     });
 
+    $( "#production-bttn" ).click( function() { 
+        $('#produceModal').modal('show');
+    })
+
     $( "#gen-prod-bttn" ).mouseout(function() {
         setTimeout( function() { $( "#gen-prod-bttn" ).tooltip('destroy') }, 3000 );
 	});
@@ -636,7 +641,76 @@ $( document ).ready(function()
     $( "#bttn-prod-info" ).mouseout(function() {
          setTimeout( function() { $( "#bttn-prod-info" ).tooltip('destroy') }, 3000 );
     });
+    $( "#interval-bttn" ).mouseout(function() {
+         setTimeout( function() { $( "#interval-bttn" ).tooltip('destroy') }, 3000 );
+    });
 
+    $( "#interval-bttn" ).click( function() { 
+        var startDate = $('[name="produceStart"]').val();
+        var endDate = $('[name="produceEnd"]').val();
+        var sd = new Date(startDate), ed = new Date(endDate);
+        // if start date is less or equal to end date the draw table
+        if (sd <= ed) {
+            // replace all '/' in date to '-'. It's for postgres date format
+            startDate = startDate.replace(/\//g, '-');
+            endDate = endDate.replace(/\//g, '-');
+            var startDateIndex = ( $( '#'+startDate+'H')[0].cellIndex-1 ) * 3;
+            var endDateIndex = $( '#'+endDate+'H')[0].cellIndex * 3;
+            
+            // get all products that ar in range of selected interval
+            var intervalProducts = $( "#table2 tbody tr:nth-child(n+1):nth-child(-n+"+machineCount+") td:nth-child(n+"+startDateIndex+"):nth-child(-n+"+endDateIndex+") div");
+            var uniqueProducts = {};
+            console.log( intervalProducts.length );
+            $.each( intervalProducts, function() 
+            {
+                uniqueProducts[this.innerHTML] = 0;
+            })
+            console.log( uniqueProducts);
+
+            var td_cell;
+            for ( var col = startDateIndex; col <= endDateIndex; col++ ) 
+            {
+                for ( var row = 1; row <= machineCount; row++ ) 
+                {
+                    td = $('#table2 tr:nth-child('+row+') td:nth-child('+col+') div');
+                    if ( td[0] !== undefined  ) {
+                        uniqueProducts[ td.attr('product') ] += 1;
+                    }   
+                };
+            };
+            console.log( uniqueProducts);
+        }
+        else 
+        {
+            showError('Nav korekti ievadīts datums.', 'interval-bttn');
+        }
+    })
+
+    $('#produceModal').on('shown.bs.modal', function() {
+        var maxD, minD;
+        // if there is no unchangable products in the plan
+        if ( $('.history').length == 0 ) {
+            minD = $('.day-td').first()[0].id.slice(0, -1);
+            maxD = $('.day-td').last()[0].id.slice(0, -1);
+        }
+        else {
+            if ( $('.day-td').length == parseInt($('.history').length/3) ) {
+                maxD = '0-0-0';  minD = '0-0-0';
+                console.log('disableAll interval');
+            }
+            else 
+            {   
+                var temphist = historyEndCell;
+                var startInterval = parseInt(temphist/3)+2;
+                minD = $('.header-day td:nth-child('+startInterval+')')[0].id.slice(0, -1);
+                maxD = $('.day-td').last()[0].id.slice(0, -1);
+            }
+        }
+        $( '.popupDatepickerProduce').datepick( "destroy" );
+        $('.popupDatepickerProduce').datepick({minDate: new Date(minD), maxDate: new Date(maxD), dateFormat: 'yyyy/mm/dd'});
+    })
+
+    
     //// Rectangle draw, marking products
     ///////////////////////// 
     Move.mouseStillDown = false,
@@ -1427,9 +1501,9 @@ function drawHistoryDiv (today, whichShift) {
         if ( daysBetween > 0) {
             $('#history-mark').css('height', $('#table2').css('height'));
             var back = 7 - daysBetween;
-            var endOffset = (70*3*back)+whichShift*70 + 2;
+            var endOffset = (70*3*back)+whichShift*70;
             $('#history-mark').css('width', $('#table2 tr:nth-child(1) td').last().position().left - endOffset);
-            historyEndCell = $('#table2 tr:nth-child(1) td').last()[0].cellIndex - 3 * back + whichShift;
+            historyEndCell = $('#table2 tr:nth-child(1) td').last()[0].cellIndex - 3 * (back+1) + 1 + whichShift;
             disableButtons = true;
         }
         else {
@@ -1439,12 +1513,17 @@ function drawHistoryDiv (today, whichShift) {
         }
     }
     if ( disableButtons ) {
-	    var rangeBttns = $( '.header-time td:nth-child(n+2):nth-child(-n+'+(historyEndCell-1)+') button' );
-	    $.each( rangeBttns, function() {
-	    	this.parentNode.parentNode.style.backgroundColor = "#EEE";
-	    	// get a shift text and place it in td
-	    	this.parentNode.parentNode.innerHTML = this.innerHTML.split(';')[1];
-	    })
+        if (historyEndCell >= 2) {
+    	    var rangeBttns = $( '.header-time td:nth-child(n+2):nth-child(-n+'+(historyEndCell-1)+') button' );
+    	    $.each( rangeBttns, function() 
+            {
+                var parent = this.parentNode.parentNode;
+                $(parent).addClass('history');
+    	    	parent.style.backgroundColor = "#EEE";
+    	    	// get a shift text and place it in td
+    	    	parent.innerHTML = this.innerHTML.split(';')[1];
+    	    })
+        }
 	}
 }
 
@@ -1459,7 +1538,9 @@ function updateUndo () {
             if ( undoProducts.length > 19 ) {
                 undoProducts.shift();
             }
-            undoProducts.push( {'header': h, 'table': t, 'loadedTiles': JSON.parse(JSON.stringify(loadedTiles)) } );
+            undoProducts.push( {'header': h, 
+                                'table': t, 'loadedTiles': JSON.parse(JSON.stringify(loadedTiles)),
+                                'marked': markedProducts } );
         }
     } 
     else {
@@ -1467,7 +1548,9 @@ function updateUndo () {
                 undoProducts.shift();
         }
         // JSON is needed to clone the loadedTitles value, becouse otherwise it's passed by ref and this line loses a meaning
-        undoProducts.push( {'header': h, 'table': t, 'loadedTiles': JSON.parse(JSON.stringify(loadedTiles)) } );
+        undoProducts.push( {'header': h, 
+                            'table': t, 'loadedTiles': JSON.parse(JSON.stringify(loadedTiles)),
+                            'marked': markedProducts } );
     }
 }
 
