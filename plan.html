@@ -171,3 +171,47 @@
 		    </div><!-- /.modal-content -->
 		  </div><!-- /.modal-dialog -->
 		</div><!-- /.modal -->
+
+
+		<div class="modal" id="produceModal">
+		  <div class="modal-dialog">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		        <h4 class="modal-title">Ražošana</h4>
+		      </div>
+		      <div class="modal-body">
+
+		      	<div class="form-group">
+		      	<label for="bttn-add-year">Izvēlēties intervālu</label>
+			     	<div class="form-inline">
+		                <div class="input-daterange input-group col-xs-8" id="datepicker">
+		                	<span class="input-group-addon">no</span>
+		                    <input id="datepickerFrom" type="text" class="input form-control popupDatepickerProduce" name="produceStart" /> 
+		                    <span class="input-group-addon">līdz</span>
+		                    <input id="datepickerFrom" type="text" class="input form-control popupDatepickerProduce" name="produceEnd" />
+		                </div>
+	                	<button type="button" class="btn btn-primary tooltip-error" id="interval-bttn" data-placement="bottom" title="">Parādīt</button>
+	                </div>
+	            </div>
+
+		        <div class="table-responsive">        
+				  <table class="table table-striped" id="produceTable">
+				    <thead>
+				      <tr>
+				        <th>Produkts</th>
+				        <th>Atlicis saražot</th>
+				      </tr>
+				    </thead>
+				    <tbody>
+
+				    </tbody>
+				  </table>
+				  </div>
+			    </div>
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-default" data-dismiss="modal">Aizvērt</button>
+		      </div>
+		    </div><!-- /.modal-content -->
+		  </div><!-- /.modal-dialog -->
+		</div><!-- /.modal -->
