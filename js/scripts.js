@@ -379,7 +379,10 @@ $( document ).ready(function()
             {
                 updateUndo();
                 console.log(JSON.parse(data));
-                jsonCount = Math.ceil(JSON.parse(data));
+                jsonData = JSON.parse(data)
+                jsonCount = jsonData['shifts'];
+                console.log(jsonCount);
+                //return;
                 uneditable_jsonCount = jsonCount;
                 // row column length
                 var column_count = document.getElementById('table2').rows[0].cells.length;
@@ -387,6 +390,7 @@ $( document ).ready(function()
 
                 // if products can be filled in table
                 // iterate over columns
+                var last_td;
                 for (var i = start; i <= column_count; i++) {
                     // for each marked machine in left header column
                     for (var key in markedMachines) {
@@ -404,7 +408,8 @@ $( document ).ready(function()
                                 // update products colors
                                 updateColor(product);
                                 // put a product in cell
-                                td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
+                                td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgPerShift']) );
+                                last_td = td_html;
                                 jsonCount--;
                                 usedShifts[i] = true;
                                 if ( firstPlacedIndex == -1 ) firstPlacedIndex = i;
@@ -423,15 +428,22 @@ $( document ).ready(function()
                                                         // update products colors
                                 updateColor(product);
                                 // put a product in cell
-                                td_html.html( setProductDiv(td_html.attr("name"), product) ) ;
+                                td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgPerShift']) );
+                                last_td = td_html;
                                 jsonCount--;
                                 usedShifts[i] = true;
                                 if ( firstPlacedIndex == -1 ) firstPlacedIndex = i;
                             }
                         }
-                        if (0 >= jsonCount) { break; } // if all products placed
+                        if (0 >= jsonCount) { // if all products placed 
+                            td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgLastShift']) );
+                            break; 
+                        } 
                     }
-                    if (0 >= jsonCount) { break; }
+                    if (0 >= jsonCount) { 
+                        td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgLastShift']) );
+                        break; 
+                    }
                 };
 
                 // Preperation for message that is shoen when products is added to plan.
@@ -523,7 +535,7 @@ $( document ).ready(function()
                             // update color for product name
                             updateColor(plan.product);
                             // update td witch have attr name with drag tile
-                            $('[name="'+td_name+'"]').html(setProductDiv(td_name, plan.product));
+                            $('[name="'+td_name+'"]').html(setProductDiv(td_name, plan.product, false, plan.kg));
                             // add objects to loadedTiles
                             loadedTiles[td_name] = plan.product;
                         });
@@ -650,20 +662,23 @@ $( document ).ready(function()
         var endDate = $('[name="produceEnd"]').val();
         var sd = new Date(startDate), ed = new Date(endDate);
         // if start date is less or equal to end date the draw table
-        if (sd <= ed) {
+        if (sd <= ed) 
+        {
             // replace all '/' in date to '-'. It's for postgres date format
             startDate = startDate.replace(/\//g, '-');
             endDate = endDate.replace(/\//g, '-');
-            var startDateIndex = ( $( '#'+startDate+'H')[0].cellIndex-1 ) * 3;
+            var startDateIndex = ( $( '#'+startDate+'H')[0].cellIndex-1 ) * 3 + 1;
             var endDateIndex = $( '#'+endDate+'H')[0].cellIndex * 3;
+            console.log("#table2 tbody tr:nth-child(n+1):nth-child(-n+"+machineCount+") td:nth-child(n+"+startDateIndex+"):nth-child(-n+"+endDateIndex+") div");
             
             // get all products that ar in range of selected interval
             var intervalProducts = $( "#table2 tbody tr:nth-child(n+1):nth-child(-n+"+machineCount+") td:nth-child(n+"+startDateIndex+"):nth-child(-n+"+endDateIndex+") div");
             var uniqueProducts = {};
             console.log( intervalProducts.length );
+
             $.each( intervalProducts, function() 
             {
-                uniqueProducts[this.innerHTML] = 0;
+                uniqueProducts[this.innerHTML] = {count: 0, kg: 0, machines: {}};
             })
             console.log( uniqueProducts);
 
@@ -674,11 +689,84 @@ $( document ).ready(function()
                 {
                     td = $('#table2 tr:nth-child('+row+') td:nth-child('+col+') div');
                     if ( td[0] !== undefined  ) {
-                        uniqueProducts[ td.attr('product') ] += 1;
+                        uniqueProducts[ td.attr('product') ].count += 1;
+                        uniqueProducts[ td.attr('product') ].kg += parseFloat( td.attr('kg') );
+                        if (  uniqueProducts[ td.attr('product') ].machines[row] !== undefined ) 
+                        {
+                            // for each machine save starting point, that is on which col there is first product
+                            if ( uniqueProducts[ td.attr('product') ].machines[row] > col )
+                                uniqueProducts[ td.attr('product') ].machines[row] = col;
+                        }
+                        else 
+                        {
+                            uniqueProducts[ td.attr('product') ].machines[row] = col;
+                        }
                     }   
                 };
             };
+
+            // delete products form table set that don't end in the interval
+            // iterate through last interval column
+            var endCellIndex = $('#table2 tr:nth-child(1) td').last()[0].cellIndex+1;
+            
+            var lastNextColProds = $( "#table2 tbody tr:nth-child(n+1):nth-child(-n+"+machineCount+") td:nth-child("+(endDateIndex + 1)+") div");
+            var lastNextColProducts = {};
+            // make set of products, so there is only unique product names
+            $.each( lastNextColProds, function(i, item) {
+                lastNextColProducts[item.innerHTML] = true;
+            });
+
+            var lastColProds = $( "#table2 tbody tr:nth-child(n+1):nth-child(-n+"+machineCount+") td:nth-child("+endDateIndex+") div");
+            var lastColProducts = {};
+            // make set of products, so there is only unique product names
+            $.each( lastColProds, function(i, item) {
+                lastColProducts[item.innerHTML] = true;
+            });
+
+            for ( var row = 1; row <= machineCount; row++ ) 
+            {
+                td = $('#table2 tr:nth-child('+row+') td:nth-child('+endDateIndex+')');
+                td_product = $(td).find('div');
+                td_next = $(td).next();
+
+                // if cell have product
+                if ( td_product[0] !== undefined  ) 
+                {
+                    // if the same product is in the next column somewhere
+                    if ( td_product[0].innerHTML in lastNextColProducts ) 
+                    {
+                        delete uniqueProducts[ td_product[0].innerHTML ];
+                    }
+                    else 
+                    {
+                        // if next cell is over table end boundries
+                        if ( td_next[0] === undefined )
+                        {
+                            delete uniqueProducts[ td_product[0].innerHTML ];
+                        }
+                    }
+                }
+            };
+            // check for every product that is in next col over interval last col
+            // if that product not in interval last col then delete it from list
+            for (var key in lastNextColProducts) { 
+                if ( lastNextColProducts.hasOwnProperty(key) )
+                {
+                    if ( !key in lastColProducts ) {
+                        delete uniqueProducts[ key ];
+                    }
+                }
+            }
             console.log( uniqueProducts);
+
+            var produceTable_html = '';
+            for (var key in uniqueProducts) {
+                // js lagging fix
+                if (uniqueProducts.hasOwnProperty(key)) {
+                    produceTable_html += '<tr><td>'+key+'</td><td contenteditable="true">'+uniqueProducts[key].kg.toFixed(2);+'</td></tr>';
+                }
+            }
+            $('#produceTable tbody').html(produceTable_html);
         }
         else 
         {
@@ -687,6 +775,7 @@ $( document ).ready(function()
     })
 
     $('#produceModal').on('shown.bs.modal', function() {
+        $('#produceTable tbody').html('');
         var maxD, minD;
         // if there is no unchangable products in the plan
         if ( $('.history').length == 0 ) {
@@ -708,6 +797,13 @@ $( document ).ready(function()
         }
         $( '.popupDatepickerProduce').datepick( "destroy" );
         $('.popupDatepickerProduce').datepick({minDate: new Date(minD), maxDate: new Date(maxD), dateFormat: 'yyyy/mm/dd'});
+        
+        // set values of date inputs in modal open
+        if ( $('[name="produceStart"]').val() == '' )
+        {
+            $('[name="produceStart"]').val(minD.replace(/-/g, '/'));
+            $('[name="produceEnd"]').val(maxD.replace(/-/g, '/'));
+        }
     })
 
     
@@ -1123,7 +1219,7 @@ $( document ).ready(function()
                                 markedProducts[key].c = td_html[0].cellIndex + 1;
                                 markedProducts[key].r = td_html[0].parentNode.rowIndex + 1;
                                 // draw product
-                                td_html.html( setProductDiv(td_html.attr('name'), markedProducts[key].product, true));
+                                td_html.html( setProductDiv(td_html.attr('name'), markedProducts[key].product, true, markedProducts[key].kg) );
 
                             }
                         }
@@ -1386,7 +1482,8 @@ function getMarkedProducts() {
                                 'c': markedDivs[i].parentNode.cellIndex+1,
                                 'rEnd': markedDivs[i].parentNode.parentNode.rowIndex+1, 
                                 'cEnd': markedDivs[i].parentNode.cellIndex+1,
-                                'product': markedDivs[i].getAttribute('product')
+                                'product': markedDivs[i].getAttribute('product'),
+                                'kg': markedDivs[i].getAttribute('kg')
                                 };
 
         PBuffer.cornerY = ( PBuffer.cornerY > markedProducts[markedDivs[i].id].r  ) ? markedProducts[markedDivs[i].id].r : PBuffer.cornerY;
@@ -1609,9 +1706,9 @@ function updateColor(product) { // get random color
     ###########################
 */
 
-function setProductDiv (name, product, marked) {
+function setProductDiv (name, product, marked, kg) {
     cls = (marked) ? ' marked' : '';
-    return '<div id="'+name+'" class="blue'+cls+'" product="'+product+'"'+ 
+    return '<div id="'+name+'" class="blue'+cls+'" product="'+product+'" kg="'+kg+'" '+ 
             'style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+product+'</div';
 }
 
@@ -1622,15 +1719,16 @@ save = function () {
     var addedTiles = {}, deletedTiles = {}, newLoadedTiles = {};
 
     var allProducts = $( "#table2 tbody tr td div");
-    $.each(allProducts, function(prod) {
+    $.each(allProducts, function(prod) 
+    {
     	if ( this.id in loadedTiles ) {
-    		if ( loadedTiles[this.id] != this.getAttribute('product') ) {
-    			addedTiles[this.id] = this.getAttribute('product');
+    		if ( loadedTiles[this.id].product != this.getAttribute('product') && loadedTiles[this.id].kg != this.getAttribute('kg') ) {
+    			addedTiles[this.id] = {product: this.getAttribute('product'), kg: this.getAttribute('kg')};
     		}
     	} else {
-    		addedTiles[this.id] = this.getAttribute('product');
+    		addedTiles[this.id] = {product: this.getAttribute('product'), kg: this.getAttribute('kg')};
     	}
-    	newLoadedTiles[this.id] = this.getAttribute('product');
+    	newLoadedTiles[this.id] = {product: this.getAttribute('product'), kg: this.getAttribute('kg')};
     })
 
     for (var key in loadedTiles) {

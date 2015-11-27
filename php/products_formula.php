@@ -20,9 +20,37 @@ if (isset($_POST['kg']) && isset($_POST['prod']))
 
 		if ($pdo->rowCount() > 0)
 		{
+			/*
+			1 => C - weigth
+			0 => B - m_speed
+			2 => L - efficiency_percentage
+			$kg => G ... G = D * 7.5 jeb $kg_h * 7.5 (viena mainaa ir D * 7.5 kg sarazojamie )
+			$kg_h => D
+			$resultCount => J
+			*/
 			$kg_h = number_format($res[0][1] * 60 * $res[0][0] / 1000 / 1000 * $res[0][2] / 100, 3); 
-			$resultCount = number_format( (($kg / $kg_h) / 7.5), 2);
-			echo  json_encode( str_replace(',', '', $resultCount) );
+			$resultCount = round( number_format( (($kg / $kg_h) / 7.5), 2) );
+
+			$kg_per_shift =  number_format( $kg_h * 7.5 , 2 );
+			$kg_per_shift = (float)str_replace(',', '', $kg_per_shift);
+
+			$kg_last_shit_reminder = $kg_per_shift;
+
+			if ( $kg_per_shift * $resultCount > $kg ) 
+				$kg_last_shit_reminder -= ( $kg_per_shift * $resultCount ) - $kg; 
+
+			else if ( $kg_per_shift * $resultCount < $kg ) 
+				$kg_last_shit_reminder -= ( $kg_per_shift * $resultCount ) - $kg; 
+
+			$kg_last_shit_reminder = (float)str_replace(',', '', $kg_last_shit_reminder);
+
+			$finalResults = array(
+			    "shifts" => $resultCount,
+			    "kgPerShift" => $kg_per_shift,
+			    "kgLastShift" => $kg_last_shit_reminder
+			);
+
+			echo json_encode( $finalResults );
 		}
 		else {
 			echo '';
@@ -30,7 +58,7 @@ if (isset($_POST['kg']) && isset($_POST['prod']))
 	}
 	catch(PDOException $e)
 	{
-	    $pgc = NULL;
+		$pgc = NULL;
 	    die('error in gc function => ' . $e->getMessage());
 	}
 	$pgc = NULL;
