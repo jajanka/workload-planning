@@ -14,6 +14,8 @@ var undoProducts = []; // used to undo last 10 placed products
 var markedProducts = {};
 var productsColor = {};
 
+var Produce = {uniqueProducts: {}, table: {} }; 
+
 var Move = {}; // namespace for marked products variable
 var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste, cut and stuff
 
@@ -399,41 +401,25 @@ $( document ).ready(function()
                             // get cell
                             var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
                             // if inner html in cell is empty
-                            if (td_html[0].innerHTML.trim() == "" && !td_html.hasClass('dark')) {
-                                if (i >= column_count)  {
-                                    console.log('Expand1');
-                                    expandTable(machineCount, 7);
-                                    column_count = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
-                                }
-                                // update products colors
-                                updateColor(product);
-                                // put a product in cell
-                                td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgPerShift']) );
-                                last_td = td_html;
-                                jsonCount--;
-                                usedShifts[i] = true;
-                                if ( firstPlacedIndex == -1 ) firstPlacedIndex = i;
-                            } 
-                            else if (td_html.hasClass('dark') || td_html[0].innerHTML.trim() != "") 
-                            {
-                                while (td_html.hasClass('dark') || td_html[0].innerHTML.trim() != ""){
-                                    i++;
-                                    if (i >= column_count)  {
-                                        console.log('Expand1');
-                                        expandTable(machineCount, 7);
-                                        column_count = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
-                                    }
-                                    td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
-                                }
-                                                        // update products colors
-                                updateColor(product);
-                                // put a product in cell
-                                td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgPerShift']) );
-                                last_td = td_html;
-                                jsonCount--;
-                                usedShifts[i] = true;
-                                if ( firstPlacedIndex == -1 ) firstPlacedIndex = i;
+                            if (i >= column_count)  {
+                                console.log('Expand1');
+                                expandTable(machineCount, 7);
+                                column_count = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
                             }
+                            if ( td_html.hasClass('dark') ) {
+                                continue;
+                            }
+
+                            if ( td_html[0].innerHTML.trim() ==  "" ) {
+                                updateColor(product);
+                                // put a product in cell
+                                td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgPerShift']) );
+                                last_td = td_html;
+                                jsonCount--;
+                                usedShifts[i] = true;
+                                if ( firstPlacedIndex == -1 ) firstPlacedIndex = i;
+
+                            } 
                         }
                         if (0 >= jsonCount) { // if all products placed 
                             td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgLastShift']) );
@@ -482,6 +468,11 @@ $( document ).ready(function()
             showError("Nevar pievienot produktu.", 'gen-prod-bttn');
         });
     }
+
+    function fillProductsWithShift(product, start, count) {
+
+    }
+
 
     function loadTable(startD, endD, is_async) {
         //console.log(startD);
@@ -673,14 +664,14 @@ $( document ).ready(function()
             
             // get all products that ar in range of selected interval
             var intervalProducts = $( "#table2 tbody tr:nth-child(n+1):nth-child(-n+"+machineCount+") td:nth-child(n+"+startDateIndex+"):nth-child(-n+"+endDateIndex+") div");
-            var uniqueProducts = {};
+            Produce.uniqueProducts = {};
             console.log( intervalProducts.length );
 
             $.each( intervalProducts, function() 
             {
-                uniqueProducts[this.innerHTML] = {count: 0, kg: 0, machines: {}};
+                Produce.uniqueProducts[this.innerHTML] = {count: 0, kg: 0, machines: {}, lastCol: 0};
             })
-            console.log( uniqueProducts);
+            console.log( Produce.uniqueProducts);
 
             var td_cell;
             for ( var col = startDateIndex; col <= endDateIndex; col++ ) 
@@ -689,17 +680,29 @@ $( document ).ready(function()
                 {
                     td = $('#table2 tr:nth-child('+row+') td:nth-child('+col+') div');
                     if ( td[0] !== undefined  ) {
-                        uniqueProducts[ td.attr('product') ].count += 1;
-                        uniqueProducts[ td.attr('product') ].kg += parseFloat( td.attr('kg') );
-                        if (  uniqueProducts[ td.attr('product') ].machines[row] !== undefined ) 
+                        Produce.uniqueProducts[ td.attr('product') ].count += 1;
+                        Produce.uniqueProducts[ td.attr('product') ].kg += parseFloat( td.attr('kg') );
+
+                        if (  Produce.uniqueProducts[ td.attr('product') ].machines[row] !== undefined ) 
                         {
-                            // for each machine save starting point, that is on which col there is first product
-                            if ( uniqueProducts[ td.attr('product') ].machines[row] > col )
-                                uniqueProducts[ td.attr('product') ].machines[row] = col;
+                            Produce.uniqueProducts[ td.attr('product') ].machines[row].push(col);
                         }
                         else 
                         {
-                            uniqueProducts[ td.attr('product') ].machines[row] = col;
+                            Produce.uniqueProducts[ td.attr('product') ].machines[row] = [col];
+                        }
+
+                        if ( Produce.uniqueProducts[ td.attr('product') ].lastCol < col )
+                            Produce.uniqueProducts[ td.attr('product') ].lastCol = col
+
+                        if ( Produce.uniqueProducts[ td.attr('product') ].firstCol !== undefined ) 
+                        {
+                            if ( Produce.uniqueProducts[ td.attr('product') ].firstCol > col )
+                                Produce.uniqueProducts[ td.attr('product') ].firstCol = col
+                        }
+                        else 
+                        {
+                            Produce.uniqueProducts[ td.attr('product') ].firstCol = col;
                         }
                     }   
                 };
@@ -735,35 +738,37 @@ $( document ).ready(function()
                     // if the same product is in the next column somewhere
                     if ( td_product[0].innerHTML in lastNextColProducts ) 
                     {
-                        delete uniqueProducts[ td_product[0].innerHTML ];
+                        delete Produce.uniqueProducts[ td_product[0].innerHTML ];
                     }
                     else 
                     {
                         // if next cell is over table end boundries
                         if ( td_next[0] === undefined )
                         {
-                            delete uniqueProducts[ td_product[0].innerHTML ];
+                            delete Produce.uniqueProducts[ td_product[0].innerHTML ];
                         }
                     }
                 }
             };
             // check for every product that is in next col over interval last col
-            // if that product not in interval last col then delete it from list
+            // if that product is not in the interval of the last col then delete it from the list
             for (var key in lastNextColProducts) { 
                 if ( lastNextColProducts.hasOwnProperty(key) )
                 {
                     if ( !key in lastColProducts ) {
-                        delete uniqueProducts[ key ];
+                        delete Produce.uniqueProducts[ key ];
                     }
                 }
             }
-            console.log( uniqueProducts);
+            console.log( Produce.uniqueProducts);
 
             var produceTable_html = '';
-            for (var key in uniqueProducts) {
+            Produce.table = {};
+            for (var key in Produce.uniqueProducts) {
                 // js lagging fix
-                if (uniqueProducts.hasOwnProperty(key)) {
-                    produceTable_html += '<tr><td>'+key+'</td><td contenteditable="true">'+uniqueProducts[key].kg.toFixed(2);+'</td></tr>';
+                if (Produce.uniqueProducts.hasOwnProperty(key)) {
+                    produceTable_html += '<tr><td>'+key+'</td><td contenteditable="true">'+Produce.uniqueProducts[key].kg.toFixed(2);+'</td></tr>';
+                    Produce.table[key] = Produce.uniqueProducts[key].kg.toFixed(2);
                 }
             }
             $('#produceTable tbody').html(produceTable_html);
@@ -772,6 +777,64 @@ $( document ).ready(function()
         {
             showError('Nav korekti ievadīts datums.', 'interval-bttn');
         }
+    })
+
+    $( "#produce-change-bttn" ).click( function() { 
+        var changedProducts = [];
+        var curTable = $("#produceTable tbody tr");
+        $.each(curTable, function() { 
+            // if table before closing is not the same as it  was opened. some products value are changed.
+            if ( Produce.table[ $(this).find('td:nth-child(1)')[0].innerHTML ] != $(this).find('td:nth-child(2)')[0].innerHTML )
+            {
+                changedProducts[ $(this).find('td:nth-child(1)')[0].innerHTML ] = {startKg: Produce.table[ $(this).find('td:nth-child(1)')[0].innerHTML ],
+                                                                                endKg: $(this).find('td:nth-child(2)')[0].innerHTML}
+                                                                                    
+            }
+        })
+        for ( var key in changedProducts ) 
+        {
+            if ( changedProducts.hasOwnProperty(key) ) 
+            {
+                $.post( "php/products_formula.php", {kg: Math.round(parseFloat(changedProducts[key].endKg)), prod: key})
+                // when post is finished
+                .done(function( data ) {
+                    var jsonCount = 0;
+                    var usedShifts = {}; // set of columns where products is landed;
+                    var firstPlacedIndex = -1;
+
+                    if (data != '') 
+                    {
+                        updateUndo();
+                        console.log(JSON.parse(data));
+                        jsonData = JSON.parse(data)
+                        jsonCount = jsonData['shifts'];
+                        console.log(jsonCount);
+                        //return;
+                        uneditable_jsonCount = jsonCount;
+
+                        /*markedProducts[markedDivs[i].id] = {'r': markedDivs[i].parentNode.parentNode.rowIndex+1, 
+                                        'c': markedDivs[i].parentNode.cellIndex+1,
+                                        'rEnd': markedDivs[i].parentNode.parentNode.rowIndex+1, 
+                                        'cEnd': markedDivs[i].parentNode.cellIndex+1,
+                                        'product': markedDivs[i].getAttribute('product'),
+                                        'kg': markedDivs[i].getAttribute('kg')
+                                        };
+                                        */
+
+                    }
+                    else 
+                    {
+                        showError("Nekorekts rezultāts.", 'gen-prod-bttn');
+                    }
+
+                })
+                .fail( function( data ) {
+                    showError("Nevar pievienot produktu.", 'gen-prod-bttn');
+                });
+            }
+        }
+        console.log(changedProducts);
+
     })
 
     $('#produceModal').on('shown.bs.modal', function() {
