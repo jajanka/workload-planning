@@ -30,7 +30,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         }
      });
 })( jQuery );
-
+/*
 ( function($) {
      $(document).ajaxStart(function(ev) {
         console.debug("ajaxStart");
@@ -41,7 +41,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         }
      });
 })( jQuery );
-
+*/
 // scope the jQuery
 ( function($) {
 
@@ -791,46 +791,86 @@ $( document ).ready(function()
                                                                                     
             }
         })
+
         for ( var key in changedProducts ) 
         {
             if ( changedProducts.hasOwnProperty(key) ) 
             {
-                $.post( "php/products_formula.php", {kg: Math.round(parseFloat(changedProducts[key].endKg)), prod: key})
-                // when post is finished
-                .done(function( data ) {
-                    var jsonCount = 0;
-                    var usedShifts = {}; // set of columns where products is landed;
-                    var firstPlacedIndex = -1;
+                $.ajax({
+                    type: 'POST',
+                    url: "php/products_formula.php",
+                    data: {kg: Math.round(parseFloat(changedProducts[key].endKg)), prod: key},
+                    success: function( data ) { 
+                        var jsonCount = 0;
+                        var usedShifts = {}; // set of columns where products is landed;
+                        var firstPlacedIndex = -1;
 
-                    if (data != '') 
-                    {
-                        updateUndo();
-                        console.log(JSON.parse(data));
-                        jsonData = JSON.parse(data)
-                        jsonCount = jsonData['shifts'];
-                        console.log(jsonCount);
-                        //return;
-                        uneditable_jsonCount = jsonCount;
+                        if (data != '') 
+                        {
+                            updateUndo();
+                            console.log(JSON.parse(data));
+                            jsonData = JSON.parse(data)
+                            jsonCount = jsonData['shifts'];
+                            console.log(jsonCount);
+                            //return;
+                            uneditable_jsonCount = jsonCount;
+                            var newKey;
+                            var firstMac;
+                            markedProducts = {};
+                            for ( var machine in Produce.uniqueProducts[key].machines ) 
+                            {
+                                firstMac = ( firstMac === undefined ) ? machine : firstMac;
+                                if ( Produce.uniqueProducts[key].machines.hasOwnProperty(machine) ) 
+                                {
+                                    var machineCols = Produce.uniqueProducts[key].machines[machine];
+                                    for (var i = 0; i < machineCols.length; i++) 
+                                    {
+                                        newKey = machine+'/'+machineCols[i];
+                                        markedProducts[newKey] = {'r': parseInt(machine), 
+                                                'c': machineCols[i],
+                                                'rEnd': parseInt(machine), 
+                                                'cEnd': machineCols[i],
+                                                'product': key,
+                                                'kg': jsonData['kgPerShift']
+                                                };
+                                    }
+                                }
+                            }
+                            console.log('First machine '+firstMac);
+                            Move.start_row = firstMac; 
+                            Move.start_col = Produce.uniqueProducts[key].machines[firstMac][0];
+                            Move.move_products['start'] = true;  Move.move_products['move'] = true;
 
-                        /*markedProducts[markedDivs[i].id] = {'r': markedDivs[i].parentNode.parentNode.rowIndex+1, 
-                                        'c': markedDivs[i].parentNode.cellIndex+1,
-                                        'rEnd': markedDivs[i].parentNode.parentNode.rowIndex+1, 
-                                        'cEnd': markedDivs[i].parentNode.cellIndex+1,
-                                        'product': markedDivs[i].getAttribute('product'),
-                                        'kg': markedDivs[i].getAttribute('kg')
-                                        };
-                                        */
+                            // simulate mouse move to get rEnd and cRow defined for markedProducts
+                            var $el = $('#table2 tbody tr:nth-child('+Move.start_row+') td:nth-child('+ Move.start_col +')');
+                            var event = jQuery.Event( "mousemove", {
+                                target: $el.find('div')[0],
+                                which: 1,
+                                buttons: 1
+                            });
+                            //console.log("Before trigger "+(PBuffer.mousemove.target.parentElement.rowIndex + 1)+' '+(PBuffer.mousemove.target.cellIndex + 1));
+                            $el.trigger(event);
 
-                    }
-                    else 
-                    {
-                        showError("Nekorekts rezultāts.", 'gen-prod-bttn');
-                    }
+                            Move.move_products['start'] = true;  Move.move_products['move'] = true;
+                            // trigger mousdown to place products
+                            var event = jQuery.Event( "mouseup", {
+                                target: $el.find('div')[0],
+                                which: 1,
+                                clientX: 300,
+                                clientY: 300,
+                                notDelete: false
+                            });
+                            $el.trigger(event);
 
+                        }
+                        else 
+                        {
+                            showError("Nekorekts rezultāts.", 'gen-prod-bttn');
+                        }
+                    },
+                    async: false
                 })
-                .fail( function( data ) {
-                    showError("Nevar pievienot produktu.", 'gen-prod-bttn');
-                });
+
             }
         }
         console.log(changedProducts);
