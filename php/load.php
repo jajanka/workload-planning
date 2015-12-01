@@ -5,7 +5,7 @@ if (isset($_POST['startDate']) && isset($_POST['endDate']))
 	require_once('../../h/postgres_cmp.php');
 
 	//$sequance = trim($_POST['sequance']);
-	$selectQ = "SELECT p_date, machine, e_shift, product FROM plan WHERE p_date >= :startDate AND p_date <= :endDate";
+	$selectQ = "SELECT p_date, machine, e_shift, product, kg FROM plan WHERE p_date >= :startDate AND p_date <= :endDate";
 	$selectCalendarQ = "SELECT week_day, shift1, shift2, shift3 FROM calendar WHERE week_day >= :startDate AND week_day <= :endDate AND 
 						(shift1 = true OR shift2 = true OR shift3 = true)";
 

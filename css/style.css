@@ -232,7 +232,7 @@ body {
 	max-width: 960px;
 	margin: 0px auto;
 }
-#calendarTable td, #productsTable td, #productsInfoTable td{
+#calendarTable td, #productsTable td, #productsInfoTable td, #produceTable td{
 	padding: 0px;
     height: 30px;
 }
@@ -241,7 +241,7 @@ body {
 	//border-color: #ccc;
 }
 #calendarTable .checkbox { margin-top: 0px; margin-bottom: 0px;}
-#productsTable td, #productsInfoTable td {text-align: center;}
+#productsTable td, #productsInfoTable td, #produceTable td {text-align: center;}
 #productsTable button {margin: 0px !important;}
 #productModal .checkbox { margin-top: 0px; margin-bottom: 0px;}
 
