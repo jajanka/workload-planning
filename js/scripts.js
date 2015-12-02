@@ -21,6 +21,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
 
 // use: when post/get data then ajax gif loader shows
 // scope the jQuery
+
 ( function($) {
     $(document).ajaxStop(function(ev){
         console.debug("ajaxStop");
@@ -669,7 +670,7 @@ $( document ).ready(function()
 
             $.each( intervalProducts, function() 
             {
-                Produce.uniqueProducts[this.innerHTML] = {count: 0, kg: 0, machines: {}, lastCol: 0};
+                Produce.uniqueProducts[this.innerHTML] = {count: 0, kg: 0, lastCol: 0, machines: {}, shifts: {}};
             })
             console.log( Produce.uniqueProducts);
 
@@ -683,14 +684,16 @@ $( document ).ready(function()
                         Produce.uniqueProducts[ td.attr('product') ].count += 1;
                         Produce.uniqueProducts[ td.attr('product') ].kg += parseFloat( td.attr('kg') );
 
-                        if (  Produce.uniqueProducts[ td.attr('product') ].machines[row] !== undefined ) 
+                        if ( Produce.uniqueProducts[ td.attr('product') ].shifts[col] !== undefined ) 
                         {
-                            Produce.uniqueProducts[ td.attr('product') ].machines[row].push(col);
+                            Produce.uniqueProducts[ td.attr('product') ].shifts[col].push(row);
                         }
                         else 
                         {
-                            Produce.uniqueProducts[ td.attr('product') ].machines[row] = [col];
+                            Produce.uniqueProducts[ td.attr('product') ].shifts[col] = [row];
                         }
+
+                        Produce.uniqueProducts[ td.attr('product') ].machines[row] = true;
 
                         if ( Produce.uniqueProducts[ td.attr('product') ].lastCol < col )
                             Produce.uniqueProducts[ td.attr('product') ].lastCol = col
@@ -814,31 +817,131 @@ $( document ).ready(function()
                             console.log(jsonCount);
                             //return;
                             uneditable_jsonCount = jsonCount;
-                            var newKey;
-                            var firstMac;
+                            var newKey,
+                                firstMac,
+                                tileCounter = 1,
+                                endFill = false,
+                                last_i = 0,
+                                last_shift = 0,
+                                unplacedProducts = [];
                             markedProducts = {};
-                            for ( var machine in Produce.uniqueProducts[key].machines ) 
+
+                            //  delete product divs from table
+                            for ( var shift in Produce.uniqueProducts[key].shifts ) 
                             {
-                                firstMac = ( firstMac === undefined ) ? machine : firstMac;
-                                if ( Produce.uniqueProducts[key].machines.hasOwnProperty(machine) ) 
+                                if ( Produce.uniqueProducts[key].shifts.hasOwnProperty(shift) ) 
                                 {
-                                    var machineCols = Produce.uniqueProducts[key].machines[machine];
-                                    for (var i = 0; i < machineCols.length; i++) 
-                                    {
-                                        newKey = machine+'/'+machineCols[i];
-                                        markedProducts[newKey] = {'r': parseInt(machine), 
-                                                'c': machineCols[i],
-                                                'rEnd': parseInt(machine), 
-                                                'cEnd': machineCols[i],
-                                                'product': key,
-                                                'kg': jsonData['kgPerShift']
-                                                };
+                                    var machineRows = Produce.uniqueProducts[key].shifts[shift];
+                                    for (var i = 0; i < machineRows.length; i++) 
+                                    {      
+                                        $('#table2 tbody tr:nth-child('+machineRows[i]+') td:nth-child('+ shift +')')[0].innerHTML = '';
                                     }
                                 }
                             }
-                            console.log('First machine '+firstMac);
+
+                            for ( var shift in Produce.uniqueProducts[key].shifts ) 
+                            {
+                                firstMac = ( firstMac === undefined ) ? shift : firstMac;
+                                if ( Produce.uniqueProducts[key].shifts.hasOwnProperty(shift) ) 
+                                {
+                                    var machineRows = Produce.uniqueProducts[key].shifts[shift];
+                                    for (var i = 0; i < machineRows.length; i++) 
+                                    {      
+                                        newKey = machineRows[i]+'/'+shift;
+                                        // end fill true if kg is given less then the original
+                                        if ( !endFill ) 
+                                        {
+                                            markedProducts[newKey] = {'r': parseInt(machineRows[i]), 
+                                                    'c': shift,
+                                                    'rEnd': parseInt(machineRows[i]), 
+                                                    'cEnd': shift,
+                                                    'product': key,
+                                                    'kg': ( tileCounter == jsonCount) ? jsonData['kgLastShift'] : jsonData['kgPerShift']
+                                                    }; 
+                                        }
+                                        else  {
+                                            unplacedProducts.push( [parseInt(machineRows[i]), parseInt(shift)] );
+                                        }
+
+                                        if ( tileCounter == jsonCount ) {
+                                            last_i = machineRows[i];
+                                            last_shift = shift;
+                                            endFill = true;
+                                        }           
+                                        tileCounter++;                           
+                                    }
+                                    if ( endFill )
+                                        break;
+                                }
+                            }
+
+                            if ( !endFill ) 
+                            {
+                                // get all machines
+                                var allMachines = [];
+                                for ( var mac in Produce.uniqueProducts[key].machines )
+                                {
+                                    allMachines.push(parseInt(mac));
+                                }
+                                allMachines.sort( function(a,b) { return a-b; } )
+
+                                // if product kg is changed to bigger
+                                var start_i = ( allMachines[ allMachines.indexOf( last_i )+1] !== undefined ) ? allMachines.indexOf( last_i )+1 : 0;
+                                if ( start_i == 0 ) last_shift++;
+                                while ( true ) 
+                                {
+                                    for (var i = start_i; i < allMachines.length; i++) 
+                                    {
+                                        markedProducts[ allMachines[i]+'/'+last_shift ] = {'r': allMachines[i], 
+                                                'c': last_shift,
+                                                'rEnd': allMachines[i], 
+                                                'cEnd': last_shift,
+                                                'product': key,
+                                                'kg': ( tileCounter == jsonCount) ? jsonData['kgLastShift'] : jsonData['kgPerShift']
+                                                };
+                                        if ( tileCounter == jsonCount ) {
+                                            endFill = true;
+                                            break;
+                                        }           
+                                        tileCounter++;
+                                    }
+                                    start_i = 0;
+                                    last_shift++;
+
+                                    if ( endFill )
+                                        break;
+                                }
+                            }
+                            else 
+                            {
+                                if ( jsonCount < Produce.uniqueProducts[key].count ) 
+                                {
+                                    console.log('Smaller');
+                                    var endPoints = {};
+                                    for (var i = unplacedProducts.length - 1; i >= 0; i--) {
+                                        if ( endPoints[ unplacedProducts[i][0] ] !== undefined )
+                                        {
+                                            if ( unplacedProducts[i][1] > endPoints[ unplacedProducts[i][0] ] )
+                                                endPoints[ unplacedProducts[i][0] ] = unplacedProducts[i][1];
+                                        }
+                                        else
+                                        {
+                                            endPoints[ unplacedProducts[i][0] ] = unplacedProducts[i][1];
+                                        }
+                                        
+                                    };
+                                    console.log(endPoints);
+                                }
+                                else
+                                {
+                                    console.log('same');
+                                }
+                                console.log(unplacedProducts);
+                            }
+
+                            console.log('First shift '+firstMac);
                             Move.start_row = firstMac; 
-                            Move.start_col = Produce.uniqueProducts[key].machines[firstMac][0];
+                            Move.start_col = Produce.uniqueProducts[key].shifts[firstMac][0];
                             Move.move_products['start'] = true;  Move.move_products['move'] = true;
 
                             // simulate mouse move to get rEnd and cRow defined for markedProducts
@@ -858,7 +961,7 @@ $( document ).ready(function()
                                 which: 1,
                                 clientX: 300,
                                 clientY: 300,
-                                notDelete: false
+                                notDelete: true
                             });
                             $el.trigger(event);
 

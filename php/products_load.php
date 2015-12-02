@@ -23,9 +23,9 @@ try
 	        <td class="td1" contenteditable="true">'.$value[1].'</td>
 	        <td class="td2" contenteditable="true">'.$value[2].'</td>
 	        <td class="td3" contenteditable="true">'.$value[3].'</td>
-	        <td class="td4">'.$kg_h.'</td>
-	        <td class="td5">'.$value[4].'</td>
-	        <td class="td6">'.$total_kg_h.'</td>
+	        <td class="td4" style="color: #888">'.$kg_h.'</td>
+	        <td class="td5" style="color: #888">'.$value[4].'</td>
+	        <td class="td6" style="color: #888">'.$total_kg_h.'</td>
 	        <td class="td7" contenteditable="true">'.$value[5].'</td>
 	        <td><button type="button" 
 	        class="btn btn-danger delete hidden" aria-label="Left Align" id="del'.$value[0].'">

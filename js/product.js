@@ -59,8 +59,7 @@ $(document).ready(function () {
 			}
 		})
 		if (enableSave) {
-			$('#bttn-save-products').prop('disabled', false);
-			clonedHeaderRow.find('button').prop('disabled', false);
+			$('#save-bttn').prop('disabled', false);
 		}
 	})
 	// init yes/no box on delete
@@ -110,14 +109,12 @@ $(document).ready(function () {
 	    		if (text == $(this).text() || text.trim() == "") {
 	    			$(curThis).addClass('danger');	
 	    			cleanCell = false;
-	    			$('#bttn-save-products').prop('disabled', true);
-	    			clonedHeaderRow.find('button').prop('disabled', true);
+	    			$('#save-bttn').prop('disabled', true);
 	    			$(curThis).parent().find('td:nth-child(1) button').prop('disabled', true);
 	    		}
 	    		if ($(this).hasClass('danger')) {
 	    			cleanCol = false;
-	      			$('#bttn-save-products').prop('disabled', true);
-	      			clonedHeaderRow.find('button').prop('disabled', true);
+	      			$('#save-bttn').prop('disabled', true);
 	    		}
 	    	}
 	    })
@@ -125,13 +122,12 @@ $(document).ready(function () {
 	    	$(curThis).removeClass('danger');
 	    	// disable info button
 	    	$(curThis).parent().find('td:nth-child(1) button').prop('disabled', false);
-	    	clonedHeaderRow.find('button').prop('disabled', false);
+	    	//$('#save-bttn').prop('disabled', false);
 	    	// change products name
 			prodsToSave[r]['name'] = text;
 		}
 	    if (cleanCell && cleanCol) {
-	    	$('#bttn-save-products').prop('disabled', false);
-	    	clonedHeaderRow.find('button').prop('disabled', false);
+	    	$('#save-bttn').prop('disabled', false);
 	    }
 	});
 	$('#productsTable').on('keyup', '.td2', function(e) {
@@ -162,13 +158,11 @@ $(document).ready(function () {
 	function isRowValid(t) {
 		for (var i = 3; i <= 8; i++) {
 			if ( !isNumber($(t).parent().find('td:nth-child('+i+')').text()) ){
-				$('#bttn-save-products').prop('disabled', true);
-				clonedHeaderRow.find('button').prop('disabled', true);
+				$('#save-bttn').prop('disabled', true);
 				return;
 			}
 		};
-		$('#bttn-save-products').prop('disabled', false);
-		clonedHeaderRow.find('button').prop('disabled', false);
+		$('#save-bttn').prop('disabled', false);
 	}
 
 	$('body').on('focus', '[contenteditable]', function() {
@@ -263,8 +257,7 @@ $(document).ready(function () {
 		prodsToSave.unshift({'pid':'new','name': '', 'weight': 1000, 'm_min': 500, 'eff': 90, 'modal': '', 'status':'new'});
 		$(".delete").confirmation(confirmOptions);
 		$('#productsTable tbody tr:nth-child(1) td:nth-child(2)').addClass('danger');	
-	    $('#bttn-save-products').prop('disabled', true);
-	    clonedHeaderRow.find('button').prop('disabled', true);
+	    $('#save-bttn').prop('disabled', true);
 	});
 
 	// shows delete icon in the end of row
