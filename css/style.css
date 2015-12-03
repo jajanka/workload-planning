@@ -47,7 +47,7 @@ body {
 	-webkit-transform: translateZ(0);
 }
 .panel-fixed .panel-body {
-	padding: 5px;
+	padding: 7px;
 }
 
 /* table cells */
@@ -154,7 +154,7 @@ body {
 	background-color: #DDD;
 	margin-top: 93px;
 	position: fixed;
-	z-index: 11;
+	z-index: 100;
 	-webkit-transform: translateZ(0);
 }
 #status div {

@@ -31,7 +31,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         }
      });
 })( jQuery );
-/*
+
 ( function($) {
      $(document).ajaxStart(function(ev) {
         console.debug("ajaxStart");
@@ -42,7 +42,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         }
      });
 })( jQuery );
-*/
+
 // scope the jQuery
 ( function($) {
 
@@ -433,7 +433,7 @@ $( document ).ready(function()
                     }
                 };
 
-                // Preperation for message that is shoen when products is added to plan.
+                // Preperation for message that is shown when products is added to plan.
                 var endDateCol = (i % 3 == 0) ? i / 3 + 1 : parseInt(i/3) + 2;
                 var startDateCol = (firstPlacedIndex % 3 == 0) ? firstPlacedIndex / 3 + 1 : parseInt(firstPlacedIndex/3) + 2;
 
@@ -476,13 +476,11 @@ $( document ).ready(function()
 
 
     function loadTable(startD, endD, is_async) {
-        //console.log(startD);
         $.ajax({
               type: 'POST',
               url: "php/load.php",
               data: {startDate: startD, endDate: endD},
               success: function( data ) {
-                //alert(data);
                 // parse received php data to JSON
                 var jsonData = '';
                 try {
@@ -770,7 +768,12 @@ $( document ).ready(function()
             for (var key in Produce.uniqueProducts) {
                 // js lagging fix
                 if (Produce.uniqueProducts.hasOwnProperty(key)) {
-                    produceTable_html += '<tr><td>'+key+'</td><td contenteditable="true">'+Produce.uniqueProducts[key].kg.toFixed(2);+'</td></tr>';
+                    produceTable_html += '<tr>';
+                    produceTable_html += '<td><div class="checkbox"><label><label class="checkbox-inline">'+
+                          '<input type="checkbox" id="inlineCheckbox1" value="option1" unchecked>'+
+                        '</label></label></div></td>';
+                    produceTable_html += '<td>'+key+'</td><td contenteditable="true">'+Produce.uniqueProducts[key].kg.toFixed(2)+'</td>';
+                    produceTable_html += '</tr>';
                     Produce.table[key] = Produce.uniqueProducts[key].kg.toFixed(2);
                 }
             }
@@ -840,12 +843,20 @@ $( document ).ready(function()
                             }
 
                             for ( var shift in Produce.uniqueProducts[key].shifts ) 
-                            {
+                            {   
                                 firstMac = ( firstMac === undefined ) ? shift : firstMac;
                                 if ( Produce.uniqueProducts[key].shifts.hasOwnProperty(shift) ) 
                                 {
                                     var machineRows = Produce.uniqueProducts[key].shifts[shift];
-                                    for (var i = 0; i < machineRows.length; i++) 
+                                    var machLen = machineRows.length;
+                                    if ( jsonCount == 0 ) 
+                                    { 
+                                        last_i = machineRows[0];
+                                        last_shift = shift;
+                                        endFill = true;
+                                    }
+
+                                    for (var i = 0; i < machLen; i++) 
                                     {      
                                         newKey = machineRows[i]+'/'+shift;
                                         // end fill true if kg is given less then the original
@@ -858,6 +869,8 @@ $( document ).ready(function()
                                                     'product': key,
                                                     'kg': ( tileCounter == jsonCount) ? jsonData['kgLastShift'] : jsonData['kgPerShift']
                                                     }; 
+                                            last_shift = shift;
+                                            last_i = machineRows[i];
                                         }
                                         else  {
                                             unplacedProducts.push( [parseInt(machineRows[i]), parseInt(shift)] );
@@ -870,8 +883,6 @@ $( document ).ready(function()
                                         }           
                                         tileCounter++;                           
                                     }
-                                    if ( endFill )
-                                        break;
                                 }
                             }
 
@@ -888,9 +899,9 @@ $( document ).ready(function()
                                 // if product kg is changed to bigger
                                 var start_i = ( allMachines[ allMachines.indexOf( last_i )+1] !== undefined ) ? allMachines.indexOf( last_i )+1 : 0;
                                 if ( start_i == 0 ) last_shift++;
-                                while ( true ) 
+                                while ( true )
                                 {
-                                    for (var i = start_i; i < allMachines.length; i++) 
+                                    for (var i = start_i; i < allMachines.length; i++)
                                     {
                                         markedProducts[ allMachines[i]+'/'+last_shift ] = {'r': allMachines[i], 
                                                 'c': last_shift,
@@ -914,23 +925,42 @@ $( document ).ready(function()
                             }
                             else 
                             {
-                                if ( jsonCount < Produce.uniqueProducts[key].count ) 
+                                // get endppoints to where to pull backwards
+                                if ( jsonCount < Produce.uniqueProducts[key].count )
                                 {
                                     console.log('Smaller');
                                     var endPoints = {};
-                                    for (var i = unplacedProducts.length - 1; i >= 0; i--) {
+                                    for (var i = unplacedProducts.length - 1; i >= 0; i--)
+                                    {
                                         if ( endPoints[ unplacedProducts[i][0] ] !== undefined )
                                         {
-                                            if ( unplacedProducts[i][1] > endPoints[ unplacedProducts[i][0] ] )
-                                                endPoints[ unplacedProducts[i][0] ] = unplacedProducts[i][1];
+                                            if ( unplacedProducts[i][1] < endPoints[ unplacedProducts[i][0] ].col )
+                                                endPoints[ unplacedProducts[i][0] ].col = unplacedProducts[i][1];
                                         }
                                         else
                                         {
-                                            endPoints[ unplacedProducts[i][0] ] = unplacedProducts[i][1];
+                                            endPoints[ unplacedProducts[i][0] ] = {col: unplacedProducts[i][1], move: false};
+                                            // check if in the next tile there is a product, that meen line should be moved backwards.
+                                            var c = unplacedProducts[i][1] + 1;
+                                            var nextCell = $( "#table2 tbody tr:nth-child("+unplacedProducts[i][0]+") td:nth-child("+c+")" );
+                                            // skip the free shifts... get over free shifts
+                                            while ( nextCell.hasClass('dark') ) {
+                                                nextCell = $( "#table2 tbody tr:nth-child("+unplacedProducts[i][0]+") td:nth-child("+c+")" );
+                                                c++;
+                                            }
+                                           
+                                            if ( nextCell[0].innerHTML != "" )
+                                            {
+                                                endPoints[ unplacedProducts[i][0] ].move = true;
+                                            }
                                         }
                                         
                                     };
                                     console.log(endPoints);
+
+                                    // pull front backward's to endpoint
+                                    moveBackwards( endPoints ) ;
+                                    
                                 }
                                 else
                                 {
@@ -966,7 +996,7 @@ $( document ).ready(function()
                             $el.trigger(event);
 
                         }
-                        else 
+                        else
                         {
                             showError("Nekorekts rezultāts.", 'gen-prod-bttn');
                         }
@@ -979,6 +1009,54 @@ $( document ).ready(function()
         console.log(changedProducts);
 
     })
+
+    function moveBackwards( endPoints )
+    {
+        var nextCell,
+            endCell,
+            lastCell = $( "#table2 tbody tr:nth-child(2) td" ).last()[0].cellIndex;
+
+        for ( var end_point in endPoints )
+        {   
+            if ( endPoints.hasOwnProperty(end_point) )
+            {   
+                var start_col = endPoints[end_point].col,
+                    end_col = endPoints[end_point].col,
+                    tableEnd = false;
+                if ( endPoints[end_point].move )
+                {
+                    nextCell = $( "#table2 tbody tr:nth-child("+end_point+") td:nth-child("+start_col+")" );
+                    while ( true )
+                    {
+                        while ( nextCell.hasClass('dark') || nextCell[0].innerHTML == "" ) {
+                            start_col++;
+                            if ( start_col > lastCell) {
+                                tableEnd = true;
+                                break;
+                            }
+                            nextCell = $( "#table2 tbody tr:nth-child("+end_point+") td:nth-child("+start_col+")" );
+                        }
+
+                        $( "#table2 tbody tr:nth-child("+end_point+") td:nth-child("+end_col+")" )[0].innerHTML = nextCell[0].innerHTML;
+                        nextCell[0].innerHTML = '';
+
+                        // get next end point
+                        endCell = $( "#table2 tbody tr:nth-child("+end_point+") td:nth-child("+end_col+")" );
+                        while ( endCell.hasClass('dark') || endCell[0].innerHTML != "" ) {
+                            end_col++;
+                            if ( end_col > lastCell) {
+                                tableEnd = true;
+                                break;
+                            }
+                            endCell = $( "#table2 tbody tr:nth-child("+end_point+") td:nth-child("+end_col+")" );
+                        }
+
+                        if ( tableEnd ) break;
+                    }
+                }
+            }
+        }
+    }
 
     $('#produceModal').on('shown.bs.modal', function() {
         $('#produceTable tbody').html('');
