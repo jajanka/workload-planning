@@ -13,9 +13,9 @@ if (isset($_POST['upsert']) && isset($_POST['del'])) //
 	//print_r($d_arr);
 
 	$selectQ = "SELECT pid FROM plan WHERE p_date = :p_date AND machine = :machine AND e_shift = :e_shift";
-	$insertQ = 'INSERT INTO plan (p_date, machine, e_shift, product, kg, record_time) 
-			VALUES (:p_date, :machine, :e_shift, :product, :kg, :record_time)';
-	$updateQ = 'UPDATE plan SET product = :product, kg = :kg, record_time = :record_time WHERE pid = :pid';
+	$insertQ = 'INSERT INTO plan (p_date, machine, e_shift, product, kg, fixed_position, record_time) 
+			VALUES (:p_date, :machine, :e_shift, :product, :kg, :fixed_position, :record_time)';
+	$updateQ = 'UPDATE plan SET product = :product, kg = :kg, fixed_position = :fixed_position, record_time = :record_time WHERE pid = :pid';
 	$deleteQ = 'DELETE FROM plan 
 			WHERE p_date = :p_date AND machine = :machine AND e_shift = :e_shift';
 
@@ -38,6 +38,7 @@ if (isset($_POST['upsert']) && isset($_POST['del'])) //
 				$pdo = $pgc->prepare($updateQ);
 				$pdo->bindValue(':product', $val['product'], PDO::PARAM_STR);
 				$pdo->bindValue(':kg', $val['kg']);
+				$pdo->bindValue(':fixed_position', $val['fixed'], PDO::PARAM_BOOL);
 				$pdo->bindValue(':record_time', date("Y-m-d H:i:s", strtotime(date('Y-m-d H:i:s')) - 60*60*2)." +00:00");
 				$pdo->bindValue(':pid', $pid, PDO::PARAM_INT);
 				$pdo->execute();
@@ -50,6 +51,7 @@ if (isset($_POST['upsert']) && isset($_POST['del'])) //
 				$pdo->bindValue(':e_shift', $plan_tile_id[2], PDO::PARAM_INT);
 				$pdo->bindValue(':product', $val['product'], PDO::PARAM_STR);
 				$pdo->bindValue(':kg', $val['kg']);
+				$pdo->bindValue(':fixed_position', $val['fixed'], PDO::PARAM_BOOL);
 				$pdo->bindValue(':record_time', date("Y-m-d H:i:s", strtotime(date('Y-m-d H:i:s')) - 60*60*2)." +00:00");
 				$pdo->execute();
 			}

@@ -35,7 +35,7 @@ body {
 	//width: 430px;
 }
 .panel-fixed {
-	margin-top: 47px;
+	margin-top: 52px;
 	min-width: 1200px;
 	left: 0;
 	right: 0;
@@ -47,7 +47,7 @@ body {
 	-webkit-transform: translateZ(0);
 }
 .panel-fixed .panel-body {
-	padding: 7px;
+	padding: 3px;
 }
 
 /* table cells */
@@ -154,7 +154,7 @@ body {
 	background-color: #DDD;
 	margin-top: 93px;
 	position: fixed;
-	z-index: 100;
+	z-index: 12;
 	-webkit-transform: translateZ(0);
 }
 #status div {
@@ -235,6 +235,7 @@ body {
 #calendarTable td, #productsTable td, #productsInfoTable td, #produceTable td{
 	padding: 0px;
     height: 30px;
+    vertical-align: baseline;
 }
 #calendarTable thead th, #productsTable thead th, #productsInfoTable thead th{
 	border-style: inherit;

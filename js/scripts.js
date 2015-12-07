@@ -366,9 +366,9 @@ $( document ).ready(function()
         loadTable(lastDateObj_formated, expandDate_formated, false);
     }
 
-    function fillProducts(product, start, count) {
+    function fillProducts(product, start, count, with_shifting, bttn_id) {
         if (Object.keys(markedMachines).length < 1) {
-            showError('Nav atzīmēta neviena mašīna.', 'gen-prod-bttn');
+            showError('Nav atzīmēta neviena mašīna.', bttn_id);
             return;
         }
         $.post( "php/products_formula.php", {kg: count, prod: product})
@@ -390,48 +390,109 @@ $( document ).ready(function()
                 // row column length
                 var column_count = document.getElementById('table2').rows[0].cells.length;
                 var count_check = 0;
+                var i = start;
 
-                // if products can be filled in table
-                // iterate over columns
-                var last_td;
-                for (var i = start; i <= column_count; i++) {
-                    // for each marked machine in left header column
-                    for (var key in markedMachines) {
-                        // js lagging fix
-                        if (markedMachines.hasOwnProperty(key)) {
-                            // get cell
-                            var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
-                            // if inner html in cell is empty
-                            if (i >= column_count)  {
-                                console.log('Expand1');
-                                expandTable(machineCount, 7);
-                                column_count = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
+                if ( !with_shifting ) 
+                {
+                    if ( jsonCount > 0) updateColor(product);
+                    // if products can be filled in table
+                    // iterate over columns
+                    var last_td;
+                    for (i = i; i <= column_count; i++) {
+                        // for each marked machine in left header column
+                        for (var key in markedMachines) {
+                            // js lagging fix
+                            if (markedMachines.hasOwnProperty(key)) {
+                                // get cell
+                                var td_html = $( "#table2 tbody tr:nth-child("+key+") td:nth-child("+i+")");
+                                // if inner html in cell is empty
+                                if (i >= column_count)  {
+                                    console.log('Expand1');
+                                    expandTable(machineCount, 7);
+                                    column_count = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
+                                }
+                                if ( td_html.hasClass('dark') ) {
+                                    continue;
+                                }
+
+                                if ( td_html[0].innerHTML.trim() ==  "" ) {
+                                    // put a product in cell
+                                    td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgPerShift'], 'f') );
+                                    last_td = td_html;
+                                    jsonCount--;
+                                    usedShifts[i] = true;
+                                    if ( firstPlacedIndex == -1 ) firstPlacedIndex = i;
+
+                                } 
                             }
-                            if ( td_html.hasClass('dark') ) {
-                                continue;
-                            }
-
-                            if ( td_html[0].innerHTML.trim() ==  "" ) {
-                                updateColor(product);
-                                // put a product in cell
-                                td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgPerShift']) );
-                                last_td = td_html;
-                                jsonCount--;
-                                usedShifts[i] = true;
-                                if ( firstPlacedIndex == -1 ) firstPlacedIndex = i;
-
+                            if (0 >= jsonCount) { // if all products placed 
+                                td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgLastShift'], 'f') );
+                                break; 
                             } 
                         }
-                        if (0 >= jsonCount) { // if all products placed 
-                            td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgLastShift']) );
+                        if (0 >= jsonCount) { 
+                            td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgLastShift'], 'f') );
                             break; 
-                        } 
+                        }
+                    };
+                }
+                else
+                {
+                    var endFill = false,
+                        tileCounter = 1,
+                        start_i = 0,
+                        start_shift = start,
+                        markedProducts = {};
+
+                    firstPlacedIndex = start;
+
+                    if ( jsonCount > 0 ) 
+                    {
+                        updateColor(product);
+
+                        var allMachines = [];
+                        for ( var mac in markedMachines )
+                        {
+                            allMachines.push(parseInt(mac));
+                        }
+                        allMachines.sort( function(a,b) { return a-b; } )
+
+                        while ( true )
+                        {
+                            for (var i = start_i; i < allMachines.length; i++)
+                            {
+                                markedProducts[ allMachines[i]+'/'+start_shift ] = {
+                                        'r': allMachines[i], 
+                                        'c': start_shift,
+                                        'rEnd': allMachines[i], 
+                                        'cEnd': start_shift,
+                                        'product': product,
+                                        'kg': ( tileCounter == jsonCount) ? jsonData['kgLastShift'] : jsonData['kgPerShift']
+                                        };
+                                usedShifts[start_shift] = true;
+
+                                if ( tileCounter == jsonCount ) {
+                                    endFill = true;
+                                    break;
+                                }           
+                                tileCounter++;
+                            }
+                            if ( endFill )
+                                break;
+                            start_i = 0;
+                            start_shift++;
+                        }
+                        i = start_shift;
+
+                        Move.start_row = allMachines[0]; 
+                        Move.start_col = start;
+                        var el = $('#table2 tbody tr:nth-child('+Move.start_row+') td:nth-child('+ Move.start_col +')');
+
+                        // simulate mouse move to get rEnd and cRow defined for markedProducts
+                        console.log(markedProducts);
+                        triggeProductPlacement(el, el.find('div')[0], true, 300, 300, markedProducts);
                     }
-                    if (0 >= jsonCount) { 
-                        td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgLastShift']) );
-                        break; 
-                    }
-                };
+                }
 
                 // Preperation for message that is shown when products is added to plan.
                 var endDateCol = (i % 3 == 0) ? i / 3 + 1 : parseInt(i/3) + 2;
@@ -461,19 +522,14 @@ $( document ).ready(function()
             }
             else 
             {
-                showError("Nekorekts rezultāts.", 'gen-prod-bttn');
+                showError("Nekorekts rezultāts.", bttn_id);
             }
 
         })
         .fail( function( data ) {
-            showError("Nevar pievienot produktu.", 'gen-prod-bttn');
+            showError("Nevar pievienot produktu.", bttn_id);
         });
     }
-
-    function fillProductsWithShift(product, start, count) {
-
-    }
-
 
     function loadTable(startD, endD, is_async) {
         $.ajax({
@@ -525,9 +581,9 @@ $( document ).ready(function()
                             // update color for product name
                             updateColor(plan.product);
                             // update td witch have attr name with drag tile
-                            $('[name="'+td_name+'"]').html(setProductDiv(td_name, plan.product, false, plan.kg));
+                            $('[name="'+td_name+'"]').html(setProductDiv(td_name, plan.product, false, plan.kg, plan.fixed_position));
                             // add objects to loadedTiles
-                            loadedTiles[td_name] = plan.product;
+                            loadedTiles[td_name] = {product: plan.product, kg: plan.kg, fixed: plan.fixed_position};
                         });
                     }
                 }
@@ -584,10 +640,20 @@ $( document ).ready(function()
         var p = $('#product').val();
         var q = $('#quantity').val();
         if ( markedShift < 1 ) {
-        	showError("Nav atzīmēta starta maiņa!", 'gen-prod-bttn');
+        	showError("Nav atzīmēta starta maiņa!", 'add-group-btn');
         	return;
         }
-        fillProducts(p, markedShift, q);
+        fillProducts(p, markedShift, q, false, 'add-group-btn');
+    });
+
+    $('#gen-prod-shift-bttn').click(function() { 
+        var p = $('#product').val();
+        var q = $('#quantity').val();
+        if ( markedShift < 1 ) {
+            showError("Nav atzīmēta starta maiņa!", 'add-group-btn');
+            return;
+        }
+        fillProducts(p, markedShift, q, true, 'add-group-btn');
     });
 
     $('#undo-gen-prod-bttn').click(function() { 
@@ -634,6 +700,9 @@ $( document ).ready(function()
     $( "#gen-prod-bttn" ).mouseout(function() {
         setTimeout( function() { $( "#gen-prod-bttn" ).tooltip('destroy') }, 3000 );
 	});
+    $( "#add-group-btn" ).mouseout(function() {
+        setTimeout( function() { $( "#add-group-btn" ).tooltip('destroy') }, 3000 );
+    });
 	$( "#gen-table-bttn" ).mouseout(function() {
          setTimeout( function() { $( "#gen-table-bttn" ).tooltip('destroy') }, 3000 );
 	});
@@ -681,6 +750,7 @@ $( document ).ready(function()
                     if ( td[0] !== undefined  ) {
                         Produce.uniqueProducts[ td.attr('product') ].count += 1;
                         Produce.uniqueProducts[ td.attr('product') ].kg += parseFloat( td.attr('kg') );
+                        Produce.uniqueProducts[ td.attr('product') ].fixed = td.attr('fixed');
 
                         if ( Produce.uniqueProducts[ td.attr('product') ].shifts[col] !== undefined ) 
                         {
@@ -773,6 +843,7 @@ $( document ).ready(function()
                           '<input type="checkbox" id="inlineCheckbox1" value="option1" unchecked>'+
                         '</label></label></div></td>';
                     produceTable_html += '<td>'+key+'</td><td contenteditable="true">'+Produce.uniqueProducts[key].kg.toFixed(2)+'</td>';
+                    produceTable_html += '<td><button type="button" class="btn btn-success" id="produce-change-bttn">Izmainīt</button></td>';
                     produceTable_html += '</tr>';
                     Produce.table[key] = Produce.uniqueProducts[key].kg.toFixed(2);
                 }
@@ -785,230 +856,233 @@ $( document ).ready(function()
         }
     })
 
-    $( "#produce-change-bttn" ).click( function() { 
+    $( "#produceModal" ).on('click', '#produce-change-bttn', function(e) { 
         var changedProducts = [];
-        var curTable = $("#produceTable tbody tr");
-        $.each(curTable, function() { 
-            // if table before closing is not the same as it  was opened. some products value are changed.
-            if ( Produce.table[ $(this).find('td:nth-child(1)')[0].innerHTML ] != $(this).find('td:nth-child(2)')[0].innerHTML )
-            {
-                changedProducts[ $(this).find('td:nth-child(1)')[0].innerHTML ] = {startKg: Produce.table[ $(this).find('td:nth-child(1)')[0].innerHTML ],
-                                                                                endKg: $(this).find('td:nth-child(2)')[0].innerHTML}
-                                                                                    
-            }
-        })
-
-        for ( var key in changedProducts ) 
+        var curRow = $("#produceTable tbody tr:nth-child("+e.target.parentNode.parentNode.rowIndex+")");
+        var keyProduct = curRow.find('td:nth-child(2)')[0].innerHTML;
+ 
+        // if table before closing is not the same as it  was opened. some products value are changed.
+        if ( Produce.table[ curRow.find('td:nth-child(2)')[0].innerHTML ] != curRow.find('td:nth-child(3)')[0].innerHTML )
         {
-            if ( changedProducts.hasOwnProperty(key) ) 
-            {
-                $.ajax({
-                    type: 'POST',
-                    url: "php/products_formula.php",
-                    data: {kg: Math.round(parseFloat(changedProducts[key].endKg)), prod: key},
-                    success: function( data ) { 
-                        var jsonCount = 0;
-                        var usedShifts = {}; // set of columns where products is landed;
-                        var firstPlacedIndex = -1;
+            changedProducts.push( {startKg: Produce.table[ curRow.find('td:nth-child(2)')[0].innerHTML ],
+                                                                            endKg: curRow.find('td:nth-child(3)')[0].innerHTML} )
+        }
+        // this loop will be always just a zero or one. I shuld put 'if' statement here better
 
-                        if (data != '') 
+        if ( changedProducts.length > 0 ) 
+        {
+            $.ajax({
+                type: 'POST',
+                url: "php/products_formula.php",
+                data: {kg: Math.round(parseFloat(changedProducts[0].endKg)), prod: keyProduct},
+                success: function( data ) { 
+                    var jsonCount = 0;
+                    var usedShifts = {}; // set of columns where products is landed;
+                    var firstPlacedIndex = -1;
+                    console.log(data);
+
+                    if (data != '') 
+                    {
+                        updateUndo();
+                        console.log(JSON.parse(data));
+                        jsonData = JSON.parse(data)
+                        jsonCount = jsonData['shifts'];
+                        console.log(jsonCount);
+                        //return;
+                        uneditable_jsonCount = jsonCount;
+                        var newKey,
+                            firstMac,
+                            tileCounter = 1,
+                            endFill = false,
+                            last_i = 0,
+                            last_shift = 0,
+                            unplacedProducts = [];
+                        markedProducts = {};
+
+                        //  delete product divs from table
+                        for ( var shift in Produce.uniqueProducts[keyProduct].shifts ) 
                         {
-                            updateUndo();
-                            console.log(JSON.parse(data));
-                            jsonData = JSON.parse(data)
-                            jsonCount = jsonData['shifts'];
-                            console.log(jsonCount);
-                            //return;
-                            uneditable_jsonCount = jsonCount;
-                            var newKey,
-                                firstMac,
-                                tileCounter = 1,
-                                endFill = false,
-                                last_i = 0,
-                                last_shift = 0,
-                                unplacedProducts = [];
-                            markedProducts = {};
-
-                            //  delete product divs from table
-                            for ( var shift in Produce.uniqueProducts[key].shifts ) 
+                            if ( Produce.uniqueProducts[keyProduct].shifts.hasOwnProperty(shift) ) 
                             {
-                                if ( Produce.uniqueProducts[key].shifts.hasOwnProperty(shift) ) 
-                                {
-                                    var machineRows = Produce.uniqueProducts[key].shifts[shift];
-                                    for (var i = 0; i < machineRows.length; i++) 
-                                    {      
-                                        $('#table2 tbody tr:nth-child('+machineRows[i]+') td:nth-child('+ shift +')')[0].innerHTML = '';
-                                    }
+                                var machineRows = Produce.uniqueProducts[keyProduct].shifts[shift];
+                                for (var i = 0; i < machineRows.length; i++) 
+                                {      
+                                    $('#table2 tbody tr:nth-child('+machineRows[i]+') td:nth-child('+ shift +')')[0].innerHTML = '';
                                 }
                             }
+                        }
 
-                            for ( var shift in Produce.uniqueProducts[key].shifts ) 
-                            {   
-                                firstMac = ( firstMac === undefined ) ? shift : firstMac;
-                                if ( Produce.uniqueProducts[key].shifts.hasOwnProperty(shift) ) 
-                                {
-                                    var machineRows = Produce.uniqueProducts[key].shifts[shift];
-                                    var machLen = machineRows.length;
-                                    if ( jsonCount == 0 ) 
-                                    { 
-                                        last_i = machineRows[0];
+                        for ( var shift in Produce.uniqueProducts[keyProduct].shifts ) 
+                        {   
+                            firstMac = ( firstMac === undefined ) ? shift : firstMac;
+                            if ( Produce.uniqueProducts[keyProduct].shifts.hasOwnProperty(shift) ) 
+                            {
+                                var machineRows = Produce.uniqueProducts[keyProduct].shifts[shift];
+                                var machLen = machineRows.length;
+                                if ( jsonCount == 0 ) 
+                                { 
+                                    last_i = machineRows[0];
+                                    last_shift = shift;
+                                    endFill = true;
+                                }
+
+                                for (var i = 0; i < machLen; i++) 
+                                {      
+                                    newKey = machineRows[i]+'/'+shift;
+                                    // end fill true if kg is given less then the original
+                                    if ( !endFill ) 
+                                    {
+                                        markedProducts[newKey] = {'r': parseInt(machineRows[i]), 
+                                                'c': shift,
+                                                'rEnd': parseInt(machineRows[i]), 
+                                                'cEnd': shift,
+                                                'product': keyProduct,
+                                                'kg': ( tileCounter == jsonCount) ? jsonData['kgLastShift'] : jsonData['kgPerShift']
+                                                }; 
+                                        last_shift = shift;
+                                        last_i = machineRows[i];
+                                    }
+                                    else  {
+                                        unplacedProducts.push( [parseInt(machineRows[i]), parseInt(shift)] );
+                                    }
+
+                                    if ( tileCounter == jsonCount ) {
+                                        last_i = machineRows[i];
                                         last_shift = shift;
                                         endFill = true;
-                                    }
-
-                                    for (var i = 0; i < machLen; i++) 
-                                    {      
-                                        newKey = machineRows[i]+'/'+shift;
-                                        // end fill true if kg is given less then the original
-                                        if ( !endFill ) 
-                                        {
-                                            markedProducts[newKey] = {'r': parseInt(machineRows[i]), 
-                                                    'c': shift,
-                                                    'rEnd': parseInt(machineRows[i]), 
-                                                    'cEnd': shift,
-                                                    'product': key,
-                                                    'kg': ( tileCounter == jsonCount) ? jsonData['kgLastShift'] : jsonData['kgPerShift']
-                                                    }; 
-                                            last_shift = shift;
-                                            last_i = machineRows[i];
-                                        }
-                                        else  {
-                                            unplacedProducts.push( [parseInt(machineRows[i]), parseInt(shift)] );
-                                        }
-
-                                        if ( tileCounter == jsonCount ) {
-                                            last_i = machineRows[i];
-                                            last_shift = shift;
-                                            endFill = true;
-                                        }           
-                                        tileCounter++;                           
-                                    }
+                                    }           
+                                    tileCounter++;                           
                                 }
                             }
-
-                            if ( !endFill ) 
-                            {
-                                // get all machines
-                                var allMachines = [];
-                                for ( var mac in Produce.uniqueProducts[key].machines )
-                                {
-                                    allMachines.push(parseInt(mac));
-                                }
-                                allMachines.sort( function(a,b) { return a-b; } )
-
-                                // if product kg is changed to bigger
-                                var start_i = ( allMachines[ allMachines.indexOf( last_i )+1] !== undefined ) ? allMachines.indexOf( last_i )+1 : 0;
-                                if ( start_i == 0 ) last_shift++;
-                                while ( true )
-                                {
-                                    for (var i = start_i; i < allMachines.length; i++)
-                                    {
-                                        markedProducts[ allMachines[i]+'/'+last_shift ] = {'r': allMachines[i], 
-                                                'c': last_shift,
-                                                'rEnd': allMachines[i], 
-                                                'cEnd': last_shift,
-                                                'product': key,
-                                                'kg': ( tileCounter == jsonCount) ? jsonData['kgLastShift'] : jsonData['kgPerShift']
-                                                };
-                                        if ( tileCounter == jsonCount ) {
-                                            endFill = true;
-                                            break;
-                                        }           
-                                        tileCounter++;
-                                    }
-                                    start_i = 0;
-                                    last_shift++;
-
-                                    if ( endFill )
-                                        break;
-                                }
-                            }
-                            else 
-                            {
-                                // get endppoints to where to pull backwards
-                                if ( jsonCount < Produce.uniqueProducts[key].count )
-                                {
-                                    console.log('Smaller');
-                                    var endPoints = {};
-                                    for (var i = unplacedProducts.length - 1; i >= 0; i--)
-                                    {
-                                        if ( endPoints[ unplacedProducts[i][0] ] !== undefined )
-                                        {
-                                            if ( unplacedProducts[i][1] < endPoints[ unplacedProducts[i][0] ].col )
-                                                endPoints[ unplacedProducts[i][0] ].col = unplacedProducts[i][1];
-                                        }
-                                        else
-                                        {
-                                            endPoints[ unplacedProducts[i][0] ] = {col: unplacedProducts[i][1], move: false};
-                                            // check if in the next tile there is a product, that meen line should be moved backwards.
-                                            var c = unplacedProducts[i][1] + 1;
-                                            var nextCell = $( "#table2 tbody tr:nth-child("+unplacedProducts[i][0]+") td:nth-child("+c+")" );
-                                            // skip the free shifts... get over free shifts
-                                            while ( nextCell.hasClass('dark') ) {
-                                                nextCell = $( "#table2 tbody tr:nth-child("+unplacedProducts[i][0]+") td:nth-child("+c+")" );
-                                                c++;
-                                            }
-                                           
-                                            if ( nextCell[0].innerHTML != "" )
-                                            {
-                                                endPoints[ unplacedProducts[i][0] ].move = true;
-                                            }
-                                        }
-                                        
-                                    };
-                                    console.log(endPoints);
-
-                                    // pull front backward's to endpoint
-                                    moveBackwards( endPoints ) ;
-                                    
-                                }
-                                else
-                                {
-                                    console.log('same');
-                                }
-                                console.log(unplacedProducts);
-                            }
-
-                            console.log('First shift '+firstMac);
-                            Move.start_row = firstMac; 
-                            Move.start_col = Produce.uniqueProducts[key].shifts[firstMac][0];
-                            Move.move_products['start'] = true;  Move.move_products['move'] = true;
-
-                            // simulate mouse move to get rEnd and cRow defined for markedProducts
-                            var $el = $('#table2 tbody tr:nth-child('+Move.start_row+') td:nth-child('+ Move.start_col +')');
-                            var event = jQuery.Event( "mousemove", {
-                                target: $el.find('div')[0],
-                                which: 1,
-                                buttons: 1
-                            });
-                            //console.log("Before trigger "+(PBuffer.mousemove.target.parentElement.rowIndex + 1)+' '+(PBuffer.mousemove.target.cellIndex + 1));
-                            $el.trigger(event);
-
-                            Move.move_products['start'] = true;  Move.move_products['move'] = true;
-                            // trigger mousdown to place products
-                            var event = jQuery.Event( "mouseup", {
-                                target: $el.find('div')[0],
-                                which: 1,
-                                clientX: 300,
-                                clientY: 300,
-                                notDelete: true
-                            });
-                            $el.trigger(event);
-
                         }
-                        else
+
+                        if ( !endFill ) 
                         {
-                            showError("Nekorekts rezultāts.", 'gen-prod-bttn');
-                        }
-                    },
-                    async: false
-                })
+                            // get all machines
+                            var allMachines = [];
+                            for ( var mac in Produce.uniqueProducts[keyProduct].machines )
+                            {
+                                allMachines.push(parseInt(mac));
+                            }
+                            allMachines.sort( function(a,b) { return a-b; } )
 
-            }
+                            // if product kg is changed to bigger
+                            var start_i = ( allMachines[ allMachines.indexOf( last_i )+1] !== undefined ) ? allMachines.indexOf( last_i )+1 : 0;
+                            if ( start_i == 0 ) last_shift++;
+                            while ( true )
+                            {
+                                for (var i = start_i; i < allMachines.length; i++)
+                                {
+                                    markedProducts[ allMachines[i]+'/'+last_shift ] = {'r': allMachines[i], 
+                                            'c': last_shift,
+                                            'rEnd': allMachines[i], 
+                                            'cEnd': last_shift,
+                                            'product': keyProduct,
+                                            'kg': ( tileCounter == jsonCount) ? jsonData['kgLastShift'] : jsonData['kgPerShift']
+                                            };
+                                    if ( tileCounter == jsonCount ) {
+                                        endFill = true;
+                                        break;
+                                    }           
+                                    tileCounter++;
+                                }
+                                start_i = 0;
+                                last_shift++;
+
+                                if ( endFill )
+                                    break;
+                            }
+                        }
+                        else 
+                        {
+                            // get endppoints to where to pull backwards
+                            if ( jsonCount < Produce.uniqueProducts[keyProduct].count )
+                            {
+                                console.log('Smaller');
+                                var endPoints = {};
+                                for (var i = unplacedProducts.length - 1; i >= 0; i--)
+                                {
+                                    if ( endPoints[ unplacedProducts[i][0] ] !== undefined )
+                                    {
+                                        if ( unplacedProducts[i][1] < endPoints[ unplacedProducts[i][0] ].col )
+                                            endPoints[ unplacedProducts[i][0] ].col = unplacedProducts[i][1];
+                                    }
+                                    else
+                                    {
+                                        endPoints[ unplacedProducts[i][0] ] = {col: unplacedProducts[i][1], move: false};
+                                        // check if in the next tile there is a product, that meen line should be moved backwards.
+                                        var c = unplacedProducts[i][1] + 1;
+                                        var nextCell = $( "#table2 tbody tr:nth-child("+unplacedProducts[i][0]+") td:nth-child("+c+")" );
+                                        // skip the free shifts... get over free shifts
+                                        while ( nextCell.hasClass('dark') ) {
+                                            nextCell = $( "#table2 tbody tr:nth-child("+unplacedProducts[i][0]+") td:nth-child("+c+")" );
+                                            c++;
+                                        }
+                                       
+                                        if ( nextCell[0].innerHTML != "" )
+                                        {
+                                            endPoints[ unplacedProducts[i][0] ].move = true;
+                                        }
+                                    }
+                                    
+                                };
+                                console.log(endPoints);
+
+                                // pull front backward's to endpoint
+                                moveBackwards( endPoints ) ;
+                                
+                            }
+                            else
+                            {
+                                console.log('same');
+                            }
+                            console.log(unplacedProducts);
+                        }
+
+                        Move.start_row = firstMac; 
+                        Move.start_col = Produce.uniqueProducts[keyProduct].shifts[firstMac][0];
+                        var el = $('#table2 tbody tr:nth-child('+Move.start_row+') td:nth-child('+ Move.start_col +')');
+
+                        // simulate mouse move to get rEnd and cRow defined for markedProducts
+                        triggeProductPlacement(el, el.find('div')[0], true, 300, 300);
+                    }
+                    else
+                    {
+                        showError("Nekorekts rezultāts.", 'gen-prod-bttn');
+                    }
+                },
+                async: false
+            })
+            Produce.table[ keyProduct ] = curRow.find('td:nth-child(3)')[0].innerHTML;
         }
         console.log(changedProducts);
 
     })
+
+    function triggeProductPlacement(el, trgt, not_del ,cx, cy, markedP) 
+    {
+        // glitch fix when this function starts and i dunno why but markedProducts sudenlly is empty, so i pass it like argument
+        if ( markedP !== undefined ) markedProducts = markedP;
+
+        Move.move_products['start'] = true;  Move.move_products['move'] = true;
+        var event = jQuery.Event( "mousemove", {
+            target: trgt,
+            which: 1,
+            buttons: 1
+        });
+        el.trigger(event);
+
+        Move.move_products['start'] = true;  Move.move_products['move'] = true;
+        // trigger mousdown to place products
+        var event = jQuery.Event( "mouseup", {
+            target: trgt,
+            which: 1,
+            clientX: cx,
+            clientY: cy,
+            notDelete: not_del
+        });
+        el.trigger(event);
+    }
 
     function moveBackwards( endPoints )
     {
@@ -1503,7 +1577,7 @@ $( document ).ready(function()
                                 markedProducts[key].c = td_html[0].cellIndex + 1;
                                 markedProducts[key].r = td_html[0].parentNode.rowIndex + 1;
                                 // draw product
-                                td_html.html( setProductDiv(td_html.attr('name'), markedProducts[key].product, true, markedProducts[key].kg) );
+                                td_html.html( setProductDiv(td_html.attr('name'), markedProducts[key].product, true, markedProducts[key].kg,  markedProducts[key].fixed) );
 
                             }
                         }
@@ -1624,28 +1698,11 @@ $( document ).ready(function()
 
             // get copy or cut products from buffer, assign that to marked products
             markedProducts = ( Object.keys(PBuffer.cut).length > 0 ) ? PBuffer.cut : PBuffer.copy;
-            Move.move_products['start'] = true;  Move.move_products['move'] = true;
-
             // simulate mouse move to get rEnd and cRow defined for markedProducts
-            var $el = $("#table2 tbody tr:nth-child("+PBuffer.cornerY+") td:nth-child("+PBuffer.cornerX+")");
-            var event = jQuery.Event( "mousemove", {
-                target: PBuffer.mousemove.target,
-                which: 1,
-                buttons: 1
-            });
-            console.log("Before trigger "+(PBuffer.mousemove.target.parentElement.rowIndex + 1)+' '+(PBuffer.mousemove.target.cellIndex + 1));
-            $el.trigger(event);
+            var el = $("#table2 tbody tr:nth-child("+PBuffer.cornerY+") td:nth-child("+PBuffer.cornerX+")");
 
-            Move.move_products['start'] = true;  Move.move_products['move'] = true;
-            // trigger mousdown to place products
-            var event = jQuery.Event( "mouseup", {
-                target: PBuffer.mousemove.target,
-                which: 1,
-                clientX: PBuffer.mousemove.clientX,
-                clientY: PBuffer.mousemove.clientY,
-                notDelete: notDelete
-            });
-            $el.trigger(event);
+            triggeProductPlacement(el, PBuffer.mousemove.target, notDelete, PBuffer.mousemove.clientX, PBuffer.mousemove.clientY );
+
         }
     });
 
@@ -1762,12 +1819,13 @@ function getMarkedProducts() {
         else
             Move.mProdCountInRow[row].push(markedDivs[i].cellIndex+1);
 
-        markedProducts[markedDivs[i].id] = {'r': markedDivs[i].parentNode.parentNode.rowIndex+1, 
+        markedProducts[markedDivs[i].id] = {'r': markedDivs[i].parentNode.parentNode.rowIndex+1,
                                 'c': markedDivs[i].parentNode.cellIndex+1,
                                 'rEnd': markedDivs[i].parentNode.parentNode.rowIndex+1, 
                                 'cEnd': markedDivs[i].parentNode.cellIndex+1,
                                 'product': markedDivs[i].getAttribute('product'),
-                                'kg': markedDivs[i].getAttribute('kg')
+                                'kg': markedDivs[i].getAttribute('kg'),
+                                'fixed': markedDivs[i].getAttribute('fixed')
                                 };
 
         PBuffer.cornerY = ( PBuffer.cornerY > markedProducts[markedDivs[i].id].r  ) ? markedProducts[markedDivs[i].id].r : PBuffer.cornerY;
@@ -1791,7 +1849,9 @@ function shiftFromFreeDays() {
                                 'c': allFreeDivs[i].parentNode.cellIndex+1,
                                 'rEnd': allFreeDivs[i].parentNode.parentNode.rowIndex+1, 
                                 'cEnd': allFreeDivs[i].parentNode.cellIndex+1,
-                                'product': allFreeDivs[i].getAttribute('product')
+                                'product': allFreeDivs[i].getAttribute('product'),
+                                'kg': allFreeDivs[i].getAttribute('kg'),
+                                'fixed': allFreeDivs[i].getAttribute('fixed')
                                 };
     }
     // triger mouseup event to move products from free sifts
@@ -1990,9 +2050,10 @@ function updateColor(product) { // get random color
     ###########################
 */
 
-function setProductDiv (name, product, marked, kg) {
+function setProductDiv (name, product, marked, kg, is_fixed) {
     cls = (marked) ? ' marked' : '';
-    return '<div id="'+name+'" class="blue'+cls+'" product="'+product+'" kg="'+kg+'" '+ 
+    is_static = ( is_fixed == 't' ) ? 'true':'false';
+    return '<div id="'+name+'" class="blue'+cls+'" product="'+product+'" kg="'+kg+'" fixed="'+is_static+'"'+ 
             'style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+product+'</div';
 }
 
@@ -2006,18 +2067,20 @@ save = function () {
     $.each(allProducts, function(prod) 
     {
     	if ( this.id in loadedTiles ) {
-    		if ( loadedTiles[this.id].product != this.getAttribute('product') && loadedTiles[this.id].kg != this.getAttribute('kg') ) {
-    			addedTiles[this.id] = {product: this.getAttribute('product'), kg: this.getAttribute('kg')};
+            //console.log( loadedTiles[this.id].product+'=='+this.getAttribute('product')+' '+loadedTiles[this.id].kg+'=='+this.getAttribute('kg')+' '+loadedTiles[this.id].fixed+'=='+this.getAttribute('fixed') );
+    		if ( loadedTiles[this.id].product != this.getAttribute('product') || loadedTiles[this.id].kg != this.getAttribute('kg') || loadedTiles[this.id].fixed.toString() != this.getAttribute('fixed').toString() ) {
+                //console.log('true');
+    			addedTiles[this.id] = {product: this.getAttribute('product'), kg: this.getAttribute('kg'), fixed: this.getAttribute('fixed')};
     		}
     	} else {
-    		addedTiles[this.id] = {product: this.getAttribute('product'), kg: this.getAttribute('kg')};
+    		addedTiles[this.id] = {product: this.getAttribute('product'), kg: this.getAttribute('kg'), fixed: this.getAttribute('fixed')};
     	}
-    	newLoadedTiles[this.id] = {product: this.getAttribute('product'), kg: this.getAttribute('kg')};
+    	newLoadedTiles[this.id] = {product: this.getAttribute('product'), kg: this.getAttribute('kg'), fixed: this.getAttribute('fixed')};
     })
 
     for (var key in loadedTiles) {
         if (loadedTiles.hasOwnProperty(key)) {
-            console.log(key);
+            //console.log(key);
         	if ( document.getElementsByName(key)[0].innerHTML == "" ) {
 				deletedTiles[key] = loadedTiles[key];
         	}	
@@ -2030,6 +2093,7 @@ save = function () {
     // when post is finished
     .done(function( data ) {
         console.log('psuccess');
+        alert(data);
         loadedTiles = newLoadedTiles;
     })
     .fail( function( data ) {
