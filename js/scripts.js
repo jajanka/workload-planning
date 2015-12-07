@@ -31,7 +31,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         }
      });
 })( jQuery );
-
+/*
 ( function($) {
      $(document).ajaxStart(function(ev) {
         console.debug("ajaxStart");
@@ -42,7 +42,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         }
      });
 })( jQuery );
-
+*/
 // scope the jQuery
 ( function($) {
 
@@ -417,7 +417,7 @@ $( document ).ready(function()
 
                                 if ( td_html[0].innerHTML.trim() ==  "" ) {
                                     // put a product in cell
-                                    td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgPerShift'], 'f') );
+                                    td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgPerShift'], 'false') );
                                     last_td = td_html;
                                     jsonCount--;
                                     usedShifts[i] = true;
@@ -426,12 +426,12 @@ $( document ).ready(function()
                                 } 
                             }
                             if (0 >= jsonCount) { // if all products placed 
-                                td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgLastShift'], 'f') );
+                                td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgLastShift'], 'false') );
                                 break; 
                             } 
                         }
                         if (0 >= jsonCount) { 
-                            td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgLastShift'], 'f') );
+                            td_html.html( setProductDiv(td_html.attr("name"), product, false, jsonData['kgLastShift'], 'false') );
                             break; 
                         }
                     };
@@ -742,17 +742,31 @@ $( document ).ready(function()
             console.log( Produce.uniqueProducts);
 
             var td_cell;
-            for ( var col = startDateIndex; col <= endDateIndex; col++ ) 
+            for ( var col = startDateIndex; col <= endDateIndex; col++ )
             {
-                for ( var row = 1; row <= machineCount; row++ ) 
+                for ( var row = 1; row <= machineCount; row++ )
                 {
                     td = $('#table2 tr:nth-child('+row+') td:nth-child('+col+') div');
                     if ( td[0] !== undefined  ) {
                         Produce.uniqueProducts[ td.attr('product') ].count += 1;
                         Produce.uniqueProducts[ td.attr('product') ].kg += parseFloat( td.attr('kg') );
-                        Produce.uniqueProducts[ td.attr('product') ].fixed = td.attr('fixed');
 
-                        if ( Produce.uniqueProducts[ td.attr('product') ].shifts[col] !== undefined ) 
+                        if ( Produce.uniqueProducts[ td.attr('product') ].fixed !== undefined ) 
+                        {
+                            if ( Produce.uniqueProducts[ td.attr('product') ].fixed != td.attr('fixed') && Produce.uniqueProducts[ td.attr('product') ].fixed != 'mid') {
+                                Produce.uniqueProducts[ td.attr('product') ].fixed = 'mid';
+                            }
+                            else if ( Produce.uniqueProducts[ td.attr('product') ].fixed != 'mid' )
+                            {
+                                Produce.uniqueProducts[ td.attr('product') ].fixed = td.attr('fixed');
+                            }
+                        }
+                        else
+                        {
+                            Produce.uniqueProducts[ td.attr('product') ].fixed = td.attr('fixed');
+                        }
+
+                        if ( Produce.uniqueProducts[ td.attr('product') ].shifts[col] !== undefined )
                         {
                             Produce.uniqueProducts[ td.attr('product') ].shifts[col].push(row);
                         }
@@ -840,15 +854,27 @@ $( document ).ready(function()
                 if (Produce.uniqueProducts.hasOwnProperty(key)) {
                     produceTable_html += '<tr>';
                     produceTable_html += '<td><div class="checkbox"><label><label class="checkbox-inline">'+
-                          '<input type="checkbox" id="inlineCheckbox1" value="option1" unchecked>'+
+                          '<input type="checkbox" id="checkbox'+key+'" value="option1" unchecked>'+
                         '</label></label></div></td>';
                     produceTable_html += '<td>'+key+'</td><td contenteditable="true">'+Produce.uniqueProducts[key].kg.toFixed(2)+'</td>';
                     produceTable_html += '<td><button type="button" class="btn btn-success" id="produce-change-bttn">Izmainīt</button></td>';
                     produceTable_html += '</tr>';
-                    Produce.table[key] = Produce.uniqueProducts[key].kg.toFixed(2);
+                    Produce.table[key] = {kg: Produce.uniqueProducts[key].kg.toFixed(2), fixed: Produce.uniqueProducts[key].fixed};   
+                    
                 }
             }
             $('#produceTable tbody').html(produceTable_html);
+
+            // mark checkboxes with tri-state
+            if ( Produce.uniqueProducts[key].fixed == 'true' ) {
+                $('#checkbox'+key).prop('checked', true);
+            }
+            else if ( Produce.uniqueProducts[key].fixed == 'mid' ) {
+                $('#checkbox'+key)[0].indeterminate = true;
+            }
+            else {
+                $('#checkbox'+key).prop('checked', false);
+            }
         }
         else 
         {
@@ -861,14 +887,16 @@ $( document ).ready(function()
         var curRow = $("#produceTable tbody tr:nth-child("+e.target.parentNode.parentNode.rowIndex+")");
         var keyProduct = curRow.find('td:nth-child(2)')[0].innerHTML;
  
-        // if table before closing is not the same as it  was opened. some products value are changed.
-        if ( Produce.table[ curRow.find('td:nth-child(2)')[0].innerHTML ] != curRow.find('td:nth-child(3)')[0].innerHTML )
+        // if table before closing is not the same as it  was opened. some products value are changed. Or the fixed state checkbox is changed
+        if ( Produce.table[ keyProduct ].kg != curRow.find('td:nth-child(3)')[0].innerHTML || Produce.table[ keyProduct ].fixed != curRow.find('td:nth-child(1) input').is(':checked') )
         {
-            changedProducts.push( {startKg: Produce.table[ curRow.find('td:nth-child(2)')[0].innerHTML ],
-                                                                            endKg: curRow.find('td:nth-child(3)')[0].innerHTML} )
+            changedProducts.push( {startKg: Produce.table[ keyProduct ],
+                                    endKg: curRow.find('td:nth-child(3)')[0].innerHTML,
+                                    fixed: curRow.find('td:nth-child(1) input').is(':checked')
+                                })
         }
-        // this loop will be always just a zero or one. I shuld put 'if' statement here better
 
+        // the length either will be 0 or 1. So if this statement is true, then we can access changeProducts by index '0'.
         if ( changedProducts.length > 0 ) 
         {
             $.ajax({
@@ -896,7 +924,8 @@ $( document ).ready(function()
                             endFill = false,
                             last_i = 0,
                             last_shift = 0,
-                            unplacedProducts = [];
+                            unplacedProducts = [],
+                            is_fixed = ( changedProducts[0].fixed ) ? 'true':'false';
                         markedProducts = {};
 
                         //  delete product divs from table
@@ -937,7 +966,8 @@ $( document ).ready(function()
                                                 'rEnd': parseInt(machineRows[i]), 
                                                 'cEnd': shift,
                                                 'product': keyProduct,
-                                                'kg': ( tileCounter == jsonCount) ? jsonData['kgLastShift'] : jsonData['kgPerShift']
+                                                'kg': ( tileCounter == jsonCount) ? jsonData['kgLastShift'] : jsonData['kgPerShift'],
+                                                'fixed': is_fixed
                                                 }; 
                                         last_shift = shift;
                                         last_i = machineRows[i];
@@ -978,7 +1008,8 @@ $( document ).ready(function()
                                             'rEnd': allMachines[i], 
                                             'cEnd': last_shift,
                                             'product': keyProduct,
-                                            'kg': ( tileCounter == jsonCount) ? jsonData['kgLastShift'] : jsonData['kgPerShift']
+                                            'kg': ( tileCounter == jsonCount) ? jsonData['kgLastShift'] : jsonData['kgPerShift'],
+                                            'fixed': is_fixed
                                             };
                                     if ( tileCounter == jsonCount ) {
                                         endFill = true;
@@ -1044,7 +1075,7 @@ $( document ).ready(function()
                         var el = $('#table2 tbody tr:nth-child('+Move.start_row+') td:nth-child('+ Move.start_col +')');
 
                         // simulate mouse move to get rEnd and cRow defined for markedProducts
-                        triggeProductPlacement(el, el.find('div')[0], true, 300, 300);
+                        triggeProductPlacement(el, el.find('div')[0], true, 300, 300, markedProducts);
                     }
                     else
                     {
@@ -1053,7 +1084,8 @@ $( document ).ready(function()
                 },
                 async: false
             })
-            Produce.table[ keyProduct ] = curRow.find('td:nth-child(3)')[0].innerHTML;
+            Produce.table[ keyProduct ] = {kg: curRow.find('td:nth-child(3)')[0].innerHTML, fixed: curRow.find('td:nth-child(1) input').is(':checked').toString()};
+
         }
         console.log(changedProducts);
 
@@ -2052,7 +2084,7 @@ function updateColor(product) { // get random color
 
 function setProductDiv (name, product, marked, kg, is_fixed) {
     cls = (marked) ? ' marked' : '';
-    is_static = ( is_fixed == 't' ) ? 'true':'false';
+    is_static = ( is_fixed.toString() == 'true' ) ? 'true':'false';
     return '<div id="'+name+'" class="blue'+cls+'" product="'+product+'" kg="'+kg+'" fixed="'+is_static+'"'+ 
             'style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+product+'</div';
 }
@@ -2100,8 +2132,12 @@ save = function () {
         console.log('pfail');
         console.log(data);
     });
-};	
+};
 
+function ts(cb) {
+  if (cb.readOnly) cb.checked=cb.readOnly=false;
+  else if (!cb.checked) cb.readOnly=cb.indeterminate=true;
+}
 
 // checks if Ctrl button is pressed
 var ctrlPressed = false;

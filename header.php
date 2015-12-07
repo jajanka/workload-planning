@@ -8,8 +8,8 @@
 		<link rel="icon" href="css/images/logo.ico" type="image/ico" />
 		<link rel="stylesheet" href="css/style.css" type="text/css" media="screen"/>
 		<link rel="stylesheet" media="screen" href="bootstrap/css/bootstrap.min.css">
-    	<link href="datepicker/jquery.datepick.css" rel="stylesheet" media="screen">
-    	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <link href="datepicker/jquery.datepick.css" rel="stylesheet" media="screen">
+    <script src="js/jquery-1.11.3.min.js"></script>
 		<title><?php echo $title; ?></title>
 	</head>
 
