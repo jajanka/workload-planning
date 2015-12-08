@@ -2,7 +2,7 @@
 
 $week_days = ['P', 'O', 'T', 'C', 'Pk', 'S', 'Sv'];
 $month = ['Janvāris', 'Februāris', 'Marts', 'Aprīlis', 'Maijs', 'Jūnijs', 'Jūlijs', 'Augusts', 'Septembris', 'Oktobris', 'Novembris', 'Decembris'];
-
+$monthNamesShort = ['jan','feb','mar','apr','mai','jūn','jūl','aug','sep','okt','nov','dec'];
 
 if (isset($_POST['get_year']) && is_numeric($_POST['get_year'])) 
 {
@@ -29,7 +29,7 @@ if (isset($_POST['get_year']) && is_numeric($_POST['get_year']))
 		foreach ($res as $key => $value) {
 			if ( date("n",strtotime($value[0])) != $curMonth)
 			{		
-				echo '<tr><td colspan="6" style="text-align:center; background-color:#337AB7; color: #fff; font-size: 16px;">'.$month[$curMonth].'</td></tr>';
+				echo '<tr><td id="'.$monthNamesShort[$curMonth].'" colspan="6" style="text-align:center; background-color:#337AB7; color: #fff; font-size: 16px;">'.$month[$curMonth].'</td></tr>';
 			}
 			$curMonth = date("n",strtotime($value[0]));
 			//$curMonth = ($curMonth > 10) ? 11 : $curMonth;

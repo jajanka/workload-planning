@@ -23,8 +23,10 @@
     <div>
       <ul class="nav navbar-nav">
         <li><a href="products.php"><span class="glyphicon glyphicon-th-list"></span> Produkti</a></li>
-        <li><a href="calendar.php"><span class="glyphicon glyphicon-calendar"></span> Kalendārs</a></li>
-        <?php 
+        <?php
+        $monthNamesShort = ['jan','feb','mar','apr','mai','jūn','jūl','aug','sep','okt','nov','dec'];
+        echo '<li><a href="calendar.php#'.$monthNamesShort[date("n")-1].'"><span class="glyphicon glyphicon-calendar"></span> Kalendārs</a></li>';
+
         $phpself = explode('/',$_SERVER['PHP_SELF']);
         if ( end($phpself) == 'index.php' ) 
         {

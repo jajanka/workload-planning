@@ -54,146 +54,152 @@ $( document ).ready(function()
 
     // Button-checkbox
     /////////////////////////////////////
-    function initBttnCheckbox() {
+    function initBttnCheckbox(which) {
 
-        $('.button-checkbox-time').each(function () {
+        if ( which == 0 || which == 1 )
+        {
+            $('.button-checkbox-time').each(function () {
 
-            // Settings
-            var $widget = $(this),
-                $button = $widget.find('button'),
-                $checkbox = $widget.find('input:checkbox'),
-                color = $button.data('color'),
-                settings = { on: {icon: 'glyphicon glyphicon-check' },
-                    off: { icon: 'glyphicon glyphicon-unchecked' }
-                };
+                // Settings
+                var $widget = $(this),
+                    $button = $widget.find('button'),
+                    $checkbox = $widget.find('input:checkbox'),
+                    color = $button.data('color'),
+                    settings = { on: {icon: 'glyphicon glyphicon-check' },
+                        off: { icon: 'glyphicon glyphicon-unchecked' }
+                    };
 
-            // Event Handlers
-            $button.on('click', function () {
-                $checkbox.prop('checked', !$checkbox.is(':checked'));
-                $checkbox.triggerHandler('change');
-                updateDisplay(true);
+                // Event Handlers
+                $button.on('click', function () {
+                    $checkbox.prop('checked', !$checkbox.is(':checked'));
+                    $checkbox.triggerHandler('change');
+                    updateDisplay(true);
+                });
+                // Actions
+                function updateDisplay(clicked) {
+                    var isChecked = $checkbox.is(':checked');
+                    // Set the button's state
+                    $button.data('state', (isChecked) ? "on" : "off");
+
+                    // Set the button's icon
+                    $button.find('.state-icon').removeClass().addClass('state-icon ' + settings[$button.data('state')].icon);
+
+                    // Update the button's color
+                    if (isChecked) {
+                        $button.removeClass('btn-default').addClass('btn-' + color + ' active');
+                        // get index of pressed bttn-chkbox cell
+                        markedShift = $widget.parent().index();
+                        // on click disable all remaining bttn-chkbox. allows only one active bttn-chkbox
+                        if ( $button.hasClass('active') ) {
+                            // iterate over bttn-chkbox time
+                            $('.button-checkbox-time').each(function () {
+                                // Settings
+                                var $widget2 = $(this),
+                                    $button2 = $widget2.find('button');
+                                // if button in not active then disable it
+                                if ( !($button2.hasClass('active')) ) {
+                                    $button2.addClass('disabled');
+                                }
+                            });
+                        }
+                    }
+                    else {
+                        $button.removeClass('btn-' + color + ' active').addClass('btn-default');
+                        if (clicked == true) {
+                            markedShift = 0;
+                            $('.button-checkbox-time').each(function () {
+                                var $widget2 = $(this),
+                                    $button2 = $widget2.find('button');
+                                $button2.removeClass('disabled');
+                            });
+                        }
+                    }
+                }
+                // Initialization
+                function init() {
+
+                    updateDisplay();
+
+                    // Inject the icon if applicable
+                    if ($button.find('.state-icon').length == 0) {
+                        $button.prepend('<i class="state-icon ' + settings[$button.data('state')].icon + '"></i> ');
+                    }
+                }
+                init();
             });
-            // Actions
-            function updateDisplay(clicked) {
-                var isChecked = $checkbox.is(':checked');
-                // Set the button's state
-                $button.data('state', (isChecked) ? "on" : "off");
-
-                // Set the button's icon
-                $button.find('.state-icon').removeClass().addClass('state-icon ' + settings[$button.data('state')].icon);
-
-                // Update the button's color
-                if (isChecked) {
-                    $button.removeClass('btn-default').addClass('btn-' + color + ' active');
-                    // get index of pressed bttn-chkbox cell
-                    markedShift = $widget.parent().index();
-                    // on click disable all remaining bttn-chkbox. allows only one active bttn-chkbox
-                    if ( $button.hasClass('active') ) {
-                        // iterate over bttn-chkbox time
-                        $('.button-checkbox-time').each(function () {
-                            // Settings
-                            var $widget2 = $(this),
-                                $button2 = $widget2.find('button');
-                            // if button in not active then disable it
-                            if ( !($button2.hasClass('active')) ) {
-                                $button2.addClass('disabled');
-                            }
-                        });
-                    }
-                }
-                else {
-                    $button.removeClass('btn-' + color + ' active').addClass('btn-default');
-                    if (clicked == true) {
-                        markedShift = 0;
-                        $('.button-checkbox-time').each(function () {
-                            var $widget2 = $(this),
-                                $button2 = $widget2.find('button');
-                            $button2.removeClass('disabled');
-                        });
-                    }
-                }
-            }
-            // Initialization
-            function init() {
-
-                updateDisplay();
-
-                // Inject the icon if applicable
-                if ($button.find('.state-icon').length == 0) {
-                    $button.prepend('<i class="state-icon ' + settings[$button.data('state')].icon + '"></i> ');
-                }
-            }
-            init();
-        });
+        }
     
-        $('.button-checkbox').each(function () {
+        if ( which == 0 || which == 2 )
+        {
+            $('.button-checkbox').each(function () {
 
-            // Settings
-            var $widget = $(this),
-                $button = $widget.find('button'),
-                $checkbox = $widget.find('input:checkbox'),
-                color = $button.data('color'),
-                settings = { on: {icon: 'glyphicon glyphicon-check' },
-                    off: { icon: 'glyphicon glyphicon-unchecked' }
-                };
+                // Settings
+                var $widget = $(this),
+                    $button = $widget.find('button'),
+                    $checkbox = $widget.find('input:checkbox'),
+                    color = $button.data('color'),
+                    settings = { on: {icon: 'glyphicon glyphicon-check' },
+                        off: { icon: 'glyphicon glyphicon-unchecked' }
+                    };
 
-            // Event Handlers
-            $button.on('click', function () {
-                $checkbox.prop('checked', !$checkbox.is(':checked'));
-                $checkbox.triggerHandler('change');
-                updateDisplay2(true);
-            });
-            $checkbox.on('change', function () {
-                updateDisplay2();
-            });
+                // Event Handlers
+                $button.on('click', function () {
+                    $checkbox.prop('checked', !$checkbox.is(':checked'));
+                    $checkbox.triggerHandler('change');
+                    updateDisplay2(true);
+                });
+                $checkbox.on('change', function () {
+                    updateDisplay2();
+                });
 
-            // Actions
-            function updateDisplay2(clicked) {
-                var isChecked = $checkbox.is(':checked');
+                // Actions
+                function updateDisplay2(clicked) {
+                    var isChecked = $checkbox.is(':checked');
 
-                // Set the button's state
-                $button.data('state', (isChecked) ? "on" : "off");
+                    // Set the button's state
+                    $button.data('state', (isChecked) ? "on" : "off");
 
-                // Set the button's icon
-                $button.find('.state-icon').removeClass().addClass('state-icon ' + settings[$button.data('state')].icon);
+                    // Set the button's icon
+                    $button.find('.state-icon').removeClass().addClass('state-icon ' + settings[$button.data('state')].icon);
 
-                // Update the button's color
-                if (isChecked) {
-                    $button.removeClass('btn-default').addClass('btn-' + color + ' active');
+                    // Update the button's color
+                    if (isChecked) {
+                        $button.removeClass('btn-default').addClass('btn-' + color + ' active');
 
-                    // get toggled bttn-checkbox number. It's machine number
-                    var toggledChkBox = $button.context.getElementsByTagName('button')[0].childNodes[2].textContent;
-                    // color row with this number
-                    $( "#table2 tbody tr:nth-child("+toggledChkBox+") td").addClass('machine-row');
-                    markedMachines[toggledChkBox] = true;
-                    console.log(markedMachines);
-                }
-                else {
-                    $button.removeClass('btn-' + color + ' active').addClass('btn-default');
+                        // get toggled bttn-checkbox number. It's machine number
+                        var toggledChkBox = $button.context.getElementsByTagName('button')[0].childNodes[2].textContent;
+                        // color row with this number
+                        $( "#table2 tbody tr:nth-child("+toggledChkBox+") td").addClass('machine-row');
+                        markedMachines[toggledChkBox] = true;
+                        console.log(markedMachines);
+                    }
+                    else {
+                        $button.removeClass('btn-' + color + ' active').addClass('btn-default');
 
-                    if (clicked == true) {
-                       // get toggled bttn-checkbox number. It's machine number
-                       var toggledChkBox = $button.context.getElementsByTagName('button')[0].childNodes[2].textContent;
-                       // color row with this number
-                        $( "#table2 tbody tr:nth-child("+toggledChkBox+") td").removeClass('machine-row');
-                        delete markedMachines[toggledChkBox];
-                        console.log(markedMachines);  
+                        if (clicked == true) {
+                           // get toggled bttn-checkbox number. It's machine number
+                           var toggledChkBox = $button.context.getElementsByTagName('button')[0].childNodes[2].textContent;
+                           // color row with this number
+                            $( "#table2 tbody tr:nth-child("+toggledChkBox+") td").removeClass('machine-row');
+                            delete markedMachines[toggledChkBox];
+                            console.log(markedMachines);  
+                        }
                     }
                 }
-            }
-            // $( "#table2 tbody tr:nth-child(2) td:nth-child(456)").index()
-            // Initialization
-            function init2() {
+                // $( "#table2 tbody tr:nth-child(2) td:nth-child(456)").index()
+                // Initialization
+                function init2() {
 
-                updateDisplay2();
+                    updateDisplay2();
 
-                // Inject the icon if applicable
-                if ($button.find('.state-icon').length == 0) {
-                    $button.prepend('<i class="state-icon ' + settings[$button.data('state')].icon + '"></i> ');
+                    // Inject the icon if applicable
+                    if ($button.find('.state-icon').length == 0) {
+                        $button.prepend('<i class="state-icon ' + settings[$button.data('state')].icon + '"></i> ');
+                    }
                 }
-            }
-            init2();
-        });
+                init2();
+            });
+        }
     }
 
     // End button-checkbox
@@ -297,7 +303,7 @@ $( document ).ready(function()
         $('#table2 tbody').html(table2_html);
 
         // update bttn-checkboxes
-        initBttnCheckbox();
+        initBttnCheckbox(0);
         drawTodaysSign(1000, true);
     }
 
@@ -323,7 +329,7 @@ $( document ).ready(function()
         var header_time_html = '';
         var header_day_html = '';
 
-        initBttnCheckbox(); // fix for bttn-checkbox
+        initBttnCheckbox(1); // fix for bttn-checkbox
         dates.forEach(function(d) // timeline header
         {   
             for (var i = 0; i < tableHeaders.length; i++) { // time
@@ -340,7 +346,7 @@ $( document ).ready(function()
         });
         $('.table1-header .header-time').append(header_time_html);
         $('.table1-header .header-day').append(header_day_html);
-        initBttnCheckbox();
+        initBttnCheckbox(1);
 
         // add table main table cells
         // generate table cells
@@ -581,9 +587,14 @@ $( document ).ready(function()
                             // update color for product name
                             updateColor(plan.product);
                             // update td witch have attr name with drag tile
-                            $('[name="'+td_name+'"]').html(setProductDiv(td_name, plan.product, false, plan.kg, plan.fixed_position));
+                            var td_cell = $('[name="'+td_name+'"]');
+                            td_cell.html(setProductDiv(td_name, plan.product, false, plan.kg, plan.fixed_position.toString()));
+                            if ( plan.fixed_position.toString() == 'true' ) {
+                                td_cell.addClass('dark');
+                                td_cell.addClass('fixed-pos');
+                            }
                             // add objects to loadedTiles
-                            loadedTiles[td_name] = {product: plan.product, kg: plan.kg, fixed: plan.fixed_position};
+                            loadedTiles[td_name] = {product: plan.product, kg: plan.kg, fixed: plan.fixed_position.toString()};
                         });
                     }
                 }
@@ -660,7 +671,7 @@ $( document ).ready(function()
         Move.move_products['start'] = false; Move.move_products['move'] = false;
 
         if ( undoProducts.length > 0 ) {
-            initBttnCheckbox(); // unpressable bttn fix
+            //initBttnCheckbox(0); // unpressable bttn fix
             markedShift = 0;
 
             var undoHTML = undoProducts.pop();
@@ -675,7 +686,7 @@ $( document ).ready(function()
             })
 
             drawTodaysSign(0, true);
-            initBttnCheckbox();
+            initBttnCheckbox(1);
         }
     });
 
@@ -716,7 +727,7 @@ $( document ).ready(function()
          setTimeout( function() { $( "#interval-bttn" ).tooltip('destroy') }, 3000 );
     });
 
-    $( "#interval-bttn" ).click( function() { 
+    $( "#interval-bttn" ).click( function() {
         var startDate = $('[name="produceStart"]').val();
         var endDate = $('[name="produceEnd"]').val();
         var sd = new Date(startDate), ed = new Date(endDate);
@@ -929,6 +940,7 @@ $( document ).ready(function()
                         markedProducts = {};
 
                         //  delete product divs from table
+                        var td_cell_blabla;
                         for ( var shift in Produce.uniqueProducts[keyProduct].shifts ) 
                         {
                             if ( Produce.uniqueProducts[keyProduct].shifts.hasOwnProperty(shift) ) 
@@ -936,7 +948,10 @@ $( document ).ready(function()
                                 var machineRows = Produce.uniqueProducts[keyProduct].shifts[shift];
                                 for (var i = 0; i < machineRows.length; i++) 
                                 {      
-                                    $('#table2 tbody tr:nth-child('+machineRows[i]+') td:nth-child('+ shift +')')[0].innerHTML = '';
+                                    td_cell_blabla = $('#table2 tbody tr:nth-child('+machineRows[i]+') td:nth-child('+ shift +')');
+                                    td_cell_blabla[0].innerHTML = '';
+                                    td_cell_blabla.removeClass('dark');
+                                    td_cell_blabla.removeClass('fixed-pos');
                                 }
                             }
                         }
@@ -1358,7 +1373,7 @@ $( document ).ready(function()
                     // place it in marked cells not products
                     var curCell = e.target.parentNode;
                     // get cell in marked products
-                    getMarkedProducts();
+                    getMarkedProducts(e);
                 }
                 else if (e.target.className == 'blue') {
                 	console.log('Down3'+' '+Move.move_products['start']+' '+Move.move_products['move']);
@@ -1369,7 +1384,7 @@ $( document ).ready(function()
                     var curCell = e.target.parentNode;
                     // get cell in marked products
                     $('.marked').removeClass('marked');
-                    getMarkedProducts();
+                    getMarkedProducts(e);
                 }
                 else
                 {
@@ -1424,7 +1439,7 @@ $( document ).ready(function()
             $("body").trigger(e);
         }
     })*/
-    $("body").mouseup(function(e) {
+    $("#right").mouseup(function(e) {
         if (e.which == 1) {
 
             // if some cells is marked
@@ -1433,7 +1448,7 @@ $( document ).ready(function()
                 $('.temp-marked').remove();
                 console.log(Move.start_row+" "+Move.old_row+" : "+Move.start_col+" "+ Move.old_col);
                 // get products
-                getMarkedProducts();
+                getMarkedProducts(e);
                 statusBar['marked']['count'] = $('.marked').length;
                 $('#status div').html( statusBar['marked']['label']+': '+statusBar['marked']['count'] );
                 
@@ -1463,6 +1478,7 @@ $( document ).ready(function()
                             markedProducts[key].cEnd < historyEndCell /*|| markedProducts[key].cEnd > lastTdIndex*/) { 
                             //showError('Produkti neietilpst tabulā.');
                             is_valid = false;
+                            $('#error-modal .modal-title').html('<strong>Kļūda!</strong> Produkti neietilpst tabulā.');
                             $('#error-modal .modal-dialog').attr('style','left: '+(e.clientX-80)+'px; top: '+(e.clientY-10)+'px;');
                             $('#error-modal').modal('show');
                             
@@ -1609,8 +1625,15 @@ $( document ).ready(function()
                                 markedProducts[key].c = td_html[0].cellIndex + 1;
                                 markedProducts[key].r = td_html[0].parentNode.rowIndex + 1;
                                 // draw product
-                                td_html.html( setProductDiv(td_html.attr('name'), markedProducts[key].product, true, markedProducts[key].kg,  markedProducts[key].fixed) );
-
+                                td_html.html( setProductDiv(td_html.attr('name'), markedProducts[key].product, true, markedProducts[key].kg, markedProducts[key].fixed) );
+                                if ( markedProducts[key].fixed == 'true' ) {
+                                    td_html.addClass('dark');
+                                    td_html.addClass('fixed-pos');
+                                }
+                                else {
+                                    td_html.removeClass('dark');
+                                    td_html.removeClass('fixed-pos');
+                                }
                             }
                         }
                     }
@@ -1809,7 +1832,6 @@ $( document ).ready(function()
                 $('#productModal').modal({'show': true, });
             }
             else {
-
                 showError("Šāds '"+$('#product').val()+"' produkts neeksistē.", 'bttn-prod-info');
             }
         })
@@ -1824,7 +1846,7 @@ $( document ).ready(function()
 });
 })( jQuery );
 
-function getMarkedProducts() {
+function getMarkedProducts(e) {
     markedProducts = {};
     Move.mProdCountInRow = {};
     // get maximum and minimum values to be able to start the loop properly
@@ -1843,25 +1865,38 @@ function getMarkedProducts() {
 
     for (var i = 0; i < mdlen; i++)
     {
-        markedDivs[i].className += ' marked';
-        // update marked product count in row
-        var row = markedDivs[i].parentNode.rowIndex+1;
-        if (Move.mProdCountInRow[row] === undefined) 
-            Move.mProdCountInRow[row] = [markedDivs[i].cellIndex+1];
-        else
-            Move.mProdCountInRow[row].push(markedDivs[i].cellIndex+1);
+        if ( markedDivs[i].getAttribute('fixed') != 'true' )
+        {
+            markedDivs[i].className += ' marked';
+            // update marked product count in row
+            var row = markedDivs[i].parentNode.rowIndex+1;
+            if (Move.mProdCountInRow[row] === undefined) 
+                Move.mProdCountInRow[row] = [markedDivs[i].cellIndex+1];
+            else
+                Move.mProdCountInRow[row].push(markedDivs[i].cellIndex+1);
 
-        markedProducts[markedDivs[i].id] = {'r': markedDivs[i].parentNode.parentNode.rowIndex+1,
-                                'c': markedDivs[i].parentNode.cellIndex+1,
-                                'rEnd': markedDivs[i].parentNode.parentNode.rowIndex+1, 
-                                'cEnd': markedDivs[i].parentNode.cellIndex+1,
-                                'product': markedDivs[i].getAttribute('product'),
-                                'kg': markedDivs[i].getAttribute('kg'),
-                                'fixed': markedDivs[i].getAttribute('fixed')
-                                };
+            markedProducts[markedDivs[i].id] = {'r': markedDivs[i].parentNode.parentNode.rowIndex+1,
+                                    'c': markedDivs[i].parentNode.cellIndex+1,
+                                    'rEnd': markedDivs[i].parentNode.parentNode.rowIndex+1, 
+                                    'cEnd': markedDivs[i].parentNode.cellIndex+1,
+                                    'product': markedDivs[i].getAttribute('product'),
+                                    'kg': markedDivs[i].getAttribute('kg'),
+                                    'fixed': markedDivs[i].getAttribute('fixed')
+                                    };
 
-        PBuffer.cornerY = ( PBuffer.cornerY > markedProducts[markedDivs[i].id].r  ) ? markedProducts[markedDivs[i].id].r : PBuffer.cornerY;
-        PBuffer.cornerX = ( PBuffer.cornerX > markedProducts[markedDivs[i].id].c  ) ? markedProducts[markedDivs[i].id].c : PBuffer.cornerX;
+            PBuffer.cornerY = ( PBuffer.cornerY > markedProducts[markedDivs[i].id].r ) ? markedProducts[markedDivs[i].id].r : PBuffer.cornerY;
+            PBuffer.cornerX = ( PBuffer.cornerX > markedProducts[markedDivs[i].id].c ) ? markedProducts[markedDivs[i].id].c : PBuffer.cornerX;
+        }
+        // if the fixed tile is selected then throw an error
+        else 
+        {
+            markedProducts = {};
+            $('.marked').removeClass('marked');
+            $('#error-modal .modal-title').html('<strong>Kļūda!</strong> Nedrīkst iezīmēt fiksēto plānu.');
+            $('#error-modal .modal-dialog').attr('style','left: '+(e.clientX-80)+'px; top: '+(e.clientY-10)+'px;');
+            $('#error-modal').modal('show');
+            break;
+        }
     };
     console.log(markedProducts);
 }
@@ -1877,14 +1912,17 @@ function shiftFromFreeDays() {
 
     for (var i = 0; i < fdlen; i++)
     {
-        markedProducts[allFreeDivs[i].id] = {'r': allFreeDivs[i].parentNode.parentNode.rowIndex+1, 
-                                'c': allFreeDivs[i].parentNode.cellIndex+1,
-                                'rEnd': allFreeDivs[i].parentNode.parentNode.rowIndex+1, 
-                                'cEnd': allFreeDivs[i].parentNode.cellIndex+1,
-                                'product': allFreeDivs[i].getAttribute('product'),
-                                'kg': allFreeDivs[i].getAttribute('kg'),
-                                'fixed': allFreeDivs[i].getAttribute('fixed')
-                                };
+        if ( !$(allFreeDivs[i].parentNode).hasClass('fixed-pos') ) 
+        {
+            markedProducts[allFreeDivs[i].id] = {'r': allFreeDivs[i].parentNode.parentNode.rowIndex+1, 
+                                    'c': allFreeDivs[i].parentNode.cellIndex+1,
+                                    'rEnd': allFreeDivs[i].parentNode.parentNode.rowIndex+1, 
+                                    'cEnd': allFreeDivs[i].parentNode.cellIndex+1,
+                                    'product': allFreeDivs[i].getAttribute('product'),
+                                    'kg': allFreeDivs[i].getAttribute('kg'),
+                                    'fixed': allFreeDivs[i].getAttribute('fixed')
+                                    };
+        }
     }
     // triger mouseup event to move products from free sifts
     Move.move_products = {'start':true, 'move':true};
@@ -2084,7 +2122,7 @@ function updateColor(product) { // get random color
 
 function setProductDiv (name, product, marked, kg, is_fixed) {
     cls = (marked) ? ' marked' : '';
-    is_static = ( is_fixed.toString() == 'true' ) ? 'true':'false';
+    is_static = ( is_fixed == 'true' ) ? 'true':'false';
     return '<div id="'+name+'" class="blue'+cls+'" product="'+product+'" kg="'+kg+'" fixed="'+is_static+'"'+ 
             'style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+product+'</div';
 }
