@@ -31,7 +31,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         }
      });
 })( jQuery );
-/*
+
 ( function($) {
      $(document).ajaxStart(function(ev) {
         console.debug("ajaxStart");
@@ -42,7 +42,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         }
      });
 })( jQuery );
-*/
+
 // scope the jQuery
 ( function($) {
 
@@ -448,6 +448,7 @@ $( document ).ready(function()
                         tileCounter = 1,
                         start_i = 0,
                         start_shift = start,
+                        td_div;
                         markedProducts = {};
 
                     firstPlacedIndex = start;
@@ -463,10 +464,23 @@ $( document ).ready(function()
                         }
                         allMachines.sort( function(a,b) { return a-b; } )
 
+                        var rowLastCellIndex = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
                         while ( true )
                         {
+                            if (start_shift >= rowLastCellIndex)  {
+                                console.log('Expand1-Produce');
+                                expandTable(machineCount, 7);
+                                rowLastCellIndex = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
+                            }
+
                             for (var i = start_i; i < allMachines.length; i++)
                             {
+                                td_div = $( "#table2 tbody tr:nth-child("+allMachines[i]+") td:nth-child("+start_shift+") div");
+
+                                if ( td_div[0] !== undefined )
+                                    if ( td_div.attr('fixed') == 'true' ) 
+                                        continue;
+
                                 markedProducts[ allMachines[i]+'/'+start_shift ] = {
                                         'r': allMachines[i], 
                                         'c': start_shift,
@@ -876,15 +890,20 @@ $( document ).ready(function()
             }
             $('#produceTable tbody').html(produceTable_html);
 
-            // mark checkboxes with tri-state
-            if ( Produce.uniqueProducts[key].fixed == 'true' ) {
-                $('#checkbox'+key).prop('checked', true);
-            }
-            else if ( Produce.uniqueProducts[key].fixed == 'mid' ) {
-                $('#checkbox'+key)[0].indeterminate = true;
-            }
-            else {
-                $('#checkbox'+key).prop('checked', false);
+            for (var key in Produce.uniqueProducts) {
+                if (Produce.uniqueProducts.hasOwnProperty(key)) 
+                {
+                    // mark checkboxes with tri-state
+                    if ( Produce.uniqueProducts[key].fixed == 'true' ) {
+                        $('#checkbox'+key).prop('checked', true);
+                    }
+                    else if ( Produce.uniqueProducts[key].fixed == 'mid' ) {
+                        $('#checkbox'+key)[0].indeterminate = true;
+                    }
+                    else {
+                        $('#checkbox'+key).prop('checked', false);
+                    }
+                }
             }
         }
         else 
@@ -936,6 +955,7 @@ $( document ).ready(function()
                             last_i = 0,
                             last_shift = 0,
                             unplacedProducts = [],
+                            td_div,
                             is_fixed = ( changedProducts[0].fixed ) ? 'true':'false';
                         markedProducts = {};
 
@@ -1001,6 +1021,7 @@ $( document ).ready(function()
                             }
                         }
 
+                        // if kg is set bigger then original kg
                         if ( !endFill ) 
                         {
                             // get all machines
@@ -1014,10 +1035,22 @@ $( document ).ready(function()
                             // if product kg is changed to bigger
                             var start_i = ( allMachines[ allMachines.indexOf( last_i )+1] !== undefined ) ? allMachines.indexOf( last_i )+1 : 0;
                             if ( start_i == 0 ) last_shift++;
+                            var rowLastCellIndex = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
                             while ( true )
                             {
+                                if (last_shift >= rowLastCellIndex)  {
+                                    console.log('Expand1-Produce');
+                                    expandTable(machineCount, 7);
+                                    rowLastCellIndex = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
+                                }
                                 for (var i = start_i; i < allMachines.length; i++)
                                 {
+                                    td_div = $( "#table2 tbody tr:nth-child("+allMachines[i]+") td:nth-child("+last_shift+") div");
+
+                                    if ( td_div[0] !== undefined )
+                                        if ( td_div.attr('fixed') == 'true' ) 
+                                            continue;
+
                                     markedProducts[ allMachines[i]+'/'+last_shift ] = {'r': allMachines[i], 
                                             'c': last_shift,
                                             'rEnd': allMachines[i], 
@@ -1031,6 +1064,7 @@ $( document ).ready(function()
                                         break;
                                     }           
                                     tileCounter++;
+
                                 }
                                 start_i = 0;
                                 last_shift++;
@@ -1085,8 +1119,8 @@ $( document ).ready(function()
                             console.log(unplacedProducts);
                         }
 
-                        Move.start_row = firstMac; 
-                        Move.start_col = Produce.uniqueProducts[keyProduct].shifts[firstMac][0];
+                        Move.start_col = firstMac; 
+                        Move.start_row = Produce.uniqueProducts[keyProduct].shifts[firstMac][0];
                         var el = $('#table2 tbody tr:nth-child('+Move.start_row+') td:nth-child('+ Move.start_col +')');
 
                         // simulate mouse move to get rEnd and cRow defined for markedProducts
