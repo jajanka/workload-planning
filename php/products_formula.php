@@ -4,7 +4,7 @@ if (isset($_POST['kg']) && isset($_POST['prod']))
 {
 	require('../../h/postgres_cmp.php');
 
-	$kg = $_POST['kg'];
+	$kg = (float)$_POST['kg'];
 	$prod = $_POST['prod'];
 	$res = '';
 
@@ -29,10 +29,9 @@ if (isset($_POST['kg']) && isset($_POST['prod']))
 			$resultCount => J
 			*/
 			$kg_h = number_format($res[0][1] * 60 * $res[0][0] / 1000 / 1000 * $res[0][2] / 100, 3); 
-			$resultCount = round( number_format( (($kg / $kg_h) / 7.5), 2) );
+			$resultCount = round( (($kg / $kg_h) / 7.5) );
 
 			$kg_per_shift =  number_format( $kg_h * 7.5 , 2 );
-			$kg_per_shift = (float)str_replace(',', '', $kg_per_shift);
 
 			$kg_last_shit_reminder = $kg_per_shift;
 
@@ -43,6 +42,7 @@ if (isset($_POST['kg']) && isset($_POST['prod']))
 				$kg_last_shit_reminder -= ( $kg_per_shift * $resultCount ) - $kg; 
 
 			$kg_last_shit_reminder = (float)str_replace(',', '', $kg_last_shit_reminder);
+			$kg_per_shift = (float)str_replace(',', '', $kg_per_shift);
 
 			$finalResults = array(
 			    "shifts" => $resultCount,
