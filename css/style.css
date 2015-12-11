@@ -4,7 +4,7 @@ body {
 	font-family: arial;
 	//margin: 0px; /* for IE6 / IE7 */
 	//background-color: #F8F8F8 !important; /* e2e2e2 */
-	background-image: url('images/whitenoise-361x370.png');
+	background-image: url('images/img-noise-361x370.png');
 }
 
 .container-other {
@@ -43,7 +43,7 @@ body {
 	-webkit-transform: translateZ(0);
 }
 .panel-fixed .panel-body {
-	padding: 3px;
+	padding: 5px;
 }
 .panel-fixed .form-control {
 	width: 120px !important;
@@ -64,9 +64,6 @@ body {
 	font-weight: normal;
 }
 
-#table2 tbody td:hover {
-	background-color: #EEDEEE;
-}
 /* last row and last column without border */
 .noborder {
 	border-width: 0px;
@@ -336,10 +333,68 @@ input#product, input#product {
 #mainNavBar ul.nav.navbar-nav li.active a{
 	background-color: #EAF5FF;
 }
-.btn, .form-control, .panel, .panel-heading, .input-group-addon {
+.wrapper-undo-save {
+	padding-right: 7px;
+	margin-right:2px;
+	border-right: 1px solid #DDD;
+}
+.btn, .form-control, .panel, .panel-heading, .input-group-addon, .modal-content, .alert {
 	border-radius: 0px !important;
 }
 
+
+/*
+ ----------------- LOGIN -------------------
+*/
+@import "bourbon";
+.wrapper {	
+	margin-top: 80px;
+  	margin-bottom: 80px;
+}
+
+.wrapper .form-signin {
+  max-width: 380px;
+  padding: 15px 35px 45px;
+  margin: 0 auto;
+  background-color: #fff;
+  border: 1px solid rgba(0,0,0,0.1);  
+
+  .wrapper .form-signin-heading,
+	.wrapper .checkbox {
+	  margin-bottom: 30px;
+	}
+
+	.wrapper .checkbox {
+	  font-weight: normal;
+	}
+
+	.wrapper .form-control {
+	  position: relative;
+	  font-size: 16px;
+	  height: auto;
+	  padding: 10px;
+		@include box-sizing(border-box);
+
+		&:focus {
+		  z-index: 2;
+		}
+	}
+
+	.wrapper input[type="text"] {
+	  margin-bottom: -1px;
+	  border-bottom-left-radius: 0;
+	  border-bottom-right-radius: 0;
+	}
+
+	.wrapper input[type="password"] {
+	  margin-bottom: 20px;
+	  border-top-left-radius: 0;
+	  border-top-right-radius: 0;
+	}
+}
+/*
+ ----------------- LOGIN END -------------------
+*/
 
 /*
 ################## CSS LOADER FOR AJAX REQUESTS ##################

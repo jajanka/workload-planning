@@ -1,4 +1,9 @@
 	<?php 
+		include('php/session.php');
+		if ( $_SESSION['login_user'] != 'admin' )
+		{
+			header("location: index.php");
+		}
 		$title = 'Kalendārs';
 		include("header.php");
 	?>

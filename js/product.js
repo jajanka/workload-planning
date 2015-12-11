@@ -339,7 +339,7 @@ function showError(text, type) {
 }
 
 function cellEdit(cell) {
-	if($(cell).attr("contentEditable") == true){
+	if ( $(cell).attr("contentEditable") == true ){
         $(cell).attr("contentEditable","false");
     } else {
         $(cell).attr("contentEditable","true");

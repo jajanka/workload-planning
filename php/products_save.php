@@ -1,6 +1,6 @@
 <?php
-
-if (isset($_POST['upsert']) && isset($_POST['del'])) 
+session_start();
+if ( isset($_POST['upsert']) && isset($_POST['del']) && $_SESSION['login_user'] == 'admin' ) 
 {
 	require('../../h/postgres_cmp.php');
 

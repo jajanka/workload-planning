@@ -2,8 +2,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<meta name="Janis Mateuss" content=""/>
-		<meta name="description" content="Planning"/>
+		<meta name="Janis Mateuss" content="planning"/>
 		<meta name="viewport" content="width=device-width, user-scalable=no"/><!-- "position: fixed" fix for Android 2.2+ -->
 		<link rel="icon" href="css/images/logo.ico" type="image/ico" />
 		<link rel="stylesheet" href="css/style.css" type="text/css" media="screen"/>
@@ -14,46 +13,79 @@
 	</head>
 
 	<body>
-
+<?php
+  $view = '1';
+  if ( isset($_GET['view']) ) {
+    if ( $_GET['view'] == '1' || $_GET['view'] == '2' ) {
+      $view = $_GET['view'];
+    }
+    else {
+      header('Location: planning.php?view=1');
+    }
+  }
+?>
 <nav class="navbar navbar-default navbar-fixed-top" id="mainNavBar">
   <div class="container-fluid">
     <div class="navbar-header">
-      <a class="navbar-brand" href="index.php">Sākums</a>
+    <?php 
+    echo '<a class="navbar-brand" href="planning.php?view='.$view.'">Sākums</a>';
+    ?>
     </div>
     <div>
       <ul class="nav navbar-nav">
-        <li><a href="products.php"><span class="glyphicon glyphicon-th-list"></span> Produkti</a></li>
+        <li><a href="products.php"><span class="glyphicon glyphicon-th"></span> Produkti</a></li>
         <?php
-        $monthNamesShort = ['jan','feb','mar','apr','mai','jūn','jūl','aug','sep','okt','nov','dec'];
-        echo '<li><a href="calendar.php#'.$monthNamesShort[date("n")-1].'"><span class="glyphicon glyphicon-calendar"></span> Kalendārs</a></li>';
+
+        if ( $_SESSION['login_user'] == 'admin' )
+        {
+          $monthNamesShort = ['jan','feb','mar','apr','mai','jūn','jūl','aug','sep','okt','nov','dec'];
+          echo '<li><a href="calendar.php#'.$monthNamesShort[date("n")-1].'"><span class="glyphicon glyphicon-calendar"></span> Kalendārs</a></li>';
+        }
 
         $phpself = explode('/',$_SERVER['PHP_SELF']);
-        if ( end($phpself) == 'index.php' ) 
-        {
-          echo '<li>';
-          echo '<button style="margin-top: 7px;" type="button" class="btn btn-default tooltip-error" id="production-bttn" data-placement="bottom" title=""><span class="glyphicon glyphicon-time"></span> Ražošana</button>';
-          echo "</li>";
+        if ( end($phpself) == 'planning.php' || end($phpself) == 'planning' ) 
+        { 
+          if ( $_SESSION['login_user'] == 'admin' )
+          {
+            echo '<li>';
+            echo '<button style="margin-top: 9px;" type="button" class="btn btn-sm btn-default tooltip-error" id="production-bttn" data-placement="bottom" title=""><span class="glyphicon glyphicon-time"></span> Ražošana</button>';
+            echo "</li>";
+          }
+          echo '<div class="btn-group"  style="margin-top: 9px;">
+                <button type="button" data-toggle="dropdown" class="btn btn-sm btn-default dropdown-toggle">Skats '.$view.' <span class="caret"></span></button>
+                <ul class="dropdown-menu" style="font-size:12px;">
+                    <li><a href="?view=1">Skats 1</a></li>
+                    <li><a href="?view=2">Skats 2</a></li>
+                </ul>
+            </div>';
         }
         ?>
       </ul>
     </div>
-    <div class='btn-toolbar pull-right' style="margin-top: 5px;">
+    <div class='btn-toolbar pull-right' style="margin-top: 9px;">
       <?php 
       $phpself = explode('/',$_SERVER['PHP_SELF']);
-      if ( end($phpself) == 'index.php' ) 
+      if ( end($phpself) == 'planning.php' || end($phpself) == 'planning' ) 
       {
-        echo '<div class="btn-group">';
-      	echo '<button type="button" class="btn btn-danger" id="undo-gen-prod-bttn"><span class="glyphicon glyphicon-circle-arrow-left"></span> Atcelt</button>
-       		<button type="button" class="btn btn-success tooltip-error" id="save-bttn" data-placement="bottom" title=""><span class="glyphicon glyphicon-floppy-save"></span> Saglabāt</button>';
-        echo "</div>";
+        if ( $_SESSION['login_user'] == 'admin' )
+        {
+          echo '<div class="btn-group wrapper-undo-save">';
+        	echo '<button type="button" class="btn btn-sm btn-danger" id="undo-gen-prod-bttn"><span class="glyphicon glyphicon-circle-arrow-left"></span> Atcelt</button>
+         		<button type="button" class="btn btn-sm btn-success tooltip-error" id="save-bttn" data-placement="bottom" title=""><span class="glyphicon glyphicon-floppy-save"></span> Saglabāt</button>';
+          echo "</div>";
+        }
       } 
       else 
-      {
-        echo '<div class="btn-group">';
-      	echo '<button type="button" class="btn btn-success" id="save-bttn"><span class="glyphicon glyphicon-floppy-save"></span> Saglabāt</button>';
-        echo "</div>";
+      { 
+        if ( $_SESSION['login_user'] == 'admin' )
+        {
+          echo '<div class="btn-group wrapper-undo-save">';
+        	echo '<button type="button" class="btn btn-sm btn-success" id="save-bttn"><span class="glyphicon glyphicon-floppy-save"></span> Saglabāt</button>';
+          echo "</div>";
+        }
       }
       ?>
+      <a href="logout.php" class="btn btn-sm btn-default">Iziet (<?php echo $_SESSION['login_user']; ?>)</a>
     </div>
   </div>
 </nav>

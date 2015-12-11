@@ -19,7 +19,7 @@ function date_range($first, $last, $step = '+1 day', $output_format = 'd/m/Y' ) 
 }
 
 
-if (isset($_POST['year']) && is_numeric($_POST['year'])) 
+if ( isset($_POST['year']) && is_numeric($_POST['year']) && $_SESSION['login_user'] == 'admin' )
 {
 	require('../../h/postgres_cmp.php');
 
@@ -50,7 +50,7 @@ if (isset($_POST['year']) && is_numeric($_POST['year']))
 	    die('error in gc function => ' . $e->getMessage());
 	}
 
-	if ($new_year) 
+	if ($new_year)
 	{
 		$dates = date_range($start_date, $end_date, "+1 day", "Y-m-d");
 		foreach ($dates as $key => $value) 

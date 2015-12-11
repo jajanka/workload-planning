@@ -3,33 +3,38 @@
 			<!-- tables inside this DIV could have draggable content -->
 			<div class="panel panel-primary panel-fixed">
 			<div class="panel-body">
-				<div class="form-inline" style="float:left;"> 
-				     <div class="form-group" style="padding-right: 5px; border-right: 1px solid #DDD;">
+				<div class="form-inline" style="float:left; margin-left: 10px;"> 
+					<div class="form-group" style="padding-right: 5px; border-right: 1px solid #DDD;">
 				     	<div class="form-inline">
 			                <div class="input-daterange input-group col-xs-8" id="datepicker">
 			                	<span class="input-group-addon">no</span>
-			                    <input id="datepickerFrom" type="text" class="input form-control popupDatepicker" name="start" /> 
+			                    <input id="datepickerFrom" type="text" class="input-sm form-control popupDatepicker" name="start" /> 
 			                    <span class="input-group-addon">līdz</span>
-			                    <input id="datepickerFrom" type="text" class="input form-control popupDatepicker" name="end" />
+			                    <input id="datepickerFrom" type="text" class="input-sm form-control popupDatepicker" name="end" />
 			                </div>
-		                	<button type="button" class="btn btn-primary tooltip-error" id="gen-table-bttn" data-placement="bottom" title="">Parādīt laika periodu</button>
+		                	<button type="button" class="btn btn-sm btn-primary tooltip-error" id="gen-table-bttn" data-placement="bottom" title="">Parādīt laika periodu</button>
 		                </div>
 		            </div>
-		            <div class="form-group">
-			            <div class="form-inline">
-			            	<button type="button" class="btn btn-success info tooltip-error" aria-label="Left Align" id="bttn-prod-info" data-dismiss="modal" data-backdrop="false" data-placement="bottom" title="">
-							  <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
-							</button>
+		            <?php
+		            if ( $_SESSION['login_user'] == 'admin' )
+		            {
+			            echo '<div class="form-group">
+				            <div class="form-inline">
+				            	<button type="button" class="btn btn-sm btn-success info tooltip-error" aria-label="Left Align" id="bttn-prod-info" data-dismiss="modal" data-backdrop="false" data-placement="bottom" title="">
+								  <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+								</button>
 
-							<input id="product" type="text" class="input-small form-control" data-provide="typeahead" autocomplete="off" placeholder="Produkts"/>
-				            <input id="quantity" type="number" min="0" step="1" class="input-small form-control" placeholder="Kg" />
+								<input id="product" type="text" class="input-sm form-control" data-provide="typeahead" autocomplete="off" placeholder="Produkts"/>
+					            <input id="quantity" type="number" min="0" step="1" class="input-sm form-control" placeholder="Kg" />
 
-				            <div class="btn-group tooltip-error" role="group" aria-label="Pievienošana" id="add-group-btn" data-placement="bottom" title="">
-							  <button type="button" class="btn btn-primary" id="gen-prod-bttn"	>Pievienot</button>
-							  <button type="button" class="btn btn-primary" id="gen-prod-shift-bttn">Pievienot ar pārbīdi</button>
+					            <div class="btn-group tooltip-error" role="group" aria-label="Pievienošana" id="add-group-btn" data-placement="bottom" title="">
+								  <button type="button" class="btn btn-sm btn-primary" id="gen-prod-bttn"	>Pievienot</button>
+								  <button type="button" class="btn btn-sm btn-primary" id="gen-prod-shift-bttn">Pievienot ar pārbīdi</button>
+								</div>
 							</div>
-						</div>
-					</div>
+						</div>';
+					}
+					?>
 				</div>
 			</div>
 			</div>

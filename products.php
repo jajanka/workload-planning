@@ -1,4 +1,5 @@
 	<?php 
+		include('php/session.php');
 		$title = 'Produkti';
 		include("header.php");
 	?>
@@ -7,7 +8,11 @@
 		  <div class="table-responsive" style="margin-top: 20px;">  
 		  <div class="form-inline" style="max-width: 960px; margin: 0px auto">
 				<label for="bttn-add-product" id="labelProduct">Produkti
-				<button type="submit" class="btn btn-default" id="bttn-add-product"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button></label>
+			<?php
+			if ( $_SESSION['login_user'] == 'admin' ) {
+				echo '<button type="submit" class="btn btn-default" id="bttn-add-product"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></button></label>';
+			}
+			?>
 				
 		  </div>
 
@@ -81,7 +86,11 @@
 		    </div>
 	      <div class="modal-footer">
 	        <button type="button" class="btn btn-default" data-dismiss="modal">Aizvērt</button>
-	        <button type="button" class="btn btn-success" data-dismiss="modal" id="bttn-save-modal">Saglabāt</button>
+	      <?php
+	      if ( $_SESSION['login_user'] == 'admin' ){
+	        echo '<button type="button" class="btn btn-success" data-dismiss="modal" id="bttn-save-modal">Saglabāt</button>';
+	      }
+	      ?>
 	      </div>
 	    </div><!-- /.modal-content -->
 	  </div><!-- /.modal-dialog -->

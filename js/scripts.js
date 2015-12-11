@@ -1,7 +1,7 @@
 var tableLen = 10;
 var tableHeaders =['22-06', '06-14', '14-22'];
 var monthNamesShort = ['jan','feb','mar','apr','mai','jūn','jūl','aug','sep','okt','nov','dec'];
-var machineCount = 21;
+var machineCount = 0;
 var historyEndCell = 1;
 
 var loadedTiles = {}; // loaded products from DB
@@ -48,7 +48,9 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
 
 $( document ).ready(function() 
 {
-    var statusBar = {'marked': {'label': 'Iezīmēts', 'count': 0}}
+    var statusBar = {'marked': {'label': 'Iezīmēts', 'count': 0}};
+    var tableView = getView(); 
+    var activeChkBoxTime = {};
     // Init tooltip
     //$('[data-toggle="tooltip"]').tooltip(); 
 
@@ -77,6 +79,18 @@ $( document ).ready(function()
                 });
                 // Actions
                 function updateDisplay(clicked) {
+                    if ( activeChkBoxTime.btn === undefined ) {
+                        activeChkBoxTime.btn = $button;
+                        activeChkBoxTime.chkbox = $checkbox;
+                    }
+                    else {
+                        // unmark last marked checkbox
+                        activeChkBoxTime.btn.data('state', "off");
+                        activeChkBoxTime.btn.find('.state-icon').removeClass().addClass('state-icon ' + settings['off'].icon);
+                        activeChkBoxTime.btn.removeClass('btn-' + color + ' active').addClass('btn-default');
+                        activeChkBoxTime.chkbox.prop('checked', false);
+                        activeChkBoxTime.chkbox.triggerHandler('change');
+                    }
                     var isChecked = $checkbox.is(':checked');
                     // Set the button's state
                     $button.data('state', (isChecked) ? "on" : "off");
@@ -89,31 +103,9 @@ $( document ).ready(function()
                         $button.removeClass('btn-default').addClass('btn-' + color + ' active');
                         // get index of pressed bttn-chkbox cell
                         markedShift = $widget.parent().index();
-                        // on click disable all remaining bttn-chkbox. allows only one active bttn-chkbox
-                        if ( $button.hasClass('active') ) {
-                            // iterate over bttn-chkbox time
-                            $('.button-checkbox-time').each(function () {
-                                // Settings
-                                var $widget2 = $(this),
-                                    $button2 = $widget2.find('button');
-                                // if button in not active then disable it
-                                if ( !($button2.hasClass('active')) ) {
-                                    $button2.addClass('disabled');
-                                }
-                            });
-                        }
                     }
-                    else {
-                        $button.removeClass('btn-' + color + ' active').addClass('btn-default');
-                        if (clicked == true) {
-                            markedShift = 0;
-                            $('.button-checkbox-time').each(function () {
-                                var $widget2 = $(this),
-                                    $button2 = $widget2.find('button');
-                                $button2.removeClass('disabled');
-                            });
-                        }
-                    }
+                    activeChkBoxTime.btn = $button;
+                    activeChkBoxTime.chkbox = $checkbox;
                 }
                 // Initialization
                 function init() {
@@ -204,7 +196,7 @@ $( document ).ready(function()
 
     // End button-checkbox
     /////////////////////////////////////////////////////////
-    $('.popupDatepicker').datepick({dateFormat: 'yyyy/mm/dd'});
+    $('.popupDatepicker').datepick({dateFormat: 'dd/mm/yyyy'});
 
 
     // Scroll. Fixed vertical and horizontal header
@@ -555,7 +547,7 @@ $( document ).ready(function()
         $.ajax({
               type: 'POST',
               url: "php/load.php",
-              data: {startDate: startD, endDate: endD},
+              data: {startDate: startD, endDate: endD, view: tableView},
               success: function( data ) {
                 // parse received php data to JSON
                 var jsonData = '';
@@ -618,6 +610,37 @@ $( document ).ready(function()
         });
     }
 
+    function getView()
+    {
+        var view = getURLParameter('view');
+        if ( view !== null) {
+            if ( !(view == '1' || view == '2') ){
+                view = '1';
+            }
+        }
+        else {
+            view = '1';
+        }
+        return view;
+    }
+
+    function getMachineCount()
+    {
+        $.ajax({
+              type: 'POST',
+              url: "php/machine_count.php",
+              data: {view: tableView},
+              success: function( data ) {
+                if ( data != '' )
+                {
+                    jsonCount = jQuery.parseJSON(data);
+                    machineCount = parseInt(jsonCount['count']);
+                }
+            },
+              async:false
+        });
+    }
+    // Init actions on first start
     var endDate = new Date();
     endDate.setDate(endDate.getDate() + 21);
     var endDate_formated = endDate.getFullYear()+'/'+(endDate.getMonth()+1)+'/'+endDate.getDate();
@@ -626,6 +649,7 @@ $( document ).ready(function()
     startDate.setDate(startDate.getDate() - 1);
     var startDate_formated = startDate.getFullYear()+'/'+(startDate.getMonth()+1)+'/'+startDate.getDate();
 
+    getMachineCount();
     drawTable(startDate_formated, endDate_formated);
     loadTable(startDate_formated, endDate_formated, true);
 
@@ -636,6 +660,10 @@ $( document ).ready(function()
     $('#gen-table-bttn').click(function() { 
         var startDate = $('[name="start"]').val();
         var endDate = $('[name="end"]').val();
+        // format to: mm/dd/yyyy input: dd/mm/yyyy
+        startDate = startDate.split('/')[1]+'/'+startDate.split('/')[0]+'/'+startDate.split('/')[2];
+        endDate = endDate.split('/')[1]+'/'+endDate.split('/')[0]+'/'+endDate.split('/')[2];
+
         var sd = new Date(startDate), ed = new Date(endDate);
         // if start date is less or equal to end date the draw table
         if (sd <= ed) {
@@ -644,13 +672,16 @@ $( document ).ready(function()
             markedShift = 0;
             markedProducts = {};
             loadedTiles = {};
+
+            // get postgre time format
+            startDate = startDate.split('/')[2]+'-'+startDate.split('/')[0]+'-'+startDate.split('/')[1];
+            endDate = endDate.split('/')[2]+'-'+endDate.split('/')[0]+'-'+endDate.split('/')[1];
+
             drawTable(startDate, endDate);
-            // replace all '/' in date to '-'. It's for postgres date format
-            startDate = startDate.replace(/\//g, '-');
-            endDate = endDate.replace(/\//g, '-');
             console.log('Start loading table...');
             loadTable(startDate, endDate, true);
             console.log('Finished loading!');
+
             var start_date_formated = sd.getDate()+'.'+monthNamesShort[sd.getMonth()]+'. '+sd.getFullYear();
             var end_date_formated = ed.getDate()+'.'+monthNamesShort[ed.getMonth()]+'. '+ed.getFullYear();
             $('.page-date-header').html(start_date_formated+' - '+end_date_formated);
@@ -744,13 +775,18 @@ $( document ).ready(function()
     $( "#interval-bttn" ).click( function() {
         var startDate = $('[name="produceStart"]').val();
         var endDate = $('[name="produceEnd"]').val();
+        // format to: mm/dd/yyyy input: dd/mm/yyyy
+        startDate = startDate.split('/')[1]+'/'+startDate.split('/')[0]+'/'+startDate.split('/')[2];
+        endDate = endDate.split('/')[1]+'/'+endDate.split('/')[0]+'/'+endDate.split('/')[2];
+
         var sd = new Date(startDate), ed = new Date(endDate);
         // if start date is less or equal to end date the draw table
         if (sd <= ed) 
         {
-            // replace all '/' in date to '-'. It's for postgres date format
-            startDate = startDate.replace(/\//g, '-');
-            endDate = endDate.replace(/\//g, '-');
+            // get postgre time format
+            startDate = startDate.split('/')[2]+'-'+startDate.split('/')[0]+'-'+startDate.split('/')[1];
+            endDate = endDate.split('/')[2]+'-'+endDate.split('/')[0]+'-'+endDate.split('/')[1];
+
             var startDateIndex = ( $( '#'+startDate+'H')[0].cellIndex-1 ) * 3 + 1;
             var endDateIndex = $( '#'+endDate+'H')[0].cellIndex * 3;
             console.log("#table2 tbody tr:nth-child(n+1):nth-child(-n+"+machineCount+") td:nth-child(n+"+startDateIndex+"):nth-child(-n+"+endDateIndex+") div");
@@ -1235,13 +1271,15 @@ $( document ).ready(function()
             }
         }
         $( '.popupDatepickerProduce').datepick( "destroy" );
-        $('.popupDatepickerProduce').datepick({minDate: new Date(minD), maxDate: new Date(maxD), dateFormat: 'yyyy/mm/dd'});
+        $('.popupDatepickerProduce').datepick({minDate: new Date(minD), maxDate: new Date(maxD), dateFormat: 'dd/mm/yyyy'});
         
         // set values of date inputs in modal open
         if ( $('[name="produceStart"]').val() == '' )
-        {
-            $('[name="produceStart"]').val(minD.replace(/-/g, '/'));
-            $('[name="produceEnd"]').val(maxD.replace(/-/g, '/'));
+        {   
+            var startDate = minD.split('-')[2]+'/'+minD.split('-')[1]+'/'+minD.split('-')[0];
+            var endDate = maxD.split('-')[2]+'/'+maxD.split('-')[1]+'/'+maxD.split('-')[0];
+            $('[name="produceStart"]').val(startDate);
+            $('[name="produceEnd"]').val(endDate);
         }
     })
 
@@ -1703,6 +1741,7 @@ $( document ).ready(function()
                     //markedProducts = {};
                 }
             }
+            if ( e.initShifFreeDays ) markedProducts = {};
 
             Move.mouseStillDown = false;
         }
@@ -1876,7 +1915,51 @@ $( document ).ready(function()
     });
     /* ####################### END OF EVENTS #############################
         #################################################################
-    */ 
+    */
+    
+    save = function () {
+        // declare local variables
+        //var JSONobjNew, JSONobjDel;
+        var addedTiles = {}, deletedTiles = {}, newLoadedTiles = {};
+
+        var allProducts = $( "#table2 tbody tr td div");
+        $.each(allProducts, function(prod) 
+        {
+            if ( this.id in loadedTiles ) {
+                //console.log( loadedTiles[this.id].product+'=='+this.getAttribute('product')+' '+loadedTiles[this.id].kg+'=='+this.getAttribute('kg')+' '+loadedTiles[this.id].fixed+'=='+this.getAttribute('fixed') );
+                if ( loadedTiles[this.id].product != this.getAttribute('product') || loadedTiles[this.id].kg != this.getAttribute('kg') || loadedTiles[this.id].fixed.toString() != this.getAttribute('fixed').toString() ) {
+                    //console.log('true');
+                    addedTiles[this.id] = {product: this.getAttribute('product'), kg: this.getAttribute('kg'), fixed: this.getAttribute('fixed')};
+                }
+            } else {
+                addedTiles[this.id] = {product: this.getAttribute('product'), kg: this.getAttribute('kg'), fixed: this.getAttribute('fixed')};
+            }
+            newLoadedTiles[this.id] = {product: this.getAttribute('product'), kg: this.getAttribute('kg'), fixed: this.getAttribute('fixed')};
+        })
+
+        for (var key in loadedTiles) {
+            if (loadedTiles.hasOwnProperty(key)) {
+                //console.log(key);
+                if ( document.getElementsByName(key)[0].innerHTML == "" ) {
+                    deletedTiles[key] = loadedTiles[key];
+                }   
+            }
+        }
+        console.log('SAVE POST');
+        console.log(addedTiles);
+        console.log(deletedTiles);
+        $.post( "php/save.php", {upsert: JSON.stringify(addedTiles), del: JSON.stringify(deletedTiles), view: tableView})
+        // when post is finished
+        .done(function( data ) {
+            console.log('psuccess');
+            loadedTiles = newLoadedTiles;
+        })
+        .fail( function( data ) {
+            console.log('pfail');
+            console.log(data);
+        });
+    };
+
 });
 })( jQuery );
 
@@ -1946,7 +2029,7 @@ function shiftFromFreeDays() {
 
     for (var i = 0; i < fdlen; i++)
     {
-        if ( !$(allFreeDivs[i].parentNode).hasClass('fixed-pos') ) 
+        if ( !$(allFreeDivs[i].parentNode).hasClass('fixed-pos') || $(allFreeDivs[i].parentNode).hasClass('redips-mark') ) 
         {
             markedProducts[allFreeDivs[i].id] = {'r': allFreeDivs[i].parentNode.parentNode.rowIndex+1, 
                                     'c': allFreeDivs[i].parentNode.cellIndex+1,
@@ -1964,7 +2047,8 @@ function shiftFromFreeDays() {
         which: 1,
         buttons: 1,
         clientX: 500,
-        clientY: 300
+        clientY: 300,
+        initShifFreeDays: true
     });
     allFreeDivs.trigger(event);
     $('.marked').removeClass('marked');
@@ -2161,54 +2245,8 @@ function setProductDiv (name, product, marked, kg, is_fixed) {
             'style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+product+'</div';
 }
 
-
-save = function () {
-    // declare local variables
-    //var JSONobjNew, JSONobjDel;
-    var addedTiles = {}, deletedTiles = {}, newLoadedTiles = {};
-
-    var allProducts = $( "#table2 tbody tr td div");
-    $.each(allProducts, function(prod) 
-    {
-    	if ( this.id in loadedTiles ) {
-            //console.log( loadedTiles[this.id].product+'=='+this.getAttribute('product')+' '+loadedTiles[this.id].kg+'=='+this.getAttribute('kg')+' '+loadedTiles[this.id].fixed+'=='+this.getAttribute('fixed') );
-    		if ( loadedTiles[this.id].product != this.getAttribute('product') || loadedTiles[this.id].kg != this.getAttribute('kg') || loadedTiles[this.id].fixed.toString() != this.getAttribute('fixed').toString() ) {
-                //console.log('true');
-    			addedTiles[this.id] = {product: this.getAttribute('product'), kg: this.getAttribute('kg'), fixed: this.getAttribute('fixed')};
-    		}
-    	} else {
-    		addedTiles[this.id] = {product: this.getAttribute('product'), kg: this.getAttribute('kg'), fixed: this.getAttribute('fixed')};
-    	}
-    	newLoadedTiles[this.id] = {product: this.getAttribute('product'), kg: this.getAttribute('kg'), fixed: this.getAttribute('fixed')};
-    })
-
-    for (var key in loadedTiles) {
-        if (loadedTiles.hasOwnProperty(key)) {
-            //console.log(key);
-        	if ( document.getElementsByName(key)[0].innerHTML == "" ) {
-				deletedTiles[key] = loadedTiles[key];
-        	}	
-        }
-    }
-    console.log('SAVE POST');
-    console.log(addedTiles);
-    console.log(deletedTiles);
-    $.post( "php/save.php", {upsert: JSON.stringify(addedTiles), del: JSON.stringify(deletedTiles)})
-    // when post is finished
-    .done(function( data ) {
-        console.log('psuccess');
-        alert(data);
-        loadedTiles = newLoadedTiles;
-    })
-    .fail( function( data ) {
-        console.log('pfail');
-        console.log(data);
-    });
-};
-
-function ts(cb) {
-  if (cb.readOnly) cb.checked=cb.readOnly=false;
-  else if (!cb.checked) cb.readOnly=cb.indeterminate=true;
+function getURLParameter(name) {
+  return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null
 }
 
 // checks if Ctrl button is pressed
@@ -2222,3 +2260,7 @@ $(window).keydown(function(evt) {
     ctrlPressed = false;
   }
 });
+
+function foo(){
+    alert('View 1');
+}

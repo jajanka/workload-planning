@@ -1,5 +1,11 @@
 <?php
 
+$is_admin = false;
+if ( $_SESSION['login_user'] == 'admin' ) 
+{
+	$is_admin = true;
+}
+
 require('../h/postgres_cmp.php');
 
 $selectQ = "SELECT * FROM products ORDER BY p_name";
@@ -20,16 +26,16 @@ try
 			  <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
 			</button>
 			</td>
-	        <td class="td1" contenteditable="true">'.$value[1].'</td>
-	        <td class="td2" contenteditable="true">'.$value[2].'</td>
-	        <td class="td3" contenteditable="true">'.$value[3].'</td>
+	        <td '.( $is_admin ? 'class="td1" contenteditable="true"': '').'>'.$value[1].'</td>
+	        <td '.( $is_admin ? 'class="td2" contenteditable="true"': '').'>'.$value[2].'</td>
+	        <td '.( $is_admin ? 'class="td3" contenteditable="true"': '').'>'.$value[3].'</td>
 	        <td class="td4" style="color: #888">'.$kg_h.'</td>
 	        <td class="td5" style="color: #888">'.$value[4].'</td>
 	        <td class="td6" style="color: #888">'.$total_kg_h.'</td>
-	        <td class="td7" contenteditable="true">'.$value[5].'</td>
-	        <td><button type="button" 
+	        <td '.( $is_admin ? 'class="td7" contenteditable="true"': '').'>'.$value[5].'</td>
+	        <td>'.( $is_admin ? '<button type="button" 
 	        class="btn btn-danger delete hidden" aria-label="Left Align" id="del'.$value[0].'">
-	        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+	        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>':'').'
 	       </td>
 	      </tr>';
 	}	
