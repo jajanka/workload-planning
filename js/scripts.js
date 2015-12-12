@@ -924,7 +924,12 @@ $( document ).ready(function()
                     
                 }
             }
-            $('#produceTable tbody').html(produceTable_html);
+            if ( produceTable_html == '' ) {
+                $('#produceTable tbody').html('<p>Nav produktu dotājā intervālā.</p>')
+            }
+            else {
+                $('#produceTable tbody').html(produceTable_html);
+            }
 
             for (var key in Produce.uniqueProducts) {
                 if (Produce.uniqueProducts.hasOwnProperty(key)) 

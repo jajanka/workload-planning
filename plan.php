@@ -4,7 +4,7 @@
 			<div class="panel panel-primary panel-fixed">
 			<div class="panel-body">
 				<div class="form-inline" style="float:left; margin-left: 10px;"> 
-					<div class="form-group" style="padding-right: 5px; border-right: 1px solid #DDD;">
+					<div class="form-group wrapper-actions-option">
 				     	<div class="form-inline">
 			                <div class="input-daterange input-group col-xs-8" id="datepicker">
 			                	<span class="input-group-addon">no</span>
@@ -18,7 +18,7 @@
 		            <?php
 		            if ( $_SESSION['login_user'] == 'admin' )
 		            {
-			            echo '<div class="form-group">
+			            echo '<div class="form-group wrapper-actions-option">
 				            <div class="form-inline">
 				            	<button type="button" class="btn btn-sm btn-success info tooltip-error" aria-label="Left Align" id="bttn-prod-info" data-dismiss="modal" data-backdrop="false" data-placement="bottom" title="">
 								  <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>

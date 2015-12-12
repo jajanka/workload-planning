@@ -14,10 +14,6 @@ body {
 }
 /* make left and right DIV container scrollable */
 #right {
-	/*  http://www.howtocreate.co.uk/tutorials/javascript/browserspecific (Element position with scrolling offsets)
-	make sure that every element with an overflow of anything other than "visible" also has a position
-	style set to something other than the default "static". This way, they will all appear in the offsetParent
-	chain, and can be easily subtracted in the same loop that adds the offsetLeft and offsetTop. */
 	position: relative;
 	margin: auto;
 	width: 100%;
@@ -32,18 +28,20 @@ body {
 	margin-left: -3px !important;
 }
 .panel-fixed {
-	margin-top: 52px;
+	margin-top: 43px;
 	min-width: 1200px;
 	left: 0;
 	right: 0;
-	border-color: #EEE !important;
+	border-color: #004B8A !important;
+	border-top: 1px dotted #AAA !important;
 	border-radius: 0px !important;
 	z-index: 99;
 	position: fixed;
 	-webkit-transform: translateZ(0);
+	background-color: #004B8A !important;
 }
 .panel-fixed .panel-body {
-	padding: 5px;
+	padding: 0px;
 }
 .panel-fixed .form-control {
 	width: 120px !important;
@@ -121,7 +119,7 @@ body {
 }
 .left-header{
 	float:left; 
-	border-left: 7px solid #BBB;
+	border-left: 7px solid #01192D;
 	margin-top: 155px;
 	position: fixed;
 	z-index: 10;
@@ -138,36 +136,31 @@ body {
 	height:47px; 
 	background-color: #E0E0E0; 
 	margin-top:108px; 
-	border-top: 7px solid #5C98CC;
-	border-left: 7px solid #BBB;
+	border-top: 7px solid #01192D;
+	border-left: 7px solid #01192D;
 	position: fixed; 
 	-webkit-transform: translateZ(0);
 	z-index: 11;
 }
 #status {
 	width: 100%;
-	height: 15px;
+	height: 20px;
 	background-color: #DDD;
-	margin-top: 93px;
+	margin-top: 88px;
 	position: fixed;
 	z-index: 12;
 	-webkit-transform: translateZ(0);
 }
 #status div {
 	font-size: 12px;
+	margin-top: 3px;
 	margin-right: 10px;
 	color: #555;
 	float: right;
 }
 .day-td {
-	background: -moz-linear-gradient(top, #3379b7 0%, #3379b7 0%, #639dcf 0%, #639dcf 0%, #3379b7 100%);
-	background: -webkit-gradient(left top, left bottom, color-stop(0%, #3379b7), color-stop(0%, #3379b7), color-stop(0%, #639dcf), color-stop(0%, #639dcf), color-stop(100%, #3379b7));
-	background: -webkit-linear-gradient(top, #3379b7 0%, #3379b7 0%, #639dcf 0%, #639dcf 0%, #3379b7 100%);
-	background: -o-linear-gradient(top, #3379b7 0%, #3379b7 0%, #639dcf 0%, #639dcf 0%, #3379b7 100%);
-	background: -ms-linear-gradient(top, #3379b7 0%, #3379b7 0%, #639dcf 0%, #639dcf 0%, #3379b7 100%);
-	background: linear-gradient(to bottom, #3379b7 0%, #3379b7 0%, #639dcf 0%, #639dcf 0%, #3379b7 100%);
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3379b7', endColorstr='#3379b7', GradientType=0 );
-	color: white !important;
+	background: #01192D; 
+	color: #F5f5F5 !important;
 	font-size: 12pt !important;
 	font-weight: bold !important;
 }
@@ -192,9 +185,6 @@ body {
   //border-top: 1px solid #E7E7E7;
 }
 
-.container-fluid {
-	background-color: white;
-}
 .page-date-header {
 	text-align: center;
 	background-color: #B5FFAB;
@@ -251,7 +241,7 @@ body {
   visibility: hidden;
   background-color: #FFF;
   z-index: 10;
-  margin-top: 44px;
+  margin-top: 30px;
 
 }
 .floatingHeader th {
@@ -321,22 +311,55 @@ body {
 input#product, input#product {
     text-transform: uppercase;
 }
+.dropdown-menu {
+	background-color: #033B6B !important;
+	border-radius: 0px !important;
+}
+.dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {
+	background-color: #215A8C !important;
+}
+.dropdown-menu>li>a {
+	color: #F5F5F5 !important;
+}
+#mainNavBar ul.nav.navbar-nav li a:hover, #mainNavBar div.navbar-header a.navbar-brand:hover {
+	border-bottom: 1px solid #FFF !important;
+}
+
+#mainNavBar, #mainNavBar .container-fluid, #mainNavBar div.navbar-header, 
+#mainNavBar ul.nav.navbar-nav li a, #mainNavBar .navbar-brand  
+{ height: 43px !important; }
+
+.navbar { min-height: 40px !important; }
+
+#mainNavBar ul.nav.navbar-nav li a, #mainNavBar div.navbar-header a.navbar-brand {
+	color: #F5F5F5 !important;
+}
+.container-fluid {
+	background-color: #01192D;
+}
 #mainNavBar {
-	border: 1px #eee solid;
+	border-bottom: 1px #eee solid;
+	//background-color: #A2BCD2 !important;
 }
-#mainNavBar ul.nav.navbar-nav li a, #mainNavBar div.navbar-header a.navbar-brand{
-	color: #5A0000;
-}
+
 #mainNavBar div.navbar-header a.navbar-brand{
 	 margin-left: 40px;
 }
-#mainNavBar ul.nav.navbar-nav li.active a{
-	background-color: #EAF5FF;
+.wrapper-actions-option {
+	background-color: #055DA7 !important;
 }
-.wrapper-undo-save {
+.wrapper-nav-option, .wrapper-actions-option {
 	padding-right: 7px;
-	margin-right:2px;
-	border-right: 1px solid #DDD;
+	padding-left:7px;
+	margin-left:7px !important;
+	background-color: #033B6B;
+	height: 43px;
+}
+.wrapper-nav-option:nth-child(1) {
+	margin-left:11px !important;
+}
+.wrapper-nav-option .btn, .wrapper-actions-option .form-inline{
+	margin-top: 7px;
 }
 .btn, .form-control, .panel, .panel-heading, .input-group-addon, .modal-content, .alert {
 	border-radius: 0px !important;

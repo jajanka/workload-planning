@@ -32,7 +32,7 @@
     ?>
     </div>
     <div>
-      <ul class="nav navbar-nav">
+      <ul class="nav navbar-nav wrapper-nav-option">
         <li><a href="products.php"><span class="glyphicon glyphicon-th"></span> Produkti</a></li>
         <?php
 
@@ -41,35 +41,30 @@
           $monthNamesShort = ['jan','feb','mar','apr','mai','jūn','jūl','aug','sep','okt','nov','dec'];
           echo '<li><a href="calendar.php#'.$monthNamesShort[date("n")-1].'"><span class="glyphicon glyphicon-calendar"></span> Kalendārs</a></li>';
         }
-
-        $phpself = explode('/',$_SERVER['PHP_SELF']);
-        if ( end($phpself) == 'planning.php' || end($phpself) == 'planning' ) 
-        { 
-          if ( $_SESSION['login_user'] == 'admin' )
-          {
-            echo '<li>';
-            echo '<button style="margin-top: 9px;" type="button" class="btn btn-sm btn-default tooltip-error" id="production-bttn" data-placement="bottom" title=""><span class="glyphicon glyphicon-time"></span> Ražošana</button>';
-            echo "</li>";
-          }
-          echo '<div class="btn-group"  style="margin-top: 9px;">
-                <button type="button" data-toggle="dropdown" class="btn btn-sm btn-default dropdown-toggle">Skats '.$view.' <span class="caret"></span></button>
-                <ul class="dropdown-menu" style="font-size:12px;">
-                    <li><a href="?view=1">Skats 1</a></li>
-                    <li><a href="?view=2">Skats 2</a></li>
-                </ul>
-            </div>';
-        }
         ?>
       </ul>
     </div>
-    <div class='btn-toolbar pull-right' style="margin-top: 9px;">
+    <div class="btn-toolbar pull-left">
       <?php 
       $phpself = explode('/',$_SERVER['PHP_SELF']);
       if ( end($phpself) == 'planning.php' || end($phpself) == 'planning' ) 
       {
+        echo '<div class="btn-group wrapper-nav-option">';
         if ( $_SESSION['login_user'] == 'admin' )
         {
-          echo '<div class="btn-group wrapper-undo-save">';
+          echo '<button type="button" class="btn btn-sm btn-default" id="production-bttn"><span class="glyphicon glyphicon-time"></span> Ražošana</button>';
+        }
+
+        echo '<button type="button" data-toggle="dropdown" class="btn btn-sm btn-default dropdown-toggle">Skats '.$view.' <span class="caret"></span></button>
+                <ul class="dropdown-menu" style="font-size:12px;">
+                    <li><a href="?view=1">Skats 1</a></li>
+                    <li><a href="?view=2">Skats 2</a></li>
+                </ul>';
+        echo '</div>';
+
+        if ( $_SESSION['login_user'] == 'admin' )
+        {
+          echo '<div class="btn-group wrapper-nav-option">';
         	echo '<button type="button" class="btn btn-sm btn-danger" id="undo-gen-prod-bttn"><span class="glyphicon glyphicon-circle-arrow-left"></span> Atcelt</button>
          		<button type="button" class="btn btn-sm btn-success tooltip-error" id="save-bttn" data-placement="bottom" title=""><span class="glyphicon glyphicon-floppy-save"></span> Saglabāt</button>';
           echo "</div>";
@@ -79,13 +74,15 @@
       { 
         if ( $_SESSION['login_user'] == 'admin' )
         {
-          echo '<div class="btn-group wrapper-undo-save">';
+          echo '<div class="btn-group wrapper-nav-option">';
         	echo '<button type="button" class="btn btn-sm btn-success" id="save-bttn"><span class="glyphicon glyphicon-floppy-save"></span> Saglabāt</button>';
           echo "</div>";
         }
       }
       ?>
-      <a href="logout.php" class="btn btn-sm btn-default">Iziet (<?php echo $_SESSION['login_user']; ?>)</a>
+    </div>
+    <div class='btn-toolbar pull-right' style="margin-top: 15px;">
+      <a href="logout.php" style="color: #DDD;">Iziet (<?php echo $_SESSION['login_user']; ?>)</a>
     </div>
   </div>
 </nav>
