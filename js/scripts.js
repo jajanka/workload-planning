@@ -79,39 +79,46 @@ $( document ).ready(function()
                 });
                 // Actions
                 function updateDisplay(clicked) {
-                    if ( activeChkBoxTime.btn === undefined ) {
+                    if ( clicked )
+                    {
+                        if ( activeChkBoxTime.btn === undefined ) {
+                            activeChkBoxTime.btn = $button;
+                            activeChkBoxTime.chkbox = $checkbox;
+                        }
+                        else {
+                            // unmark last marked checkbox
+                            activeChkBoxTime.btn.data('state', "off");
+                            activeChkBoxTime.btn.find('.state-icon').removeClass().addClass('state-icon ' + settings['off'].icon);
+                            activeChkBoxTime.btn.removeClass('btn-' + color + ' active').addClass('btn-default');
+                            activeChkBoxTime.chkbox.prop('checked', false);
+                            activeChkBoxTime.chkbox.triggerHandler('change');
+                        }
+                        var isChecked = $checkbox.is(':checked');
+                        // Set the button's state
+                        $button.data('state', (isChecked) ? "on" : "off");
+
+                        // Set the button's icon
+                        $button.find('.state-icon').removeClass().addClass('state-icon ' + settings[$button.data('state')].icon);
+
+                        markedShift = 0;
+                        // Update the button's color
+                        if (isChecked) {
+                            $button.removeClass('btn-default').addClass('btn-' + color + ' active');
+                            // get index of pressed bttn-chkbox cell
+                            markedShift = $widget.parent().index();
+                        }
                         activeChkBoxTime.btn = $button;
                         activeChkBoxTime.chkbox = $checkbox;
                     }
                     else {
-                        // unmark last marked checkbox
-                        activeChkBoxTime.btn.data('state', "off");
-                        activeChkBoxTime.btn.find('.state-icon').removeClass().addClass('state-icon ' + settings['off'].icon);
-                        activeChkBoxTime.btn.removeClass('btn-' + color + ' active').addClass('btn-default');
-                        activeChkBoxTime.chkbox.prop('checked', false);
-                        activeChkBoxTime.chkbox.triggerHandler('change');
+                        $button.data('state', "off");
+                        $button.find('.state-icon').removeClass().addClass('state-icon ' + settings[$button.data('state')].icon);
+                        $button.removeClass('btn-' + color + ' active').addClass('btn-default');
                     }
-                    var isChecked = $checkbox.is(':checked');
-                    // Set the button's state
-                    $button.data('state', (isChecked) ? "on" : "off");
-
-                    // Set the button's icon
-                    $button.find('.state-icon').removeClass().addClass('state-icon ' + settings[$button.data('state')].icon);
-
-                    // Update the button's color
-                    if (isChecked) {
-                        $button.removeClass('btn-default').addClass('btn-' + color + ' active');
-                        // get index of pressed bttn-chkbox cell
-                        markedShift = $widget.parent().index();
-                    }
-                    activeChkBoxTime.btn = $button;
-                    activeChkBoxTime.chkbox = $checkbox;
                 }
                 // Initialization
                 function init() {
-
                     updateDisplay();
-
                     // Inject the icon if applicable
                     if ($button.find('.state-icon').length == 0) {
                         $button.prepend('<i class="state-icon ' + settings[$button.data('state')].icon + '"></i> ');
@@ -181,9 +188,7 @@ $( document ).ready(function()
                 // $( "#table2 tbody tr:nth-child(2) td:nth-child(456)").index()
                 // Initialization
                 function init2() {
-
                     updateDisplay2();
-
                     // Inject the icon if applicable
                     if ($button.find('.state-icon').length == 0) {
                         $button.prepend('<i class="state-icon ' + settings[$button.data('state')].icon + '"></i> ');
@@ -2091,7 +2096,12 @@ function drawTodaysSign (draw_time, draw_history)
         for (var i = 1; i <= machineCount; i++) {
             $('#table2 tr:nth-child('+i+') td:nth-child('+(time_index-1)+')').addClass('today');
         };
+        var lineHeight = parseInt($('.left-header').css('height'))+60;
+        ///lineHeight = parseInt(lineHeight+100);
+        $('#today-line').css('height', lineHeight.toString()+'px');
+        $('#today-line').offset({top: $('#today-line').offset().top, left: $('.today').offset().left});
         
+        /*
         $('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-toggle', "tooltip");
         $('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-placement', "bottom");
         $('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-container', "#table2");
@@ -2105,6 +2115,7 @@ function drawTodaysSign (draw_time, draw_history)
             $('#table2 .tooltip-arrow').css('left', '');
             $('#table2 .tooltip').offset({top: $('.tooltip').offset().top, left: arrowOffset.left - innerWidth/2});
         }, draw_time);
+        */
     }
     if ( draw_history ) drawHistoryDiv(today, whichShift);
 }
@@ -2265,7 +2276,3 @@ $(window).keydown(function(evt) {
     ctrlPressed = false;
   }
 });
-
-function foo(){
-    alert('View 1');
-}

@@ -14,7 +14,7 @@ if ( isset($_SESSION['login_user']) ){
 		<link rel="icon" href="css/images/logo.ico" type="image/ico" />
 		<link rel="stylesheet" href="css/style.css" type="text/css" media="screen"/>
 		<link rel="stylesheet" media="screen" href="bootstrap/css/bootstrap.min.css">
-		<title>Culimeta</title>
+		<title>Login · Culimeta</title>
 	</head>
 
 	<body>

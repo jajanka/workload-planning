@@ -6,24 +6,29 @@
         console.debug("ajaxStop");
         $("#ajax_loader img").hide();
         $("#ajax_loader").hide();
-        $("#calendarTable").show();
+        //$("#calendarTable").show();
      });
 })( jQuery );
 
 // scope the jQuery
 ( function($) {
- $(document).ajaxStart(function(){
-     console.debug("ajaxStart");
-     $("#calendarTable").hide();
-     $("#ajax_loader img").show();
-     $("#ajax_loader").show();
- });
+     $(document).ajaxStart(function(){
+         console.debug("ajaxStart");
+         //$("#calendarTable").hide();
+         $("#ajax_loader img").show();
+         $("#ajax_loader").show();
+     });
 })( jQuery );
 
 // scope the jQuery
 ( function($) {
     
 $(document).ready(function () {
+
+    var monthNamesShort = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','dec'];
+    var today = new Date();
+
+    window.location.replace(window.location.pathname+'#'+monthNamesShort[ today.getMonth() ]);
 
     var datesToSave = {};
 
@@ -56,7 +61,7 @@ $(document).ready(function () {
         }
     });
 
-    $("#bttn-show-year").click(function (e) {
+    $("#getYear").change(function (e) {
         var year = parseInt($("#getYear").val());
 
         if (year > 2005 && year < 2038) {

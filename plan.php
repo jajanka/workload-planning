@@ -45,24 +45,15 @@
 					<div id="leftUppercorner"><button type="submit" class="btn btn-default" id="deselect-machine-bttn"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button></div>
 				</table>
 				<div id="right" >
+				<div id="today-line"></div>
 					<div id='ajax_loader' style="position: fixed; left: auto; width: 100%; height: 100%; background-color: #EEEEEE; display: block; z-index: 101;">
 					    <!--<img src="css/images/ring-alt.gif" style="display: block; margin: auto; position: relative; top: 50%; transform: translateY(-50%);"></img> -->
-					     <div class="cssload-loader-inner">
-							<div class="cssload-cssload-loader-line-wrap-wrap">
-								<div class="cssload-loader-line-wrap"></div>
-							</div>
-							<div class="cssload-cssload-loader-line-wrap-wrap">
-								<div class="cssload-loader-line-wrap"></div>
-							</div>
-							<div class="cssload-cssload-loader-line-wrap-wrap">
-								<div class="cssload-loader-line-wrap"></div>
-							</div>
-							<div class="cssload-cssload-loader-line-wrap-wrap">
-								<div class="cssload-loader-line-wrap"></div>
-							</div>
-							<div class="cssload-cssload-loader-line-wrap-wrap">
-								<div class="cssload-loader-line-wrap"></div>
-							</div>
+					     <div class="spinner">
+						  <div class="rect1"></div>
+						  <div class="rect2"></div>
+						  <div class="rect3"></div>
+						  <div class="rect4"></div>
+						  <div class="rect5"></div>
 						</div>
 					</div>
 

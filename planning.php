@@ -1,6 +1,6 @@
 	<?php 
 		include('php/session.php');
-		$title = 'Plānošana';
+		$title = 'Plānošana · Culimeta';
 		include("header.php");
 	?>
 		<link rel="stylesheet" href="css/noselect.css" type="text/css" media="screen"/>

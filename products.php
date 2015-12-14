@@ -1,6 +1,6 @@
 	<?php 
 		include('php/session.php');
-		$title = 'Produkti';
+		$title = 'Produkti · Culimeta';
 		include("header.php");
 	?>
 		<div class="container-other">
@@ -20,22 +20,12 @@
 
 		  <table class="table table-striped" id="productsTable">
 		  	<div id='ajax_loader' style="background-color: #FFF; display: none; z-index: 10; margin: auto 0px;">
-			    <div class="cssload-loader-inner">
-					<div class="cssload-cssload-loader-line-wrap-wrap">
-						<div class="cssload-loader-line-wrap"></div>
-					</div>
-					<div class="cssload-cssload-loader-line-wrap-wrap">
-						<div class="cssload-loader-line-wrap"></div>
-					</div>
-					<div class="cssload-cssload-loader-line-wrap-wrap">
-						<div class="cssload-loader-line-wrap"></div>
-					</div>
-					<div class="cssload-cssload-loader-line-wrap-wrap">
-						<div class="cssload-loader-line-wrap"></div>
-					</div>
-					<div class="cssload-cssload-loader-line-wrap-wrap">
-						<div class="cssload-loader-line-wrap"></div>
-					</div>
+			    <div class="spinner">
+				  <div class="rect1"></div>
+				  <div class="rect2"></div>
+				  <div class="rect3"></div>
+				  <div class="rect4"></div>
+				  <div class="rect5"></div>
 				</div>
 			</div>
 		    <thead class="persist-header">
@@ -99,9 +89,12 @@
 	<footer class="footer">
       © 2015 - Jānis Mateuss  
 	</footer>
+
+	<a href="#0" class="cd-top">Top</a>
 	</body>
 
 	<?php include("footer.html"); ?>
 	<script type="text/javascript" src="js/product.js"></script>
+	<script type="text/javascript" src="js/totop.js"></script>
 
 </html>

@@ -4,11 +4,19 @@
 		{
 			header("location: index.php");
 		}
-		$title = 'Kalendārs';
+		$title = 'Kalendārs · Culimeta';
 		include("header.php");
 	?>
 		<div class="container-other">
-
+		<div id='ajax_loader' style="position: fixed; display: none; width: 960px; height: 100%; background-color: rgba(230,230,230,0.5); z-index: 101;">
+			    <div class="spinner">
+				  <div class="rect1"></div>
+				  <div class="rect2"></div>
+				  <div class="rect3"></div>
+				  <div class="rect4"></div>
+				  <div class="rect5"></div>
+				</div>
+			</div>  
 		<div class="panel panel-primary" style="margin-top: 20px;">
 	    <div class="panel-heading">Kalendārs</div>
 	    <div class="panel-body">
@@ -29,7 +37,6 @@
 							include('php/calendar_load.php');
 						?>
 						</select>
-						<button type="submit" class="btn btn-primary" id="bttn-show-year">Labi</button>
 					</div> 
 				</div>
 
@@ -39,28 +46,9 @@
 
 	  <div id="message"></div>
 		                        
-		  <div class="table-responsive" style="margin-top: 20px;">        
+		  <div class="table-responsive" style="margin-top: 20px;">   
 		  <table class="table table-striped" id="calendarTable">
 		  	<h2>Kalendārs</h2>  
-		  	<div id='ajax_loader' style="width: 100%; height: 100px; background-color: #FFF; display: none; z-index: 10; margin: auto 0px;">
-			    <div class="cssload-loader-inner">
-					<div class="cssload-cssload-loader-line-wrap-wrap">
-						<div class="cssload-loader-line-wrap"></div>
-					</div>
-					<div class="cssload-cssload-loader-line-wrap-wrap">
-						<div class="cssload-loader-line-wrap"></div>
-					</div>
-					<div class="cssload-cssload-loader-line-wrap-wrap">
-						<div class="cssload-loader-line-wrap"></div>
-					</div>
-					<div class="cssload-cssload-loader-line-wrap-wrap">
-						<div class="cssload-loader-line-wrap"></div>
-					</div>
-					<div class="cssload-cssload-loader-line-wrap-wrap">
-						<div class="cssload-loader-line-wrap"></div>
-					</div>
-				</div>
-			</div>
 		    <thead class="persist-header">
 		      <tr>
 		        <th>#</th>
@@ -105,8 +93,12 @@
 	<footer class="footer">
       © 2015 - Jānis Mateuss  
 	</footer>
+
+	<a href="#0" class="cd-top">Top</a>
+
 	</body>
 	
 	<?php include("footer.html"); ?>
 	<script type="text/javascript" src="js/calendar.js"></script>
+	<script type="text/javascript" src="js/totop.js"></script>
 </html>

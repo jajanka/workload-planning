@@ -1,5 +1,5 @@
 <?php
-
+session_start();
 # Example 1
 # date_range("2014-01-01", "2014-01-20", "+1 day", "m/d/Y");
 

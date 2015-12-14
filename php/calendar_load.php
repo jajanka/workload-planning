@@ -2,7 +2,7 @@
 
 $week_days = ['P', 'O', 'T', 'C', 'Pk', 'S', 'Sv'];
 $month = ['Janvāris', 'Februāris', 'Marts', 'Aprīlis', 'Maijs', 'Jūnijs', 'Jūlijs', 'Augusts', 'Septembris', 'Oktobris', 'Novembris', 'Decembris'];
-$monthNamesShort = ['jan','feb','mar','apr','mai','jūn','jūl','aug','sep','okt','nov','dec'];
+$monthNamesShort = ['jan','feb','mar','apr','mai','jun','jul','aug','sep','okt','nov','dec'];
 
 if (isset($_POST['get_year']) && is_numeric($_POST['get_year'])) 
 {
@@ -95,7 +95,15 @@ else
 		$res = $pdo->fetchAll(PDO::FETCH_NUM);
 
 		foreach ($res as $key => $value) {
-			echo '<option value="'.$value[0].'">'.$value[0].'</option>';
+			// id this is current year then set it as combo box default value
+			if ( date('Y') == $value[0] ) 
+			{
+				 echo '<option value="'.$value[0].'" selected="selected">'.$value[0].'</option>';
+			}
+			else 
+			{
+				echo '<option value="'.$value[0].'">'.$value[0].'</option>';
+			}
 		}		
 
 	}

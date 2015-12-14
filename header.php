@@ -38,8 +38,7 @@
 
         if ( $_SESSION['login_user'] == 'admin' )
         {
-          $monthNamesShort = ['jan','feb','mar','apr','mai','jūn','jūl','aug','sep','okt','nov','dec'];
-          echo '<li><a href="calendar.php#'.$monthNamesShort[date("n")-1].'"><span class="glyphicon glyphicon-calendar"></span> Kalendārs</a></li>';
+          echo '<li><a href="calendar.php"><span class="glyphicon glyphicon-calendar"></span> Kalendārs</a></li>';
         }
         ?>
       </ul>
