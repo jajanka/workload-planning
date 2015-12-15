@@ -31,7 +31,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         }
      });
 })( jQuery );
-
+/*
 ( function($) {
      $(document).ajaxStart(function(ev) {
         console.debug("ajaxStart");
@@ -42,7 +42,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         }
      });
 })( jQuery );
-
+*/
 // scope the jQuery
 ( function($) {
 
@@ -51,6 +51,7 @@ $( document ).ready(function()
     var statusBar = {'marked': {'label': 'Iezīmēts', 'count': 0}};
     var tableView = getView(); 
     var activeChkBoxTime = {};
+    var checkCheckBoxTime;
     // Init tooltip
     //$('[data-toggle="tooltip"]').tooltip(); 
 
@@ -72,7 +73,7 @@ $( document ).ready(function()
                     };
 
                 // Event Handlers
-                $button.on('click', function () {
+                $button.unbind('click').bind('click', function () {
                     $checkbox.prop('checked', !$checkbox.is(':checked'));
                     $checkbox.triggerHandler('change');
                     updateDisplay(true);
@@ -81,6 +82,8 @@ $( document ).ready(function()
                 function updateDisplay(clicked) {
                     if ( clicked )
                     {
+                        var isChecked = $checkbox.is(':checked');
+                        
                         if ( activeChkBoxTime.btn === undefined ) {
                             activeChkBoxTime.btn = $button;
                             activeChkBoxTime.chkbox = $checkbox;
@@ -93,7 +96,6 @@ $( document ).ready(function()
                             activeChkBoxTime.chkbox.prop('checked', false);
                             activeChkBoxTime.chkbox.triggerHandler('change');
                         }
-                        var isChecked = $checkbox.is(':checked');
                         // Set the button's state
                         $button.data('state', (isChecked) ? "on" : "off");
 
@@ -110,7 +112,8 @@ $( document ).ready(function()
                         activeChkBoxTime.btn = $button;
                         activeChkBoxTime.chkbox = $checkbox;
                     }
-                    else {
+                    else 
+                    {
                         $button.data('state', "off");
                         $button.find('.state-icon').removeClass().addClass('state-icon ' + settings[$button.data('state')].icon);
                         $button.removeClass('btn-' + color + ' active').addClass('btn-default');
@@ -316,7 +319,7 @@ $( document ).ready(function()
 
         // create expandig table last date
         var expandDate = new Date(lastDate);
-        expandDate.setDate(expandDate.getDate() + 7);
+        expandDate.setDate(expandDate.getDate() + 21);
 
         var expandDate_formated = expandDate.getFullYear()+'-'+pad((expandDate.getMonth()+1))+'-'+pad(expandDate.getDate());
         // get all dates for expanding table 
@@ -370,8 +373,12 @@ $( document ).ready(function()
     }
 
     function fillProducts(product, start, count, with_shifting, bttn_id) {
-        if (Object.keys(markedMachines).length < 1) {
+        if ( Object.keys(markedMachines).length < 1 ) {
             showError('Nav atzīmēta neviena mašīna.', bttn_id);
+            return;
+        }
+        if ( count > 50000 ) {
+            showError('Kļūda! Maksimālais ievades daudzums ir 50000kg.', bttn_id);
             return;
         }
         $.post( "php/products_formula.php", {kg: count, prod: product})
@@ -754,8 +761,16 @@ $( document ).ready(function()
         });
     });
 
-    $( "#production-bttn" ).click( function() { 
+    $( "#production-bttn" ).click( function() {
         $('#produceModal').modal('show');
+
+        var draggableDiv = $('#produceModal').draggable();
+        $('#produceTable', draggableDiv).mousedown(function(ev) {
+             draggableDiv.draggable('disable');
+        }).mouseup(function(ev) {
+             draggableDiv.draggable('enable');
+        });
+        //$( "#produceModal" ).draggable();
     })
 
     $( "#gen-prod-bttn" ).mouseout(function() {
@@ -791,8 +806,19 @@ $( document ).ready(function()
             // get postgre time format
             startDate = startDate.split('/')[2]+'-'+startDate.split('/')[0]+'-'+startDate.split('/')[1];
             endDate = endDate.split('/')[2]+'-'+endDate.split('/')[0]+'-'+endDate.split('/')[1];
+            var nextShift = 1;
 
-            var startDateIndex = ( $( '#'+startDate+'H')[0].cellIndex-1 ) * 3 + 1;
+            if ( formatDate(new Date()) == formatDate(new Date(startDate)) ) {
+                var todayDate = new Date();
+                var today_h = todayDate.getHours();
+                nextShift = getShiftNumber(today_h, true);
+                if ( nextShift == 0 ) todayDate.setDate(todayDate.getDate() + 1);
+                nextShift = ( nextShift == 0) ? 1 : nextShift+2;
+                startDate = formatDate(todayDate);
+            }
+
+            var startDateIndex = ( $( '#'+startDate+'H')[0].cellIndex-1 ) * 3 + nextShift;
+            console.log(startDateIndex, nextShift, startDate, today_h);
             var endDateIndex = $( '#'+endDate+'H')[0].cellIndex * 3;
             console.log("#table2 tbody tr:nth-child(n+1):nth-child(-n+"+machineCount+") td:nth-child(n+"+startDateIndex+"):nth-child(-n+"+endDateIndex+") div");
             
@@ -1186,7 +1212,7 @@ $( document ).ready(function()
 
     })
 
-    function triggeProductPlacement(el, trgt, not_del ,cx, cy, markedP) 
+    function triggeProductPlacement(el, trgt, not_del ,cx, cy, markedP)
     {
         // glitch fix when this function starts and i dunno why but markedProducts sudenlly is empty, so i pass it like argument
         if ( markedP !== undefined ) markedProducts = markedP;
@@ -1215,15 +1241,16 @@ $( document ).ready(function()
     {
         var nextCell,
             endCell,
-            lastCell = $( "#table2 tbody tr:nth-child(2) td" ).last()[0].cellIndex;
+            lastCell = $( "#table2 tbody tr:nth-child(2) td" ).last()[0].cellIndex+1;
 
         for ( var end_point in endPoints )
-        {   
+        {
             if ( endPoints.hasOwnProperty(end_point) )
-            {   
+            {
                 var start_col = endPoints[end_point].col,
                     end_col = endPoints[end_point].col,
-                    tableEnd = false;
+                    tableEnd = false,
+                    expanded = 0;
                 if ( endPoints[end_point].move )
                 {
                     nextCell = $( "#table2 tbody tr:nth-child("+end_point+") td:nth-child("+start_col+")" );
@@ -1261,7 +1288,10 @@ $( document ).ready(function()
 
     $('#produceModal').on('shown.bs.modal', function() {
         $('#produceTable tbody').html('');
-        var maxD, minD;
+        var today = new Date();
+        var today_formated = today.getFullYear()+'-'+pad((today.getMonth()+1))+'-'+pad(today.getDate());
+        var maxD, minD, today_td = $('#'+today_formated+'H');
+
         // if there is no unchangable products in the plan
         if ( $('.history').length == 0 ) {
             minD = $('.day-td').first()[0].id.slice(0, -1);
@@ -1280,6 +1310,11 @@ $( document ).ready(function()
                 maxD = $('.day-td').last()[0].id.slice(0, -1);
             }
         }
+        // if there is  today in the showed plan then set the min date to it
+        if ( today_td[0] !== undefined ) {
+            minD = today_td[0].id.slice(0, -1);
+        }
+
         $( '.popupDatepickerProduce').datepick( "destroy" );
         $('.popupDatepickerProduce').datepick({minDate: new Date(minD), maxDate: new Date(maxD), dateFormat: 'dd/mm/yyyy'});
         
@@ -2069,6 +2104,18 @@ function shiftFromFreeDays() {
 // add leading zero function
 function pad(n){return n<10 ? '0'+n : n;}
 
+function getShiftNumber(h, nextShift) {
+    var shift;
+    if ( (h >= 22 && h <= 23) || h <= 5 ) shift =  0;
+    else if ( h >= 6 && h <= 13 ) shift = 1;
+    else if ( h >= 14 && h <= 21 ) shift = 2;
+    
+    return ( nextShift ) ? (shift+1) % 3 : shift;
+}
+function formatDate(d) {
+    return d.getFullYear()+'-'+pad((d.getMonth()+1))+'-'+pad(d.getDate());
+}
+
 function drawTodaysSign (draw_time, draw_history) 
 {
     var today = new Date();
@@ -2078,17 +2125,21 @@ function drawTodaysSign (draw_time, draw_history)
     // so today in this time interval is already next day
     if ( h >= 22 && h <= 23 ) today.setDate(today.getDate() + 1);
 
-    if ( (h >= 22 && h <= 23) || h <= 5) whichShift = 0;
-    else if ( h >= 6 && h <= 13) whichShift = 1;
-    else if ( h >= 14 && h <= 21) whichShift = 2;
+    whichShift = getShiftNumber(h, false)
+
     console.log(whichShift + " " +h);
 
     // mark today in the table
     var today_formated = today.getFullYear()+'-'+pad((today.getMonth()+1))+'-'+pad(today.getDate());
     if ($('#'+today_formated+'H')[0] === undefined) {
+        $('#today-line').remove();
         console.log('Nav datuma');
     }
     else {
+        if ( $('#today-line')[0] === undefined ) {
+            $('#right').prepend('<div id="today-line"></div>');
+        }
+
         var date_cellIndex = $('#'+today_formated+'H')[0].cellIndex;
         var time_index = (date_cellIndex* 3 - 1) + whichShift;
         //console.log($('.table1-header .header-time td:nth-child('+(time_index)+')'))
@@ -2097,7 +2148,7 @@ function drawTodaysSign (draw_time, draw_history)
             $('#table2 tr:nth-child('+i+') td:nth-child('+(time_index-1)+')').addClass('today');
         };
         var lineHeight = parseInt($('.left-header').css('height'))+60;
-        ///lineHeight = parseInt(lineHeight+100);
+
         $('#today-line').css('height', lineHeight.toString()+'px');
         $('#today-line').offset({top: $('#today-line').offset().top, left: $('.today').offset().left});
         

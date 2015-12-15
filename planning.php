@@ -14,6 +14,7 @@
 	</body>
 
 	<?php include("footer.html") ;?>
+	<script src="js/jquery-ui.min.js"></script>
 	<script type="text/javascript" src="bootstrap/js/typeahead.bundle.js"></script>
 	<script type="text/javascript" src="datepicker/jquery.plugin.js"></script>
 	<script type="text/javascript" src="datepicker/jquery.datepick.js"></script>
