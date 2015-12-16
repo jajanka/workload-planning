@@ -6,7 +6,6 @@
         console.debug("ajaxStop");
         $("#ajax_loader img").hide();
         $("#ajax_loader").hide();
-        //$("#calendarTable").show();
      });
 })( jQuery );
 
@@ -14,7 +13,6 @@
 ( function($) {
      $(document).ajaxStart(function(){
          console.debug("ajaxStart");
-         //$("#calendarTable").hide();
          $("#ajax_loader img").show();
          $("#ajax_loader").show();
      });
@@ -136,12 +134,11 @@ $(document).ready(function () {
 })( jQuery );
 
 function showError(text, type) {
-    var alertType = (type == 'danger') ? 'Kļūda!' : '';
-    $('#message').prepend('<div class="alert alert-'+type+' fade in" role="alert" style="display: none; margin-top: 5px;">'+
-        '<a href="#" class="close" data-dismiss="alert">&times;</a>'+
-        '<strong>'+alertType+'</strong> '+text+'</div>');
-    $(".alert").fadeIn(25);
-    setTimeout(function(){ $('.alert').alert('close'); }, 5000);
+    var title = ''
+    if ( type == 'danger' ) title = 'Kļūda! ';
+    else if ( type == 'success' ) title =  'Paziņojums! ';
+    
+    $.toaster({ priority : type, title : title, message : text});
 }
 
 var header_lag_fix = true;

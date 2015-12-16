@@ -31,29 +31,34 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         }
      });
 })( jQuery );
-/*
+
 ( function($) {
      $(document).ajaxStart(function(ev) {
         console.debug("ajaxStart");
         if (ev.currentTarget.activeElement.id != 'product' && ev.currentTarget.activeElement.id != 'gen-prod-bttn') {
             $("#ajax_loader img").show();
             $("#ajax_loader").show();
-            //$("#ajax_loader").offset($("#right").offset());
         }
      });
 })( jQuery );
-*/
+
 // scope the jQuery
 ( function($) {
 
 $( document ).ready(function() 
 {
+    $('#successModal').draggable();
+
+    var draggableDiv = $('#produceModal').draggable();
+    $('#produceTable', draggableDiv).mousedown(function(ev) {
+         draggableDiv.draggable('disable');
+    }).mouseup(function(ev) {
+         draggableDiv.draggable('enable');
+    });
+
     var statusBar = {'marked': {'label': 'Iezīmēts', 'count': 0}};
     var tableView = getView(); 
     var activeChkBoxTime = {};
-    var checkCheckBoxTime;
-    // Init tooltip
-    //$('[data-toggle="tooltip"]').tooltip(); 
 
     // Button-checkbox
     /////////////////////////////////////
@@ -372,13 +377,13 @@ $( document ).ready(function()
         loadTable(lastDateObj_formated, expandDate_formated, false);
     }
 
-    function fillProducts(product, start, count, with_shifting, bttn_id) {
+    function fillProducts(product, start, count, with_shifting) {
         if ( Object.keys(markedMachines).length < 1 ) {
-            showError('Nav atzīmēta neviena mašīna.', bttn_id);
+            showError('Nav atzīmēta neviena mašīna.', 'danger');
             return;
         }
         if ( count > 50000 ) {
-            showError('Kļūda! Maksimālais ievades daudzums ir 50000kg.', bttn_id);
+            showError('Kļūda! Maksimālais ievades daudzums ir 50000kg.', 'danger');
             return;
         }
         $.post( "php/products_formula.php", {kg: count, prod: product})
@@ -546,12 +551,12 @@ $( document ).ready(function()
             }
             else 
             {
-                showError("Nekorekts rezultāts.", bttn_id);
+                showError("Nekorekts rezultāts.", 'danger');
             }
 
         })
         .fail( function( data ) {
-            showError("Nevar pievienot produktu.", bttn_id);
+            showError("Nevar pievienot produktu.", 'danger');
         });
     }
 
@@ -699,7 +704,7 @@ $( document ).ready(function()
             $('.page-date-header').html(start_date_formated+' - '+end_date_formated);
         }
         else {
-            showError('Nav korekti ievadīts datums.', 'gen-table-bttn');
+            showError('Nav korekti ievadīts datums.', 'danger');
         }
     });
 
@@ -708,20 +713,20 @@ $( document ).ready(function()
         var p = $('#product').val();
         var q = $('#quantity').val();
         if ( markedShift < 1 ) {
-        	showError("Nav atzīmēta starta maiņa!", 'add-group-btn');
+        	showError("Nav atzīmēta starta maiņa!", 'danger');
         	return;
         }
-        fillProducts(p, markedShift, q, false, 'add-group-btn');
+        fillProducts(p, markedShift, q, false);
     });
 
     $('#gen-prod-shift-bttn').click(function() { 
         var p = $('#product').val();
         var q = $('#quantity').val();
         if ( markedShift < 1 ) {
-            showError("Nav atzīmēta starta maiņa!", 'add-group-btn');
+            showError("Nav atzīmēta starta maiņa!", 'danger');
             return;
         }
-        fillProducts(p, markedShift, q, true, 'add-group-btn');
+        fillProducts(p, markedShift, q, true);
     });
 
     $('#undo-gen-prod-bttn').click(function() { 
@@ -763,14 +768,6 @@ $( document ).ready(function()
 
     $( "#production-bttn" ).click( function() {
         $('#produceModal').modal('show');
-
-        var draggableDiv = $('#produceModal').draggable();
-        $('#produceTable', draggableDiv).mousedown(function(ev) {
-             draggableDiv.draggable('disable');
-        }).mouseup(function(ev) {
-             draggableDiv.draggable('enable');
-        });
-        //$( "#produceModal" ).draggable();
     })
 
     $( "#gen-prod-bttn" ).mouseout(function() {
@@ -813,7 +810,7 @@ $( document ).ready(function()
                 var today_h = todayDate.getHours();
                 nextShift = getShiftNumber(today_h, true);
                 if ( nextShift == 0 ) todayDate.setDate(todayDate.getDate() + 1);
-                nextShift = ( nextShift == 0) ? 1 : nextShift+2;
+                nextShift = ( nextShift == 0) ? 1 : nextShift+1;
                 startDate = formatDate(todayDate);
             }
 
@@ -980,7 +977,7 @@ $( document ).ready(function()
         }
         else 
         {
-            showError('Nav korekti ievadīts datums.', 'interval-bttn');
+            showError('Nav korekti ievadīts datums.', 'danger');
         }
     })
 
@@ -1200,7 +1197,7 @@ $( document ).ready(function()
                     }
                     else
                     {
-                        showError("Nekorekts rezultāts.", 'gen-prod-bttn');
+                        showError("Nekorekts rezultāts.", 'danger');
                     }
                 },
                 async: false
@@ -1940,8 +1937,8 @@ $( document ).ready(function()
                         }
                     }
                     td_html += '<tr>';
-                    td_html += '<td><div class="checkbox"><label><input type="checkbox" '+is_checked+'>'+i+'</label></div></td>';
-                    td_html += '<td><input type="text" class="form-control input-sm" value="'+comment+'"></td>';
+                    td_html += '<td><div class="checkbox"><label><input type="checkbox" '+is_checked+' disabled>'+i+'</label></div></td>';
+                    td_html += '<td><pre>'+comment+'</pre></td>';
                         
                     td_html += '</tr>';
                 };
@@ -1950,11 +1947,11 @@ $( document ).ready(function()
                 $('#productModal').modal({'show': true, });
             }
             else {
-                showError("Šāds '"+$('#product').val()+"' produkts neeksistē.", 'bttn-prod-info');
+                showError("Šāds <b>'"+$('#product').val()+"'</b> produkts neeksistē.", 'danger');
             }
         })
         .fail( function( data ) {
-            showError("Nevar saglabāt datus.", 'save-bttn');
+            showError("Nevar saglabāt datus.", 'danger');
         });
 
     });
@@ -1996,6 +1993,7 @@ $( document ).ready(function()
         $.post( "php/save.php", {upsert: JSON.stringify(addedTiles), del: JSON.stringify(deletedTiles), view: tableView})
         // when post is finished
         .done(function( data ) {
+            showError("Plāns saglabāts.", 'success');
             console.log('psuccess');
             loadedTiles = newLoadedTiles;
         })
@@ -2151,23 +2149,8 @@ function drawTodaysSign (draw_time, draw_history)
 
         $('#today-line').css('height', lineHeight.toString()+'px');
         $('#today-line').offset({top: $('#today-line').offset().top, left: $('.today').offset().left});
-        
-        /*
-        $('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-toggle', "tooltip");
-        $('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-placement', "bottom");
-        $('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('data-container', "#table2");
-        $('#table2 tr:nth-child('+machineCount+') td:nth-child('+(time_index-1)+')').attr('title', "Š o b r ī d");
-        $('[data-toggle="tooltip"]').tooltip({trigger: 'manual'}).tooltip('show'); 
-    
-        // fix to correct show todays tooltip when today is not first fenerated in #table2 seenable content
-        setTimeout(function (){ 
-            var arrowOffset = $('#table2 .tooltip-arrow').offset();
-            var innerWidth = $('#table2 .tooltip-inner').width();
-            $('#table2 .tooltip-arrow').css('left', '');
-            $('#table2 .tooltip').offset({top: $('.tooltip').offset().top, left: arrowOffset.left - innerWidth/2});
-        }, draw_time);
-        */
     }
+
     if ( draw_history ) drawHistoryDiv(today, whichShift);
 }
 
@@ -2231,7 +2214,7 @@ function updateUndo () {
     if ( undoProducts.length > 0 ) {
         // if last saved undo is not equal with this table, then update
         if ( undoProducts[undoProducts.length - 1]['table'] != t ) {
-            if ( undoProducts.length > 19 ) {
+            if ( undoProducts.length > 29 ) {
                 undoProducts.shift();
             }
             undoProducts.push( {'header': h, 
@@ -2250,16 +2233,13 @@ function updateUndo () {
     }
 }
 
-function showError(text, bttn_id) {
-    $('#'+bttn_id).attr('title', text);
-    $('#'+bttn_id).tooltip({trigger: 'manual', container: '#'+bttn_id}).tooltip('show');
-
-    var arrowOffset = $('#'+bttn_id+' .tooltip-arrow').offset();
-    var innerWidth = $('#'+bttn_id+' .tooltip-inner').width();
-    // top remains the same, only left is changed
-    $('#'+bttn_id+' .tooltip-inner').offset({top: $('#'+bttn_id+' .tooltip-inner').offset().top, left: arrowOffset.left-innerWidth / 2});
+function showError(text, type) {
+    var title = ''
+    if ( type == 'danger' ) title = 'Kļūda! ';
+    else if ( type == 'success' ) title =  'Paziņojums! ';
+    
+    $.toaster({ priority : type, title : title, message : text});
 }
-
 
 /* ###### COLOR FUNCTIONS #######
 ###################################

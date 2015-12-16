@@ -315,7 +315,7 @@ $(document).ready(function () {
 				showError('Dati saglabāti!', 'success');
 			else {
 				showError('Dati saglabāti!', 'success');
-				showError('Šie produkti jau pastāv '+data, 'danger');
+				//showError('Šie produkti jau pastāv '+data, 'danger');
 			}
 			location.reload();
 		})
@@ -330,12 +330,11 @@ $(document).ready(function () {
 } ) ( jQuery );
 
 function showError(text, type) {
-	var alertType = (type == 'danger') ? 'Kļūda!' : '';
-	$('#message').prepend('<div class="alert alert-'+type+' fade in" role="alert" style="display: none; margin-top: 5px;">'+
-		'<a href="#" class="close" data-dismiss="alert">&times;</a>'+
-		'<strong>'+alertType+'</strong> '+text+'</div>');
-	$(".alert").fadeIn(25);
-	setTimeout(function(){ $('.alert').alert('close'); }, 5000);
+    var title = ''
+    if ( type == 'danger' ) title = 'Kļūda! ';
+    else if ( type == 'success' ) title =  'Paziņojums! ';
+    
+    $.toaster({ priority : type, title : title, message : text});
 }
 
 function cellEdit(cell) {

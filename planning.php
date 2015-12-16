@@ -18,6 +18,7 @@
 	<script type="text/javascript" src="bootstrap/js/typeahead.bundle.js"></script>
 	<script type="text/javascript" src="datepicker/jquery.plugin.js"></script>
 	<script type="text/javascript" src="datepicker/jquery.datepick.js"></script>
-	<script type="text/javascript" src="datepicker/jquery.datepick-lv.js"></script> 
+	<script type="text/javascript" src="datepicker/jquery.datepick-lv.js"></script>
+	<script type="text/javascript" src="js/jquery.toaster.js"></script>
 	<script type="text/javascript" src="js/scripts.js"></script>
 </html>

@@ -99,6 +99,7 @@
 	</body>
 	
 	<?php include("footer.html"); ?>
+	<script type="text/javascript" src="js/jquery.toaster.js"></script>
 	<script type="text/javascript" src="js/calendar.js"></script>
 	<script type="text/javascript" src="js/totop.js"></script>
 </html>
