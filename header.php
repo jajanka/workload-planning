@@ -29,7 +29,7 @@
   <div class="container-fluid">
     <div class="navbar-header">
     <?php 
-    echo '<a class="navbar-brand" href="planning.php?view='.$view.'">Sākums</a>';
+    echo '<a class="navbar-brand" href="planning.php?view='.$view.'"><span class="glyphicon glyphicon-home"></span></a>';
     ?>
     </div>
     <div>
