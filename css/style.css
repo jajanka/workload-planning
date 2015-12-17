@@ -32,13 +32,13 @@ body {
 	min-width: 1200px;
 	left: 0;
 	right: 0;
-	border-color: #DDDDDD !important;
-	//border-top: 1px dotted #AAA !important;
+	border-color: #DDD !important;
+	background-color: #DDD !important;
+	border-top: 1px solid #B9B9B9 !important;
 	border-radius: 0px !important;
 	z-index: 99;
 	position: fixed;
 	-webkit-transform: translateZ(0);
-	background-color: #DDDDDD !important;
 }
 .panel-fixed .panel-body {
 	padding: 0px;
@@ -140,17 +140,19 @@ body {
 #status {
 	width: 100%;
 	height: 20px;
-	background-color: #DDD;
+	//background-color: #DDD;
+	background: rgba(33,76,119,1);
 	margin-top: 88px;
 	position: fixed;
 	z-index: 12;
+	border-bottom: 1px solid #E0E0E0;
 	-webkit-transform: translateZ(0);
 }
 #status div {
 	font-size: 12px;
 	margin-top: 3px;
 	margin-right: 10px;
-	color: #555;
+	color: #DDD;
 	float: right;
 }
 .day-td {
@@ -307,17 +309,17 @@ input#product, input#product {
     text-transform: uppercase;
 }
 .dropdown-menu {
-	background-color: #033B6B !important;
+	background-color: #F6F6F6 !important;
 	border-radius: 0px !important;
 }
 .dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {
-	background-color: #215A8C !important;
+	background-color: #FFF !important;
 }
 .dropdown-menu>li>a {
-	color: #F5F5F5 !important;
+	color: #111 !important;
 }
 #mainNavBar ul.nav.navbar-nav li a:hover, #mainNavBar div.navbar-header a.navbar-brand:hover {
-	border-bottom: 1px solid #FFF !important;
+	border-bottom: 1px solid #B9B9B9 !important;
 }
 
 #mainNavBar, #mainNavBar .container-fluid, #mainNavBar div.navbar-header, 
@@ -327,13 +329,16 @@ input#product, input#product {
 .navbar { min-height: 40px !important; }
 
 #mainNavBar ul.nav.navbar-nav li a, #mainNavBar div.navbar-header a.navbar-brand {
-	color: #F5F5F5 !important;
+	color: #333 !important;
 }
 .container-fluid {
-	background-color: #01192D;
+	min-width: 752px !important;
+	background-color: #DDDDDD;
+    border-bottom: 1px solid #B9B9B9;
 }
 #mainNavBar {
 	border-bottom: 1px #eee solid;
+	min-width: 752px !important;
 	//background-color: #A2BCD2 !important;
 }
 
@@ -341,14 +346,17 @@ input#product, input#product {
 	 margin-left: 40px;
 }
 .wrapper-actions-option {
-	background-color: #F6FAFF !important;
+	background-color: #F6F6F6 !important;
 }
 .wrapper-nav-option, .wrapper-actions-option {
 	padding-right: 7px;
 	padding-left:7px;
 	margin-left:7px !important;
-	background-color: #033B6B;
+	background-color: #F6F6F6;
 	height: 43px;
+	border-right: 1px solid #B9B9B9;
+    border-left: 1px solid #B9B9B9;
+    border-bottom: 1px solid #B9B9B9;
 }
 .wrapper-nav-option:nth-child(1) {
 	margin-left:11px !important;
@@ -365,7 +373,7 @@ input#product, input#product {
     background-color: #B50303;
     //border-left: 1px solid #000;
     //border-right: 1px solid #000;
-    z-index: 11;
+    z-index: 9;
     position: absolute;
     //margin-left: 453px;
     opacity: 0.4;

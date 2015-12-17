@@ -19,6 +19,7 @@ try
 	{
 		$pgc = NULL;
 		header("location: index.php"); // Redirecting To Other Page
+		exit();
 	}
 }
 catch(PDOException $e)

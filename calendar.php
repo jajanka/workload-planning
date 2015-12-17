@@ -3,6 +3,7 @@
 		if ( $_SESSION['login_user'] != 'admin' )
 		{
 			header("location: index.php");
+			die();
 		}
 		$title = 'Kalendārs · Culimeta';
 		include("header.php");

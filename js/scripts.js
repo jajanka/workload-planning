@@ -25,7 +25,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
 ( function($) {
     $(document).ajaxStop(function(ev){
         console.debug("ajaxStop");
-        if (ev.currentTarget.activeElement.id != 'product' && ev.currentTarget.activeElement.id != 'gen-prod-bttn') { 
+        if (ev.currentTarget.activeElement.id != 'product') { 
             $("#ajax_loader img").hide();
             $("#ajax_loader").fadeOut( 200 );
         }
@@ -35,7 +35,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
 ( function($) {
      $(document).ajaxStart(function(ev) {
         console.debug("ajaxStart");
-        if (ev.currentTarget.activeElement.id != 'product' && ev.currentTarget.activeElement.id != 'gen-prod-bttn') {
+        if (ev.currentTarget.activeElement.id != 'product') {
             $("#ajax_loader img").show();
             $("#ajax_loader").show();
         }
@@ -379,11 +379,11 @@ $( document ).ready(function()
 
     function fillProducts(product, start, count, with_shifting) {
         if ( Object.keys(markedMachines).length < 1 ) {
-            showError('Nav atzīmēta neviena mašīna.', 'danger');
+            showNotification('Nav atzīmēta neviena mašīna.', 'danger');
             return;
         }
         if ( count > 50000 ) {
-            showError('Kļūda! Maksimālais ievades daudzums ir 50000kg.', 'danger');
+            showNotification('Kļūda! Maksimālais ievades daudzums ir 50000kg.', 'danger');
             return;
         }
         $.post( "php/products_formula.php", {kg: count, prod: product})
@@ -551,12 +551,12 @@ $( document ).ready(function()
             }
             else 
             {
-                showError("Nekorekts rezultāts.", 'danger');
+                showNotification("Nekorekts rezultāts.", 'danger');
             }
 
         })
         .fail( function( data ) {
-            showError("Nevar pievienot produktu.", 'danger');
+            showNotification("Nevar pievienot produktu.", 'danger');
         });
     }
 
@@ -704,7 +704,7 @@ $( document ).ready(function()
             $('.page-date-header').html(start_date_formated+' - '+end_date_formated);
         }
         else {
-            showError('Nav korekti ievadīts datums.', 'danger');
+            showNotification('Nav korekti ievadīts datums.', 'danger');
         }
     });
 
@@ -713,7 +713,7 @@ $( document ).ready(function()
         var p = $('#product').val();
         var q = $('#quantity').val();
         if ( markedShift < 1 ) {
-        	showError("Nav atzīmēta starta maiņa!", 'danger');
+        	showNotification("Nav atzīmēta starta maiņa!", 'danger');
         	return;
         }
         fillProducts(p, markedShift, q, false);
@@ -723,7 +723,7 @@ $( document ).ready(function()
         var p = $('#product').val();
         var q = $('#quantity').val();
         if ( markedShift < 1 ) {
-            showError("Nav atzīmēta starta maiņa!", 'danger');
+            showNotification("Nav atzīmēta starta maiņa!", 'danger');
             return;
         }
         fillProducts(p, markedShift, q, true);
@@ -977,11 +977,11 @@ $( document ).ready(function()
         }
         else 
         {
-            showError('Nav korekti ievadīts datums.', 'danger');
+            showNotification('Nav korekti ievadīts datums.', 'danger');
         }
     })
 
-    $( "#produceModal" ).on('click', '#produce-change-bttn', function(e) { 
+    $( "#produceModal" ).on('click', '#produce-change-bttn', function(e) {
         var changedProducts = [];
         var curRow = $("#produceTable tbody tr:nth-child("+e.target.parentNode.parentNode.rowIndex+")");
         var keyProduct = curRow.find('td:nth-child(2)')[0].innerHTML;
@@ -1044,14 +1044,15 @@ $( document ).ready(function()
                                 }
                             }
                         }
-
+                        var machineRows = Object.keys( Produce.uniqueProducts[keyProduct].machines );
+                        var machLen = machineRows.length;
+                        var testEmptyCell;
                         for ( var shift in Produce.uniqueProducts[keyProduct].shifts ) 
                         {   
                             firstMac = ( firstMac === undefined ) ? shift : firstMac;
                             if ( Produce.uniqueProducts[keyProduct].shifts.hasOwnProperty(shift) ) 
                             {
-                                var machineRows = Produce.uniqueProducts[keyProduct].shifts[shift];
-                                var machLen = machineRows.length;
+                                
                                 if ( jsonCount == 0 ) 
                                 { 
                                     last_i = machineRows[0];
@@ -1061,31 +1062,35 @@ $( document ).ready(function()
 
                                 for (var i = 0; i < machLen; i++) 
                                 {      
-                                    newKey = machineRows[i]+'/'+shift;
-                                    // end fill true if kg is given less then the original
-                                    if ( !endFill ) 
+                                    testEmptyCell = $( "#table2 tbody tr:nth-child("+machineRows[i]+") td:nth-child("+shift+")");
+                                    if ( testEmptyCell[0] !== undefined && testEmptyCell.find('div')[0] === undefined ) 
                                     {
-                                        markedProducts[newKey] = {'r': parseInt(machineRows[i]), 
-                                                'c': shift,
-                                                'rEnd': parseInt(machineRows[i]), 
-                                                'cEnd': shift,
-                                                'product': keyProduct,
-                                                'kg': ( tileCounter == jsonCount) ? jsonData['kgLastShift'] : jsonData['kgPerShift'],
-                                                'fixed': is_fixed
-                                                }; 
-                                        last_shift = shift;
-                                        last_i = machineRows[i];
-                                    }
-                                    else  {
-                                        unplacedProducts.push( [parseInt(machineRows[i]), parseInt(shift)] );
-                                    }
+                                        newKey = machineRows[i]+'/'+shift;
+                                        // end fill is true if kg is given less then the original
+                                        if ( !endFill ) 
+                                        {
+                                            markedProducts[newKey] = {'r': parseInt(machineRows[i]), 
+                                                    'c': shift,
+                                                    'rEnd': parseInt(machineRows[i]), 
+                                                    'cEnd': shift,
+                                                    'product': keyProduct,
+                                                    'kg': ( tileCounter == jsonCount) ? jsonData['kgLastShift'] : jsonData['kgPerShift'],
+                                                    'fixed': is_fixed
+                                                    }; 
+                                            last_shift = shift;
+                                            last_i = machineRows[i];
+                                        }
+                                        else  {
+                                            unplacedProducts.push( [parseInt(machineRows[i]), parseInt(shift)] );
+                                        }
 
-                                    if ( tileCounter == jsonCount ) {
-                                        last_i = machineRows[i];
-                                        last_shift = shift;
-                                        endFill = true;
-                                    }           
-                                    tileCounter++;                           
+                                        if ( tileCounter == jsonCount ) {
+                                            last_i = machineRows[i];
+                                            last_shift = shift;
+                                            endFill = true;
+                                        }           
+                                        tileCounter++;
+                                    }
                                 }
                             }
                         }
@@ -1197,15 +1202,19 @@ $( document ).ready(function()
                     }
                     else
                     {
-                        showError("Nekorekts rezultāts.", 'danger');
+                        showNotification("Nekorekts rezultāts.", 'danger');
                     }
                 },
                 async: false
             })
             Produce.table[ keyProduct ] = {kg: curRow.find('td:nth-child(3)')[0].innerHTML, fixed: curRow.find('td:nth-child(1) input').is(':checked').toString()};
-
+            showNotification('\''+keyProduct+'\' izmaiņas pabeigtas.', 'success');
+        }
+        else {
+            showNotification('Bez izmaiņām.', 'success');
         }
         console.log(changedProducts);
+        
 
     })
 
@@ -1247,6 +1256,7 @@ $( document ).ready(function()
                 var start_col = endPoints[end_point].col,
                     end_col = endPoints[end_point].col,
                     tableEnd = false,
+                    setterCell;
                     expanded = 0;
                 if ( endPoints[end_point].move )
                 {
@@ -1262,7 +1272,14 @@ $( document ).ready(function()
                             nextCell = $( "#table2 tbody tr:nth-child("+end_point+") td:nth-child("+start_col+")" );
                         }
 
-                        $( "#table2 tbody tr:nth-child("+end_point+") td:nth-child("+end_col+")" )[0].innerHTML = nextCell[0].innerHTML;
+                        setterCell = $( "#table2 tbody tr:nth-child("+end_point+") td:nth-child("+end_col+")" );
+                        // change the products id to cell's name attr.. it should be the same.
+                        setterCell[0].innerHTML = nextCell[0].innerHTML;
+                        if ( setterCell.find('div')[0] !== undefined )
+                        {
+                            setterCell.find('div').attr('id', setterCell.attr('name'));
+                        }
+
                         nextCell[0].innerHTML = '';
 
                         // get next end point
@@ -1590,7 +1607,7 @@ $( document ).ready(function()
                         // new place is out of table bounds then don't placed
                         if (markedProducts[key].rEnd < 1 || markedProducts[key].rEnd > machineCount ||
                             markedProducts[key].cEnd < historyEndCell /*|| markedProducts[key].cEnd > lastTdIndex*/) { 
-                            //showError('Produkti neietilpst tabulā.');
+                            //showNotification('Produkti neietilpst tabulā.');
                             is_valid = false;
                             $('#error-modal .modal-title').html('<strong>Kļūda!</strong> Produkti neietilpst tabulā.');
                             $('#error-modal .modal-dialog').attr('style','left: '+(e.clientX-80)+'px; top: '+(e.clientY-10)+'px;');
@@ -1947,11 +1964,11 @@ $( document ).ready(function()
                 $('#productModal').modal({'show': true, });
             }
             else {
-                showError("Šāds <b>'"+$('#product').val()+"'</b> produkts neeksistē.", 'danger');
+                showNotification("Šāds <b>'"+$('#product').val()+"'</b> produkts neeksistē.", 'danger');
             }
         })
         .fail( function( data ) {
-            showError("Nevar saglabāt datus.", 'danger');
+            showNotification("Nevar saglabāt datus.", 'danger');
         });
 
     });
@@ -1993,7 +2010,7 @@ $( document ).ready(function()
         $.post( "php/save.php", {upsert: JSON.stringify(addedTiles), del: JSON.stringify(deletedTiles), view: tableView})
         // when post is finished
         .done(function( data ) {
-            showError("Plāns saglabāts.", 'success');
+            showNotification("Plāns saglabāts.", 'success');
             console.log('psuccess');
             loadedTiles = newLoadedTiles;
         })
@@ -2233,7 +2250,7 @@ function updateUndo () {
     }
 }
 
-function showError(text, type) {
+function showNotification(text, type) {
     var title = ''
     if ( type == 'danger' ) title = 'Kļūda! ';
     else if ( type == 'success' ) title =  'Paziņojums! ';

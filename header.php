@@ -21,6 +21,7 @@
     }
     else {
       header('Location: planning.php?view=1');
+      die();
     }
   }
 ?>
@@ -81,7 +82,7 @@
       ?>
     </div>
     <div class='btn-toolbar pull-right' style="margin-top: 15px;">
-      <a href="logout.php" style="color: #DDD;">Iziet (<?php echo $_SESSION['login_user']; ?>)</a>
+      <a href="logout.php" style="color: #222;">Iziet (<?php echo $_SESSION['login_user']; ?>)</a>
     </div>
   </div>
 </nav>
