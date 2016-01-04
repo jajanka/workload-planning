@@ -151,7 +151,7 @@ function UpdateTableHeaders() {
            scrollTop      = $(window).scrollTop(),
            floatingHeader = $(".floatingHeader", this);
        
-        if ((scrollTop > offset.top) && (scrollTop < offset.top + el.height())) {
+        if ((scrollTop > offset.top - 36) && (scrollTop < offset.top - 36 + el.height())) {
             // get satic thead the same width as original table thead
             for (var i = 1; i <= 5; i++) {
                 $('.floatingHeader th:nth-child('+i+')').width( $('.persist-header th:nth-child('+i+')').width() );

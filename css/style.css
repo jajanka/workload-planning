@@ -114,8 +114,8 @@ body {
 	z-index: 10000 !important;
 }
 .left-header{
-	float:left; 
-	border-left: 7px solid #CCC;
+	float:left;
+    border-left: 7px solid #5B82A8;
 	margin-top: 155px;
 	position: fixed;
 	z-index: 10;
@@ -132,8 +132,8 @@ body {
 	height:47px; 
 	background-color: #E0E0E0; 
 	margin-top:108px; 
-	border-top: 7px solid #CCC;
-	border-left: 7px solid #CCC;
+	border-top: 7px solid #5B82A8;
+    border-left: 7px solid #5B82A8;
 	position: fixed; 
 	-webkit-transform: translateZ(0);
 	z-index: 11;
@@ -146,7 +146,7 @@ body {
 	margin-top: 86px;
 	position: fixed;
 	z-index: 12;
-	border-bottom: 1px solid #E0E0E0;
+	border-bottom: 1px solid #658DB5;
 	-webkit-transform: translateZ(0);
 }
 #status div {
@@ -157,9 +157,11 @@ body {
 	float: right;
 }
 .day-td {
-	background: #CCC; 
-	border-color: #DDD !important;
+	background: #5B82A8; 
+	border-color: #DDC5B5 !important;
+	border-top-color: #5B82A8 !important;
 	font-size: 12pt !important;
+	color: #0C1B2A;
 }
 .blank {
 	background-color: #E0E0E0 !important;
@@ -243,7 +245,7 @@ body {
 }
 .floatingHeader th {
   line-height: 35px !important;
-  background-color: white;
+  background-color: #EBEFF5;
 }
 #labelProduct {
 	font-size: 30px !important; 

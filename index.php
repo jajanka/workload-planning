@@ -68,17 +68,17 @@ if (isset($_POST['submit']))
 ?>
 	  <div class="wrapper">
 	    <form class="form-signin" method="POST" action="">   
+	      <div id="login-logo" style="height: 70px; width: 100%">
+	  	    <img src="css/images/logoLogin.png" style="float: right; margin-bottom: 20px;">
+	  	  </div>
+
+	      <h4 class="form-signin-heading">Ielogoties</h4>
 	    <?php 
 	    	if ( strlen($error) > 0 ) {
 		    	echo '<div class="alert alert-danger">
 			  	<strong>Kļūda!</strong> '.$error.'</div>';
 			}
 		?>
-	      <div id="login-logo" style="height: 50px; width: 100%">
-	  	    <img src="css/images/logoLogin.png" style="float: right; margin-bottom: 20px;">
-	  	  </div>
-    
-	      <h2 class="form-signin-heading">Ielogoties</h2>
 	      <input type="text" class="form-control" name="username" placeholder="Lietotājs" required="" autofocus="" />
 	      <input type="password" class="form-control" name="password" placeholder="Parole" required=""/>      
 	      <label class="checkbox">
