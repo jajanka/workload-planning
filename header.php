@@ -65,7 +65,7 @@
         if ( $_SESSION['login_user'] == 'admin' )
         {
           echo '<div class="btn-group wrapper-nav-option">';
-        	echo '<button type="button" class="btn btn-sm btn-danger" id="undo-gen-prod-bttn"><span class="glyphicon glyphicon-circle-arrow-left"></span> Atcelt</button>
+        	echo '<button style="margin-right: 10px" type="button" class="btn btn-sm btn-danger" id="undo-gen-prod-bttn"><span class="glyphicon glyphicon-circle-arrow-left"></span> Atcelt</button>
          		<button type="button" class="btn btn-sm btn-success tooltip-error" id="save-bttn" data-placement="bottom" title=""><span class="glyphicon glyphicon-floppy-save"></span> Saglabāt</button>';
           echo "</div>";
         }

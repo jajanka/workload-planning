@@ -9,6 +9,7 @@ var Product = {};
 $(document).ready(function () {
 	// reckons only deleted loaded products
 	var deletedProducts = [];
+	var machineCount = 0;
 
 	// load info about products
 	$.post( "php/products_load_info.php", {getInfo: true})
@@ -30,6 +31,24 @@ $(document).ready(function () {
 	.fail( function( data ) {
 	    showError("Nevar ielādēt produkta informāciju.", 'danger');
 	});
+
+	function getMachineCount()
+    {
+        $.ajax({
+              type: 'POST',
+              url: "php/machine_count.php",
+              data: {total: true},
+              success: function( data ) {
+                if ( data != '' )
+                {
+                    jsonCount = jQuery.parseJSON(data);
+                    machineCount = parseInt(jsonCount['count']);
+                }
+            },
+              async:false
+        });
+    }
+    getMachineCount();
 
 	var confirmOptions = {title: "Dzēst?", btnOkLabel: "Jā", btnCancelLabel: "Nē", singleton: true, onCancel: function(){
 		$(this).addClass('hidden'); 
@@ -199,7 +218,7 @@ $(document).ready(function () {
 			$('#overallComment').val(prodsToSave[Product['curRow']]['modal']['info']);
 
 		var td_html = '';
-		for (var i = 1; i <= 21; i++) 
+		for (var i = 1; i <= machineCount; i++) 
 		{
 			var comment = '';
 			var is_checked = 'unchecked';

@@ -51,7 +51,7 @@
 		</div><!-- main container -->
 
 
-	<div class="modal fade" id="productModal">
+	<div class="modal" id="productModal">
 	  <div class="modal-dialog">
 	    <div class="modal-content">
 	      <div class="modal-header">

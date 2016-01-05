@@ -33,26 +33,71 @@ if (isset($_POST['q']))
 	$pgc = NULL;
 }
 
-else if (isset($_POST['product'])) 
+else if ( isset($_POST['product']) && isset($_POST['view']) ) 
 {
 
 	require('../../h/postgres_cmp.php');
 
 	$prod = $_POST['product'];
-	$res = '';
+	$view = $_POST['view'];
+	$resMachines = array();
 
-	$selectQ = 'SELECT allowed_machines FROM products WHERE  UPPER(p_name) = UPPER(:product) LIMIT 1';
+	$selectQ = 'SELECT allowed_machines FROM products WHERE UPPER(p_name) = UPPER(:product) LIMIT 1';
 	
 	try
 	{
-
 		$pdo = $pgc->prepare($selectQ);
 		$pdo->bindParam(':product', $prod, PDO::PARAM_STR);
 		$pdo->execute();
 		$res = $pdo->fetchAll(PDO::FETCH_NUM);
 
-		echo json_encode($res);
+		$resMachines = $res;
 		
+	}
+	catch(PDOException $e)
+	{
+	    $pgc = NULL;
+	    die('error in gc function => ' . $e->getMessage());
+	}
+
+
+	$viewStartJson = '';
+	$selectQ = 'SELECT SUM(machine_count) FROM cm_machine_views WHERE view_order < :view_order';
+	
+	try
+	{
+		$pdo = $pgc->prepare($selectQ);
+		$pdo->bindParam(':view_order', $view, PDO::PARAM_INT);
+		$pdo->execute();
+		$res = $pdo->fetchAll(PDO::FETCH_NUM);
+
+		if ( !empty($res) ){
+			if ( $res[0][0] != '' ){
+				$viewStartJson = ["viewStart" => $res[0][0]];
+			}
+			else {
+				$viewStartJson = ["viewStart" => "0"];
+			}
+		}
+		else {
+			$viewStartJson = ["viewStart" => "0"];
+		}
+
+		if ( empty($resMachines) )
+		{
+			echo '[]';
+		}
+		else
+		{
+			if ( strlen($resMachines[0][0]) > 2 )
+			{
+				echo json_encode( array_merge($viewStartJson, json_decode($resMachines[0][0], true)) );
+			}
+			else {
+				echo json_encode($viewStartJson);
+			}
+
+		}
 	}
 	catch(PDOException $e)
 	{

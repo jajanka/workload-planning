@@ -122,7 +122,7 @@
 
 			'display'    : function ($toast)
 			{
-				return $toast.fadeIn(settings.toast.fade);
+				return $toast.fadeIn('fast');
 			},
 
 			'remove'     : function ($toast, callback)

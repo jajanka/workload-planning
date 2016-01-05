@@ -31,7 +31,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         }
      });
 })( jQuery );
-
+/*
 ( function($) {
      $(document).ajaxStart(function(ev) {
         console.debug("ajaxStart");
@@ -41,7 +41,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         }
      });
 })( jQuery );
-
+*/
 // scope the jQuery
 ( function($) {
 
@@ -59,6 +59,7 @@ $( document ).ready(function()
     var statusBar = {'marked': {'label': 'Iezīmēts', 'count': 0}};
     var tableView = getView(); 
     var activeChkBoxTime = {};
+    var machineStartPoint = 0;
 
     // Button-checkbox
     /////////////////////////////////////
@@ -173,8 +174,11 @@ $( document ).ready(function()
                     if (isChecked) {
                         $button.removeClass('btn-default').addClass('btn-' + color + ' active');
 
-                        // get toggled bttn-checkbox number. It's machine number
-                        var toggledChkBox = $button.context.getElementsByTagName('button')[0].childNodes[2].textContent;
+                        // get toggled bttn-checkbox number. It's machine number -- this was previous approach
+                        // $button.context.getElementsByTagName('button')[0].childNodes[2].textContent;
+                        // now get number by row index
+                        var toggledChkBox = $button[0].parentElement.parentElement.parentElement.rowIndex+1;
+                        console.log($button[0].parentElement.parentElement.parentElement.rowIndex+1);
                         // color row with this number
                         $( "#table2 tbody tr:nth-child("+toggledChkBox+") td").addClass('machine-row');
                         markedMachines[toggledChkBox] = true;
@@ -185,7 +189,7 @@ $( document ).ready(function()
 
                         if (clicked == true) {
                            // get toggled bttn-checkbox number. It's machine number
-                           var toggledChkBox = $button.context.getElementsByTagName('button')[0].childNodes[2].textContent;
+                           var toggledChkBox = $button[0].parentElement.parentElement.parentElement.rowIndex+1;
                            // color row with this number
                             $( "#table2 tbody tr:nth-child("+toggledChkBox+") td").removeClass('machine-row');
                             delete markedMachines[toggledChkBox];
@@ -283,7 +287,7 @@ $( document ).ready(function()
             var cellLen = dates.length*3;
 
             checkBox_html = '<span class="button-checkbox">'+
-                        '<button style="width:100%;" type="button" class="btn btn-xs" data-color="success">'+(i+1)+'</button>'+
+                        '<button style="width:100%;" type="button" class="btn btn-xs" data-color="success">'+(i+1+machineStartPoint)+'</button>'+
                         '<input type="checkbox" class="hidden" unchecked />'+
                         '</span>';
             left_header_html += '<tr><th class="redips-mark dark">'+checkBox_html+'</th></tr>';
@@ -641,7 +645,7 @@ $( document ).ready(function()
         return view;
     }
 
-    function getMachineCount()
+    function getMachineCountAndStartPoint()
     {
         $.ajax({
               type: 'POST',
@@ -652,6 +656,7 @@ $( document ).ready(function()
                 {
                     jsonCount = jQuery.parseJSON(data);
                     machineCount = parseInt(jsonCount['count']);
+                    machineStartPoint = parseInt(jsonCount['viewStart']);
                 }
             },
               async:false
@@ -666,7 +671,7 @@ $( document ).ready(function()
     startDate.setDate(startDate.getDate() - 1);
     var startDate_formated = startDate.getFullYear()+'/'+(startDate.getMonth()+1)+'/'+startDate.getDate();
 
-    getMachineCount();
+    getMachineCountAndStartPoint();
     drawTable(startDate_formated, endDate_formated);
     loadTable(startDate_formated, endDate_formated, true);
 
@@ -805,7 +810,9 @@ $( document ).ready(function()
             endDate = endDate.split('/')[2]+'-'+endDate.split('/')[0]+'-'+endDate.split('/')[1];
             var nextShift = 1;
 
-            if ( formatDate(new Date()) == formatDate(new Date(startDate)) ) {
+            // if today is equal with intervals start day
+            if ( formatDate(new Date()) == formatDate(new Date(startDate)) ) 
+            {
                 var todayDate = new Date();
                 var today_h = todayDate.getHours();
                 nextShift = getShiftNumber(today_h, true);
@@ -1098,8 +1105,25 @@ $( document ).ready(function()
                         // if kg is set bigger then original kg
                         if ( !endFill ) 
                         {
-                            // get all machines
                             var allMachines = [];
+                            var beforeFirstRow = 0;
+
+                            // get column - 1 of the products firstCol to get some row to continue that not in firstCol
+                            var colBeforeStart = $("#table2 tbody tr:nth-child(n+1):nth-child(-n+"+machineCount+") td:nth-child("+(Produce.uniqueProducts[keyProduct].firstCol-1)+") div")
+                            $.each( colBeforeStart, function() 
+                            {
+                                // console.log(this.parentElement);
+                                if ( this.innerHTML == keyProduct )
+                                {
+                                    beforeFirstRow = this.parentElement.parentElement.rowIndex + 1;
+                                    if ( !(beforeFirstRow in Produce.uniqueProducts[keyProduct].machines) )
+                                    {
+                                        allMachines.push(beforeFirstRow);
+                                    }
+                                }
+                            })
+
+                            // get all machines
                             for ( var mac in Produce.uniqueProducts[keyProduct].machines )
                             {
                                 allMachines.push(parseInt(mac));
@@ -1107,6 +1131,7 @@ $( document ).ready(function()
                             allMachines.sort( function(a,b) { return a-b; } )
 
                             // if product kg is changed to bigger
+                            last_i = parseInt(last_i);
                             var start_i = ( allMachines[ allMachines.indexOf( last_i )+1] !== undefined ) ? allMachines.indexOf( last_i )+1 : 0;
                             if ( start_i == 0 ) last_shift++;
                             var rowLastCellIndex = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
@@ -1208,7 +1233,7 @@ $( document ).ready(function()
                 async: false
             })
             Produce.table[ keyProduct ] = {kg: curRow.find('td:nth-child(3)')[0].innerHTML, fixed: curRow.find('td:nth-child(1) input').is(':checked').toString()};
-            showNotification('\''+keyProduct+'\' izmaiņas pabeigtas.', 'success');
+            showNotification('\'<strong>'+keyProduct+'</strong>\' izmaiņas pabeigtas.', 'success');
         }
         else {
             showNotification('Bez izmaiņām.', 'success');
@@ -1926,22 +1951,23 @@ $( document ).ready(function()
     $("body").on('click', '.info', function() {
         console.log($('#product').val());
 
-        $.post( "php/products.php", {product: $('#product').val()})
+        $.post( "php/products.php", {product: $('#product').val(), view: tableView})
         // when post is finished
         .done(function( data ) {
             if (data != '[]') {
                 console.log(data);
-                jsonModal = JSON.parse(data)[0];
+                jsonModal = JSON.parse(data);
                 console.log(jsonModal);
-                jsonModal = JSON.parse(jsonModal[0]);
-                console.log(jsonModal);
+                //jsonModal = JSON.parse(jsonModal[0]);
+                //console.log(jsonModal);
                 $('#productModal .modal-title')[0].innerHTML = $('#product').val();
                 // set overll comment 
                 if (jsonModal != null) 
                     $('#overallComment').val(jsonModal['info']);
 
                 var td_html = '';
-                for (var i = 1; i <= machineCount; i++) 
+                var startMachine = parseInt(jsonModal['viewStart']);
+                for (var i = 1+startMachine; i <= machineCount+startMachine; i++) 
                 {
                     var comment = '';
                     var is_checked = 'unchecked';
@@ -1955,7 +1981,7 @@ $( document ).ready(function()
                     }
                     td_html += '<tr>';
                     td_html += '<td><div class="checkbox"><label><input type="checkbox" '+is_checked+' disabled>'+i+'</label></div></td>';
-                    td_html += '<td><pre>'+comment+'</pre></td>';
+                    td_html += '<td><input type="text" class="form-control input-sm" value="'+comment+'"></td>';
                         
                     td_html += '</tr>';
                 };
