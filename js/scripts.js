@@ -401,10 +401,28 @@ $( document ).ready(function()
             {
                 updateUndo();
                 console.log(JSON.parse(data));
-                jsonData = JSON.parse(data)
+                var jsonData = JSON.parse(data)
                 jsonCount = jsonData['shifts'];
+                var notAllowedMachines = jsonData['notAllowedMachines'];
+                console.log(notAllowedMachines);
                 console.log(jsonCount);
-                //return;
+                
+                // check if product is not added on unallowed machines
+                var wrongMachines = [];
+                for (var i = 0; i < notAllowedMachines.length; i++) {
+                    if ( notAllowedMachines[i] - machineStartPoint in markedMachines ){
+                        wrongMachines.push(notAllowedMachines[i]);
+                    }
+                };
+                if ( wrongMachines.length !== 0 )
+                {   
+                    $('#successModal .modal-content').removeClass('panel-danger').removeClass('panel-success').addClass('panel-danger');
+                    $('#successModal .modal-title').html('Pievienošana liegta');
+                    $('#successModal .modal-body p').html('Produkts nav atļauts pievienošanai uz mašīnām/as: <b>'+wrongMachines.join(', ')+'</b>');
+                    $('#successModal').modal('show');
+                    return;
+                }
+
                 uneditable_jsonCount = jsonCount;
                 // row column length
                 var column_count = document.getElementById('table2').rows[0].cells.length;
@@ -455,6 +473,7 @@ $( document ).ready(function()
                         }
                     };
                 }
+                // with shifting
                 else
                 {
                     var endFill = false,
@@ -548,6 +567,8 @@ $( document ).ready(function()
                 if (firstPlacedIndex % 3 == 1) startDate_formated += ' 22:00';
                 if (firstPlacedIndex % 3 == 2) startDate_formated += ' 06:00';
 
+                $('#successModal .modal-title').html('Kopsavilkums');
+                $('#successModal .modal-content').removeClass('panel-danger').addClass('panel-success');
                 $('#successModal .modal-body p').html('Pievienota/as <b>'+Object.keys(usedShifts).length+'</b> maiņa/as uz <b>'+Object.keys(markedMachines).length+'</b> mašīnas/ām ('+uneditable_jsonCount+' vienības)<br />');
                 $('#successModal .modal-body p').append('<b>Sākums:</b> '+startDate_formated+'<br />');
                 $('#successModal .modal-body p').append('<b>Beigas:</b> '+endDate_formated);
@@ -1013,6 +1034,7 @@ $( document ).ready(function()
                     var jsonCount = 0;
                     var usedShifts = {}; // set of columns where products is landed;
                     var firstPlacedIndex = -1;
+                    var isAnyMachine = true;
                     console.log(data);
 
                     if (data != '') 
@@ -1021,6 +1043,7 @@ $( document ).ready(function()
                         console.log(JSON.parse(data));
                         jsonData = JSON.parse(data)
                         jsonCount = jsonData['shifts'];
+                        var notAllowedMachines = jsonData['notAllowedMachines'];
                         console.log(jsonCount);
                         //return;
                         uneditable_jsonCount = jsonCount;
@@ -1112,7 +1135,7 @@ $( document ).ready(function()
                             var colBeforeStart = $("#table2 tbody tr:nth-child(n+1):nth-child(-n+"+machineCount+") td:nth-child("+(Produce.uniqueProducts[keyProduct].firstCol-1)+") div")
                             $.each( colBeforeStart, function() 
                             {
-                                // console.log(this.parentElement);
+                                // check if products is the same
                                 if ( this.innerHTML == keyProduct )
                                 {
                                     beforeFirstRow = this.parentElement.parentElement.rowIndex + 1;
@@ -1125,17 +1148,39 @@ $( document ).ready(function()
 
                             // get all machines
                             for ( var mac in Produce.uniqueProducts[keyProduct].machines )
-                            {
-                                allMachines.push(parseInt(mac));
+                            {   
+                                // push to all machines if it is not unallowed machine
+                                if ( $.inArray(parseInt(mac), notAllowedMachines) == -1 )
+                                {
+                                    allMachines.push(parseInt(mac));
+                                }
                             }
-                            allMachines.sort( function(a,b) { return a-b; } )
+                            allMachines.sort( function(a,b) { return a-b; } );
+                            if ( allMachines.length == 0 )
+                            {
+                                isAnyMachine = false;
+                                $('#successModal .modal-content').removeClass('panel-danger').removeClass('panel-success').addClass('panel-danger');
+                                $('#successModal .modal-title').html('Papildināšana liegta');
+                                $('#successModal .modal-body p').html('Produktam nav pieejama neviena mašīna.');
+                                $('#successModal').modal('show');
+                            }
 
                             // if product kg is changed to bigger
                             last_i = parseInt(last_i);
                             var start_i = ( allMachines[ allMachines.indexOf( last_i )+1] !== undefined ) ? allMachines.indexOf( last_i )+1 : 0;
+                            if ( $.inArray(last_i, notAllowedMachines) > -1 && $.inArray(last_i, allMachines) == -1 )
+                            {
+                                for (var m = 0; m < allMachines.length; m++) {
+                                    if ( allMachines[m]  > last_i) {
+                                        start_i = m;
+                                        break;
+                                    }
+                                };
+                            }
                             if ( start_i == 0 ) last_shift++;
+
                             var rowLastCellIndex = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
-                            while ( true )
+                            while ( isAnyMachine )
                             {
                                 if (last_shift >= rowLastCellIndex)  {
                                     console.log('Expand1-Produce');
@@ -1239,8 +1284,6 @@ $( document ).ready(function()
             showNotification('Bez izmaiņām.', 'success');
         }
         console.log(changedProducts);
-        
-
     })
 
     function triggeProductPlacement(el, trgt, not_del ,cx, cy, markedP)
@@ -2316,9 +2359,11 @@ function generateTextColor(color) { // generates
 }
 
 function updateColor(product) { // get random color
-    var random_color= '#'+Math.floor(Math.random()*16777215).toString(16);
-    // fix.. for sometimes it generates 5 char color string insteed of 6
-    random_color = (random_color.length < 7) ? random_color + random_color[random_color.length -1] : random_color;
+    var letters = '0123456789ABCDEF'.split('');
+    var random_color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        random_color += letters[Math.round(Math.random() * 15)];
+    }
     if(productsColor[product] === undefined) {
         productsColor[product] = random_color;
     }

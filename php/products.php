@@ -61,7 +61,7 @@ else if ( isset($_POST['product']) && isset($_POST['view']) )
 	}
 
 
-	$viewStartJson = '';
+	$viewStart = 0;
 	$selectQ = 'SELECT SUM(machine_count) FROM cm_machine_views WHERE view_order < :view_order';
 	
 	try
@@ -73,14 +73,14 @@ else if ( isset($_POST['product']) && isset($_POST['view']) )
 
 		if ( !empty($res) ){
 			if ( $res[0][0] != '' ){
-				$viewStartJson = ["viewStart" => $res[0][0]];
+				$viewStart = $res[0][0];
 			}
 			else {
-				$viewStartJson = ["viewStart" => "0"];
+				$viewStart = 0;
 			}
 		}
 		else {
-			$viewStartJson = ["viewStart" => "0"];
+			$viewStart = 0;
 		}
 
 		if ( empty($resMachines) )
@@ -91,10 +91,12 @@ else if ( isset($_POST['product']) && isset($_POST['view']) )
 		{
 			if ( strlen($resMachines[0][0]) > 2 )
 			{
-				echo json_encode( array_merge($viewStartJson, json_decode($resMachines[0][0], true)) );
+				$infoArr = json_decode($resMachines[0][0], true);
+				$infoArr["viewStart"] = $viewStart;
+				echo json_encode($infoArr);
 			}
 			else {
-				echo json_encode($viewStartJson);
+				echo json_encode(["viewStart" => $viewStart]);
 			}
 
 		}

@@ -8,7 +8,7 @@ if (isset($_POST['kg']) && isset($_POST['prod']))
 	$prod = $_POST['prod'];
 	$res = '';
 
-	$selectQ = 'SELECT weigth, m_speed, efficiency_percentage FROM products WHERE p_name = UPPER(:product) LIMIT 1';
+	$selectQ = 'SELECT weigth, m_speed, efficiency_percentage, allowed_machines FROM products WHERE p_name = UPPER(:product) LIMIT 1';
 	
 	try
 	{
@@ -50,7 +50,19 @@ if (isset($_POST['kg']) && isset($_POST['prod']))
 			    "kgLastShift" => $kg_last_shit_reminder
 			);
 
-			echo json_encode( $finalResults );
+			$not_allowed_machines = array();
+			$allowed_machines = json_decode($res[0][3], true);
+
+			foreach ($allowed_machines as $key => $value) 
+			{
+				if ( is_numeric($key) && !$value['check'] )
+				{
+					$not_allowed_machines[] = $key;
+				}
+			}
+
+			$finalResults['notAllowedMachines'] = $not_allowed_machines;
+			echo json_encode($finalResults);
 		}
 		else {
 			echo '';

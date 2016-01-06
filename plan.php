@@ -156,7 +156,7 @@
 		  </div><!-- /.modal-dialog -->
 		</div><!-- /.modal -->
 
-		<div class="modal" id="successModal">
+		<div class="modal" id="successModal" style="z-index: 1051 !important;">
 		  <div class="modal-dialog">
 		    <div class="modal-content panel-success">
 		      <div class="modal-header panel-heading">
