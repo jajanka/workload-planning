@@ -26,6 +26,10 @@ body {
 #table2 {
 	/* align table to the right */
 	margin-left: -3px !important;
+	border-bottom: 1px solid #5B82A8;
+	-webkit-box-shadow: 0 7px 0px -0px #5B82A8;
+    -moz-box-shadow: 0 7px 0px -0px #5B82A8;
+	box-shadow: 0 7px 0px -0px #5B82A8;
 }
 .panel-fixed {
 	margin-top: 43px;
@@ -124,9 +128,13 @@ body {
 .left-header th label, .left-header input[type=checkbox]{
 	margin: 0px;
 }
+.left-header tbody tr:last-child{
+	border-bottom: 8px solid #5B82A8;
+}
 .table-container{
 	float:left;
 }
+
 #leftUppercorner {
 	width:69px; 
 	height:47px; 

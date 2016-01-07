@@ -78,7 +78,7 @@
 	        <button type="button" class="btn btn-default" data-dismiss="modal">Aizvērt</button>
 	      <?php
 	      if ( $_SESSION['login_user'] == 'admin' ){
-	        echo '<button type="button" class="btn btn-success" data-dismiss="modal" id="bttn-save-modal">Saglabāt</button>';
+	        echo '<button type="button" class="btn btn-success" data-dismiss="modal" id="bttn-save-modal">Labi</button>';
 	      }
 	      ?>
 	      </div>

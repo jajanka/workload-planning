@@ -31,7 +31,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         }
      });
 })( jQuery );
-/*
+
 ( function($) {
      $(document).ajaxStart(function(ev) {
         console.debug("ajaxStart");
@@ -41,7 +41,7 @@ var PBuffer = {cut: {}, copy: {}}; // namespace for buffer, that is, copy, paste
         }
      });
 })( jQuery );
-*/
+
 // scope the jQuery
 ( function($) {
 
@@ -80,8 +80,14 @@ $( document ).ready(function()
 
                 // Event Handlers
                 $button.unbind('click').bind('click', function () {
-                    $checkbox.prop('checked', !$checkbox.is(':checked'));
+                    var bttnState = $button.data('state');
+
+                    if ( bttnState == 'off' )
+                        $checkbox.prop('checked', true);
+                    else if ( bttnState == 'on' )
+                        $checkbox.prop('checked', false);
                     $checkbox.triggerHandler('change');
+
                     updateDisplay(true);
                 });
                 // Actions
@@ -251,6 +257,9 @@ $( document ).ready(function()
             dates.push(currentDate);
             currentDate = addDays.call(currentDate, 1);
         }
+        if ( dates.length > 0 ){
+            if ( dates[dates.length-1] != endDate ) dates.push(endDate); 
+        } 
         return dates;
     };
 
@@ -776,6 +785,7 @@ $( document ).ready(function()
             drawTodaysSign(0, true);
             initBttnCheckbox(1);
         }
+        $('#undo-text').html('Atcelt ('+undoProducts.length+')');
     });
 
     $('#save-bttn').click(function() { 
@@ -1483,12 +1493,11 @@ $( document ).ready(function()
 
     Move.prevMovePosProduct = [];
     $("#table2").mousemove(function(e) { // move rect on mousemove over table2
-        //console.log("After trigger "+(e.target.parentElement.rowIndex + 1)+' '+(e.target.cellIndex + 1));
         if(e.which == 1 && e.buttons > 0) {
-            console.log('Mouse move '+Move.move_products['start']+ ' ' +Move.move_products['move']+'  which:'+e.which);
-            console.log(markedProducts);
+            //console.log('Mouse move '+Move.move_products['start']+ ' ' +Move.move_products['move']+'  which:'+e.which);
+            //console.log(markedProducts);
             if (Move.move_products['start'] && Move.move_products['move'] && Object.keys(markedProducts).length > 0) {
-                console.log('te nav');
+                //console.log('te nav');
                 //////////////////////////////////////////////////
                 // MOVING ALREADY MARKED PRODUCTS!!
                 //////////////////////////////////////////////////
@@ -1511,7 +1520,7 @@ $( document ).ready(function()
                             }
                             markedProducts[key].rEnd = row;
                             markedProducts[key].cEnd = col;
-                            console.log(markedProducts[key].cEnd);
+                            //console.log(markedProducts[key].cEnd);
 
                             var td_html = $( "#table2 tbody tr:nth-child("+row+") td:nth-child("+col+")");
                             // highlight product
@@ -1519,7 +1528,7 @@ $( document ).ready(function()
                                 td_html.children().addClass('marked');
                             } 
                             else {
-                                console.log('td_marked');
+                                //console.log('td_marked');
                                 td_html.addClass('td-marked');
                             }
                             Move.prevMovePosProduct.push(td_html);   
@@ -1645,7 +1654,7 @@ $( document ).ready(function()
             if ($('.temp-marked')[0] !== undefined) {
                 // delete marking drawing
                 $('.temp-marked').remove();
-                console.log(Move.start_row+" "+Move.old_row+" : "+Move.start_col+" "+ Move.old_col);
+                //console.log(Move.start_row+" "+Move.old_row+" : "+Move.start_col+" "+ Move.old_col);
                 // get products
                 getMarkedProducts(e);
                 statusBar['marked']['count'] = $('.marked').length;
@@ -1653,19 +1662,19 @@ $( document ).ready(function()
                 
             }
             if ( Object.keys(markedProducts).length > 0) {
-                console.log('M up Move.move_products[start] ' +Move.move_products['start']);
-                console.log('Modal action '+Move.modal_action);
+                //console.log('M up Move.move_products[start] ' +Move.move_products['start']);
+                //console.log('Modal action '+Move.modal_action);
                  // true if modal is not canceled
                 Move.move_products['start'] = true;
                 //Move.move_products['move'] = true;
-                console.log('Mouse up '+Move.move_products['start']);
+                //console.log('Mouse up '+Move.move_products['start']);
             }
             else {
                 Move.move_products['start'] = false; Move.move_products['move'] = false;
             }
             // if released mouse when moving many products, then apply new pos, palce products in new pos
             if (Move.move_products['start'] && Move.move_products['move']) {
-                console.log('Place products');
+                //console.log('Place products');
                 // check if products can be placed in new place
                 var lastTdIndex = $("#table2:first tr:nth-child(1) td:last-child")[0].cellIndex+1;
                 var is_valid = true;
@@ -1744,7 +1753,7 @@ $( document ).ready(function()
                             }
 
                             if (i >= rowLastCellIndex)  {
-                                console.log('Expand11');
+                                //console.log('Expand11');
                                 expandTable(machineCount, 7);
                                 rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
                                 td_html = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td:nth-child("+i+")");
@@ -1753,7 +1762,7 @@ $( document ).ready(function()
                             if ( !darkCell ) {
                                 // if placement cell is out of borders then expand table to get the cell
                                 if (i > rowLastCellIndex) {
-                                    console.log('Expand2');
+                                    //console.log('Expand2');
                                     expandTable(machineCount, 7);
                                     rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
                                 }
@@ -1767,7 +1776,7 @@ $( document ).ready(function()
                                 {
                                     i++;
                                     if (i >= rowLastCellIndex)  {
-                                        console.log('Expand1');
+                                        //console.log('Expand1');
                                         expandTable(machineCount, 7);
                                         rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
                                     }
@@ -1789,7 +1798,7 @@ $( document ).ready(function()
                                     if (nextCell_html == "" && !nextCell.hasClass('dark')) break; 
 
                                     if (i >= rowLastCellIndex) {
-                                        console.log('Expand3');
+                                        //console.log('Expand3');
                                         expandTable(machineCount, 7);
                                         rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
                                     }
@@ -1806,7 +1815,7 @@ $( document ).ready(function()
                                     {
                                         i += 1;
                                         if (i >= rowLastCellIndex) {
-                                            console.log('Expand4');
+                                            //console.log('Expand4');
                                             expandTable(machineCount, 7);
                                             rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
                                             //break;
@@ -2317,6 +2326,7 @@ function updateUndo () {
                             'table': t, 'loadedTiles': JSON.parse(JSON.stringify(loadedTiles)),
                             'marked': markedProducts } );
     }
+    $('#undo-text').html('Atcelt ('+undoProducts.length+')');
 }
 
 function showNotification(text, type) {

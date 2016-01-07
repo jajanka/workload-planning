@@ -103,7 +103,7 @@ if ( isset($_POST['year']) && is_numeric($_POST['year']) && $_SESSION['login_use
 	$pdo = NULL;
 	$pgc = NULL;
 }
-else if (isset($_POST['update'])) 
+else if (isset($_POST['update']) && $_SESSION['login_user'] == 'admin') 
 {
 	require('../../h/postgres_cmp.php');
 

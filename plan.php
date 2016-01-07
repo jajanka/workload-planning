@@ -84,19 +84,6 @@
 						</tr>
 					</table>
 				</div><!-- right container -->
-
-				<div id="botttom">
-					<table id="table-products">
-						<colgroup>
-						</colgroup>
-						<tbody>
-
-						</tbody>
-					</table>
-				</div>
-			<!-- needed for cloning DIV elements -->
-			<!-- <div id="redips_clone"></div> -->
-			<!-- message -->
 			
 		<!-- Modal -->
 	    <div class="modal" id="marked-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
