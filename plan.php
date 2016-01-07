@@ -179,7 +179,8 @@
 		                    <span class="input-group-addon">līdz</span>
 		                    <input id="datepickerFrom" type="text" class="input form-control popupDatepickerProduce" name="produceEnd" />
 		                </div>
-	                	<button type="button" class="btn btn-primary tooltip-error" id="interval-bttn" data-placement="bottom" title="">Parādīt</button>
+	                	<button type="button" class="btn btn-primary ladda-button" data-style="zoom-in" id="interval-bttn">
+	                	<span class="ladda-label">Parādīt</span></button>
 	                </div>
 	            </div>
 

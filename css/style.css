@@ -227,7 +227,7 @@ body {
 }
 #calendarTable td, #productsTable td, #produceTable td{
 	padding: 0px;
-    height: 25px;
+    //height: 25px;
     vertical-align: baseline;
 }
 #productsInfoTable td {
