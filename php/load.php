@@ -16,13 +16,26 @@ if ( isset($_POST['startDate']) && isset($_POST['endDate']) && isset($_POST['vie
 		require_once('../../h/postgres_cmp.php');
 
 		//$sequance = trim($_POST['sequance']);
-		$selectQ = "SELECT p_date, machine, e_shift, product, kg, fixed_position FROM $plan WHERE p_date >= :startDate AND p_date <= :endDate";
+		$selectQ = "SELECT p_date, machine, e_shift, product, kg, fixed_position FROM $plan WHERE p_date >= :startDate AND p_date <= :endDate
+					ORDER BY p_date, e_shift, machine";
 		$selectCalendarQ = "SELECT week_day, shift1, shift2, shift3 FROM calendar WHERE week_day >= :startDate AND week_day <= :endDate AND 
 							(shift1 = true OR shift2 = true OR shift3 = true)";
 
 		$output = array();
+		$productArr = array();
+		$productGroups = array();
+		$currentColumn = array();
 		$validationCounter = 0;
+		$group = 0;
 
+		$prevDate = '0';
+		$prevShift = -1;
+		$prevColumn = array();
+		//$testArr = array();
+		//$testArr['test'] = 'qwe';
+		//$testArr['ama'] = 'asd';
+		//$testArr['test'] = 'cvc';
+		//print_r($testArr);
 		try
 		{
 			$pdo = $pgc->prepare($selectQ);
@@ -33,9 +46,37 @@ if ( isset($_POST['startDate']) && isset($_POST['endDate']) && isset($_POST['vie
 
 			if ($pdo->rowCount() > 0)
 			{
-				$output['products'] = $res;
+				foreach ($res as $key => $value) 
+				{
+					// if chages to the next col (either shift is different or (shift is the same but different date))
+					if ( $prevShift != $value['e_shift'] || ($prevShift == $value['e_shift'] && $prevDate != $value['p_date']) )
+					{
+						$prevColumn = $currentColumn;
+						$currentColumn = array();
+						//echo 'Shift Break <br/>';
+					}	
+					// if this product is not in previous or in this column then star a new groupId
+					//echo json_encode($prevColumn);
+					//echo json_encode($currentColumn);
+					if ( !array_key_exists($value['product'], $prevColumn) && !array_key_exists($value['product'], $currentColumn) )
+					{
+						$group++;
+						$productGroups[$value['product']] = $group;
+					}
+
+					$prevShift = $value['e_shift'];
+					$prevDate = $value['p_date'];
+					$currentColumn[$value['product']] = true;
+					
+					$value['groupId'] = $productGroups[$value['product']];
+					$productArr[] = $value;
+					//print_r($value);
+				}
+
 				$validationCounter++;
+				$output['products'] = $productArr;
 			}
+			
 		}
 		catch(PDOException $e)
 		{
