@@ -1731,20 +1731,39 @@ $( document ).ready(function()
                         if (markedProducts.hasOwnProperty(key)) 
                         {
                             rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
-                            //console.log(markedProducts[key]);
                             next_cell = $('#table2 tr:nth-child('+markedProducts[key].rEnd+') td:nth-child('+markedProducts[key].cEnd+')');
+                            while (true)
+                            {
+                                if ( next_cell.hasClass('dark') )
+                                {
+                                    markedProducts[key].cEnd++;
+                                    next_cell = $('#table2 tr:nth-child('+markedProducts[key].rEnd+') td:nth-child('+markedProducts[key].cEnd+')');
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
                             next_cell_html = next_cell.html();
 
                             groupid = next_cell.find('div').attr('groupid');
                             product = next_cell.find('div').attr('product');
                             next_cell.html(setProductDiv(next_cell.attr('name'), markedProducts[key].product, markedProducts[key].groupid, true, markedProducts[key].kg, markedProducts[key].fixed));
-                            
+                            // product is landed on empty cell
+                            if ( product === undefined ) {
+                                continue;
+                            }
                             var productMachines = groupMachines[groupid];
                             productMachines.sort( function(a,b) { return a-b; } );
                             var startColIndex = next_cell[0].cellIndex+1;
                             var startRowIndex = $.inArray(markedProducts[key].rEnd, productMachines);
-                            startRowIndex = ( startRowIndex != -1 ) ? startRowIndex+1 : startRowIndex;
-                            startRowIndex = ( startRowIndex == -1 ) ? 0 : startRowIndex;
+                            startRowIndex = ( startRowIndex != -1 ) ? startRowIndex+1 : 0;
+
+                            var nextColProduct = $('#table2 tr:nth-child(n+'+productMachines[0]+'):nth-child(-n+'+productMachines[productMachines.length-1]+') td:nth-child('+(startColIndex+1)+') div[product="'+product+'"]');
+                            if ( nextColProduct.length == 0 && startRowIndex != 0 )
+                            {
+                                startRowIndex = 0;
+                            }
                             var exitLoop = false;
 
                             while ( true )
@@ -1752,6 +1771,10 @@ $( document ).ready(function()
                                 var changeProduct = false;
                                 for (var col = startColIndex; col < rowLastCellIndex; col++) 
                                 {
+                                    // free shift skip forward
+                                    if ( $( "#table2 tbody tr:nth-child(1) td:nth-child("+col+")").hasClass('dark') ){
+                                        continue;
+                                    }
                                     for (var row = startRowIndex; row < productMachines.length; row++) 
                                     {
                                         td_cell = $( "#table2 tbody tr:nth-child("+productMachines[row]+") td:nth-child("+col+")");
@@ -1786,7 +1809,10 @@ $( document ).ready(function()
                                                 productMachines = groupMachines[groupid];
                                                 productMachines.sort( function(a,b) { return a-b; } );
                                                 startColIndex = td_cell[0].cellIndex+1;
+                                                startColIndex =  ( row+1 == productMachines[productMachines.length-1] ) ? startColIndex+1 : startColIndex;
+
                                                 startRowIndex = 1;
+
                                                 break;
                                             }
                                         }
@@ -1808,6 +1834,8 @@ $( document ).ready(function()
                     // get new row and column position for marked products when they are released to be able to move them again
                     for (var key in markedProducts) {
                         if (markedProducts.hasOwnProperty(key)) {
+                            markedProducts[key].r = markedProducts[key].rEnd;
+                            markedProducts[key].c = markedProducts[key].cEnd;
                             newProds[$('#table2 tr:nth-child('+markedProducts[key].r+') td:nth-child('+markedProducts[key].c+')').attr('name')] = markedProducts[key];
                         }
                     }
@@ -2345,7 +2373,7 @@ function setProductDiv (name, product, groupId, marked, kg, is_fixed) {
     cls = (marked) ? ' marked' : '';
     is_static = ( is_fixed == 'true' ) ? 'true':'false';
     return '<div id="'+name+'" class="blue'+cls+'" product="'+product+'" kg="'+kg+'" fixed="'+is_static+'"'+ 
-            ' groupId="'+groupId+'" style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+groupId+'</div';
+            ' groupId="'+groupId+'" style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+product+'</div';
 }
 
 function getURLParameter(name) {
