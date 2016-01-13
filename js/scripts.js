@@ -1887,9 +1887,35 @@ $( document ).ready(function()
                     // new array for new td ids
                     var newProds = {};
                     // get new row and column position for marked products when they are released to be able to move them again
+                    var groupColRight, groupColLeft;
+                    var chackedProducts = {}, 
+                    	rowLastCellIndex = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
                     for (var key in markedProducts) {
-                        if (markedProducts.hasOwnProperty(key)) {
-                            groupCol = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child('+(markedProducts[key].c-1)+') div[product="'+markedProducts[key].product+'"]');
+                        if (markedProducts.hasOwnProperty(key)) 
+                        {
+                        	if ( !(markedProducts[key].product in chackedProducts) )
+                        	{
+	                        	groupCol = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child('+(markedProducts[key].c)+') div[product="'+markedProducts[key].product+'"]');
+	                        	if ( groupCol.length == 0 )
+	                        	{
+	                        		groupColLeft = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child(n+1):nth-child(-n+'+(markedProducts[key].c-1)+') div[product="'+markedProducts[key].product+'"][groupid="'+markedProducts[key].groupid+'"]');
+	                            	groupColRight = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child(n+'+(markedProducts[key].c+1)+'):nth-child(-n+'+rowLastCellIndex+') div[product="'+markedProducts[key].product+'"][groupid="'+markedProducts[key].groupid+'"]');
+	                        		if ( groupColLeft.length > 0 && groupColRight.length > 0 )
+	                        		{
+	                        			//groupCol = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child(n+1):nth-child(-n+'+(markedProducts[key].c-1)+') div[groupid="'+groupColRight.attr('groupid')+'"]');
+
+										new_groupid = Math.random().toString(36).substr(2, 5);
+		                                while ( new_groupid in groupMachines ) {
+		                                    new_groupid = Math.random().toString(36).substr(2, 5);
+		                                }
+		                                markedProducts[key].groupid = new_groupid;
+
+	                        			groupColLeft.attr('groupid', new_groupid).html(new_groupid);
+	                        			console.log('split');
+	                        		}
+	                        	}
+	                        }
+                        	chackedProducts[markedProducts[key].product] = true;
                             markedProducts[key].r = markedProducts[key].rEnd;
                             markedProducts[key].c = markedProducts[key].cEnd;
                             newProds[$('#table2 tr:nth-child('+markedProducts[key].r+') td:nth-child('+markedProducts[key].c+')').attr('name')] = markedProducts[key];
