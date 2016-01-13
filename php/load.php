@@ -31,11 +31,6 @@ if ( isset($_POST['startDate']) && isset($_POST['endDate']) && isset($_POST['vie
 		$prevDate = '0';
 		$prevShift = -1;
 		$prevColumn = array();
-		//$testArr = array();
-		//$testArr['test'] = 'qwe';
-		//$testArr['ama'] = 'asd';
-		//$testArr['test'] = 'cvc';
-		//print_r($testArr);
 		try
 		{
 			$pdo = $pgc->prepare($selectQ);
@@ -53,11 +48,8 @@ if ( isset($_POST['startDate']) && isset($_POST['endDate']) && isset($_POST['vie
 					{
 						$prevColumn = $currentColumn;
 						$currentColumn = array();
-						//echo 'Shift Break <br/>';
 					}	
 					// if this product is not in previous or in this column then star a new groupId
-					//echo json_encode($prevColumn);
-					//echo json_encode($currentColumn);
 					if ( !array_key_exists($value['product'], $prevColumn) && !array_key_exists($value['product'], $currentColumn) )
 					{
 						$group++;
@@ -70,7 +62,6 @@ if ( isset($_POST['startDate']) && isset($_POST['endDate']) && isset($_POST['vie
 					
 					$value['groupId'] = $productGroups[$value['product']];
 					$productArr[] = $value;
-					//print_r($value);
 				}
 
 				$validationCounter++;

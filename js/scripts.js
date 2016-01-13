@@ -1725,11 +1725,13 @@ $( document ).ready(function()
 
                 if ( is_valid ) 
                 {
-                    var prevRow = -1, td_html, darkCell = false, darkCounter = 0, attrProduct,
-                    freeShiftGroup = 0, rowLastCellIndex, last_i = -1, td_cell, next_cell_html, groupid, product;
+                    var prevRow = -1, td_html, darkCell = false, old_row, attrProduct,
+                    freeShiftGroup = 0, rowLastCellIndex, last_i = -1, td_cell, next_cell_html, groupid, product,
+                    leftside_group, new_groupid;
                     for (var key in markedProducts) {
                         if (markedProducts.hasOwnProperty(key)) 
                         {
+                            leftside_group = false, rightside_group= false;
                             rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
                             next_cell = $('#table2 tr:nth-child('+markedProducts[key].rEnd+') td:nth-child('+markedProducts[key].cEnd+')');
                             while (true)
@@ -1748,7 +1750,60 @@ $( document ).ready(function()
 
                             groupid = next_cell.find('div').attr('groupid');
                             product = next_cell.find('div').attr('product');
+
+                            // check left side of similar products
+                            var groupCol = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child('+(markedProducts[key].cEnd-1)+') div[product="'+markedProducts[key].product+'"]');
+                            if ( groupCol.length == 0 )
+                            {
+                                new_groupid = Math.random().toString(36).substr(2, 5);
+                                while ( new_groupid in groupMachines ) {
+                                    new_groupid = Math.random().toString(36).substr(2, 5);
+                                }
+                                markedProducts[key].groupid = new_groupid;
+                            }
+                            else
+                            {
+                                markedProducts[key].groupid = groupCol.attr('groupid');
+                                leftside_group = true;
+                            }
+
+                            // check the middle of the similar products
+                            if ( !leftside_group ){
+                                groupCol = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child('+(markedProducts[key].cEnd)+') div[product="'+markedProducts[key].product+'"]');
+                                if ( groupCol.length == 0 )
+                                {
+                                    
+                                }
+                                else
+                                {
+                                    markedProducts[key].groupid = groupCol.attr('groupid');
+                                    //leftside_group = true;
+                                }
+                            }
+
+                            // check right side of similar products
+                            groupCol = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child('+(markedProducts[key].cEnd+1)+') div[product="'+markedProducts[key].product+'"]');
+                            if ( groupCol.length == 0 )
+                            {
+                                //markedProducts[key].groupid = 22;
+                            }
+                            else
+                            {
+                                if ( leftside_group )
+                                {
+                                    $('#table2 tr td div[groupid="'+groupCol.attr('groupid')+'"]').attr('groupid', markedProducts[key].groupid).text(groupCol.attr('groupid'));
+                                    //markedProducts[key].groupid = groupCol.attr('groupid');
+                                }
+                                else
+                                {
+                                    markedProducts[key].groupid = groupCol.attr('groupid');
+                                }
+                                leftside_group = true;
+                            }
+                            
                             next_cell.html(setProductDiv(next_cell.attr('name'), markedProducts[key].product, markedProducts[key].groupid, true, markedProducts[key].kg, markedProducts[key].fixed));
+                            next_cell.find('div').addClass('ignore');
+
                             // product is landed on empty cell
                             if ( product === undefined ) {
                                 continue;
@@ -1786,14 +1841,14 @@ $( document ).ready(function()
                                         if ( attrProduct != product )
                                         {
                                             var prevColProduct = $('#table2 tr:nth-child(n+'+productMachines[0]+'):nth-child(-n+'+productMachines[productMachines.length-1]+') td:nth-child('+(col-1)+') div[product="'+attrProduct+'"]');
-                                            if ( attrProduct === undefined )
+                                            if ( attrProduct === undefined && !td_div.hasClass('ignore') )
                                             {
                                                 td_cell.html(next_cell_html);
                                                 td_cell.find('div').attr('id', td_cell.attr('name'));
                                                 changeProduct = true;
                                                 exitLoop = true;
                                             }
-                                            else if ( prevColProduct.length == 0 )
+                                            else if ( prevColProduct.length == 0 && !td_div.hasClass('ignore') )
                                             {
                                                 original_next_cell_html = next_cell_html;
                                                 next_cell_html = td_cell.html();
@@ -1806,13 +1861,13 @@ $( document ).ready(function()
                                             }
                                             if ( changeProduct ) 
                                             {
+                                                old_row = productMachines[row];
                                                 productMachines = groupMachines[groupid];
                                                 productMachines.sort( function(a,b) { return a-b; } );
                                                 startColIndex = td_cell[0].cellIndex+1;
                                                 startColIndex =  ( row+1 == productMachines[productMachines.length-1] ) ? startColIndex+1 : startColIndex;
-
-                                                startRowIndex = 1;
-
+                                                startRowIndex = $.inArray(old_row, productMachines);
+                                                startRowIndex = ( startRowIndex != -1 && productMachines.length - 1 > startRowIndex ) ? startRowIndex+1 : 1;
                                                 break;
                                             }
                                         }
@@ -1820,12 +1875,12 @@ $( document ).ready(function()
                                     if (changeProduct) break;
                                     startRowIndex = 0;
                                 };
-
                                 if ( exitLoop ) break;
-
                             }
                         }
                     }
+                    $('.ignore').removeClass('ignore');
+
                     // get first hash key
                     for (var firstKey in markedProducts) { if ( markedProducts.hasOwnProperty(key) ) break; }
 
@@ -1834,6 +1889,7 @@ $( document ).ready(function()
                     // get new row and column position for marked products when they are released to be able to move them again
                     for (var key in markedProducts) {
                         if (markedProducts.hasOwnProperty(key)) {
+                            groupCol = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child('+(markedProducts[key].c-1)+') div[product="'+markedProducts[key].product+'"]');
                             markedProducts[key].r = markedProducts[key].rEnd;
                             markedProducts[key].c = markedProducts[key].cEnd;
                             newProds[$('#table2 tr:nth-child('+markedProducts[key].r+') td:nth-child('+markedProducts[key].c+')').attr('name')] = markedProducts[key];
@@ -2373,11 +2429,11 @@ function setProductDiv (name, product, groupId, marked, kg, is_fixed) {
     cls = (marked) ? ' marked' : '';
     is_static = ( is_fixed == 'true' ) ? 'true':'false';
     return '<div id="'+name+'" class="blue'+cls+'" product="'+product+'" kg="'+kg+'" fixed="'+is_static+'"'+ 
-            ' groupId="'+groupId+'" style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+product+'</div';
+            ' groupId="'+groupId+'" style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+groupId+'</div';
 }
 
 function getURLParameter(name) {
-  return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null
+  return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
 }
 
 function getMachineGroups() {
@@ -2401,6 +2457,9 @@ function getMachineGroups() {
     console.log(groupMachines);
 }
 
+function updateMachineGroup(groupid) {
+
+}
 // checks if Ctrl button is pressed
 var ctrlPressed = false;
 $(window).keydown(function(evt) {
