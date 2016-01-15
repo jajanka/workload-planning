@@ -69,7 +69,6 @@ if (isset($_POST['submit']))
 	  <div class="wrapper">
 	    <form class="form-signin" method="POST" action="">   
 	      <div id="login-logo" style="height: 70px; width: 100%">
-	  	    <img src="css/images/logoLogin.png" style="float: right; margin-bottom: 20px;">
 	  	  </div>
 
 	      <h4 class="form-signin-heading">Ielogoties</h4>
