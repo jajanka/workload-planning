@@ -259,7 +259,8 @@ $( document ).ready(function()
             currentDate = addDays.call(currentDate, 1);
         }
         if ( dates.length > 0 ){
-            if ( dates[dates.length-1] != endDate ) dates.push(endDate); 
+            if ( dates[dates.length-1].setHours(0, 0, 0, 0) < endDate.setHours(0, 0, 0, 0) ) 
+                dates.push(addDays.call(endDate, 1)); 
         } 
         return dates;
     };
@@ -441,7 +442,11 @@ $( document ).ready(function()
 
                 if ( !with_shifting ) 
                 {
-                    if ( jsonCount > 0) updateColor(product);
+                    if ( jsonCount == 0 ){ 
+                        showNotification("Pārāk maza vērtība. Nekas netiks pievienots.", 'success');
+                        return;
+                    }
+                    updateColor(product);
                     // if products can be filled in table
                     // iterate over columns
                     var last_td;
@@ -482,6 +487,7 @@ $( document ).ready(function()
                             break; 
                         }
                     };
+                    updateMachineGroup();
                 }
                 // with shifting
                 else
@@ -656,8 +662,9 @@ $( document ).ready(function()
                         });
                     }
                 }
+                if ( is_async ) updateMachineGroup();
                 shiftFromFreeDays();
-                if ( is_async ) getMachineGroups();
+                if ( is_async ) updateMachineGroup();
             },
               async:is_async
         });
@@ -726,6 +733,7 @@ $( document ).ready(function()
             markedShift = 0;
             markedProducts = {};
             loadedTiles = {};
+            groupMachines = {};
 
             // get postgre time format
             startDate = startDate.split('/')[2]+'-'+startDate.split('/')[0]+'-'+startDate.split('/')[1];
@@ -776,8 +784,8 @@ $( document ).ready(function()
             var undoHTML = undoProducts.pop();
             $('.table1-header').html(undoHTML['header']);
             $('#table2').html(undoHTML['table']);
-            loadedTiles = undoHTML['loadedTiles'];
             markedProducts = undoHTML['marked'];
+            groupMachines = undoHTML['groups'];
 
             $('.button-checkbox-time').each(function () {
             	$(this).find('button').attr('class', 'btn btn-xs btn-default');
@@ -1725,17 +1733,19 @@ $( document ).ready(function()
 
                 if ( is_valid ) 
                 {
-                    var prevRow = -1, td_html, darkCell = false, old_row, attrProduct,
-                    freeShiftGroup = 0, rowLastCellIndex, last_i = -1, td_cell, next_cell_html, groupid, product,
-                    leftside_group, new_groupid;
+                    var prevRow = -1, td_free, old_row, attrProduct,
+                    rowLastCellIndex, last_i = -1, td_cell, next_cell_html, groupid, product;
                     for (var key in markedProducts) {
                         if (markedProducts.hasOwnProperty(key)) 
                         {
-                            leftside_group = false, rightside_group= false;
-                            rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex;
+                            rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex + 1;
                             next_cell = $('#table2 tr:nth-child('+markedProducts[key].rEnd+') td:nth-child('+markedProducts[key].cEnd+')');
                             while (true)
                             {
+                                if ( markedProducts[key].cEnd >= rowLastCellIndex ) {
+                                    expandTable(machineCount, 7);
+                                    rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex + 1;
+                                }
                                 if ( next_cell.hasClass('dark') )
                                 {
                                     markedProducts[key].cEnd++;
@@ -1750,56 +1760,6 @@ $( document ).ready(function()
 
                             groupid = next_cell.find('div').attr('groupid');
                             product = next_cell.find('div').attr('product');
-
-                            // check left side of similar products
-                            var groupCol = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child('+(markedProducts[key].cEnd-1)+') div[product="'+markedProducts[key].product+'"]');
-                            if ( groupCol.length == 0 )
-                            {
-                                new_groupid = Math.random().toString(36).substr(2, 5);
-                                while ( new_groupid in groupMachines ) {
-                                    new_groupid = Math.random().toString(36).substr(2, 5);
-                                }
-                                markedProducts[key].groupid = new_groupid;
-                            }
-                            else
-                            {
-                                markedProducts[key].groupid = groupCol.attr('groupid');
-                                leftside_group = true;
-                            }
-
-                            // check the middle of the similar products
-                            if ( !leftside_group ){
-                                groupCol = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child('+(markedProducts[key].cEnd)+') div[product="'+markedProducts[key].product+'"]');
-                                if ( groupCol.length == 0 )
-                                {
-                                    
-                                }
-                                else
-                                {
-                                    markedProducts[key].groupid = groupCol.attr('groupid');
-                                    //leftside_group = true;
-                                }
-                            }
-
-                            // check right side of similar products
-                            groupCol = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child('+(markedProducts[key].cEnd+1)+') div[product="'+markedProducts[key].product+'"]');
-                            if ( groupCol.length == 0 )
-                            {
-                                //markedProducts[key].groupid = 22;
-                            }
-                            else
-                            {
-                                if ( leftside_group )
-                                {
-                                    $('#table2 tr td div[groupid="'+groupCol.attr('groupid')+'"]').attr('groupid', markedProducts[key].groupid).text(groupCol.attr('groupid'));
-                                    //markedProducts[key].groupid = groupCol.attr('groupid');
-                                }
-                                else
-                                {
-                                    markedProducts[key].groupid = groupCol.attr('groupid');
-                                }
-                                leftside_group = true;
-                            }
                             
                             next_cell.html(setProductDiv(next_cell.attr('name'), markedProducts[key].product, markedProducts[key].groupid, true, markedProducts[key].kg, markedProducts[key].fixed));
                             next_cell.find('div').addClass('ignore');
@@ -1814,7 +1774,20 @@ $( document ).ready(function()
                             var startRowIndex = $.inArray(markedProducts[key].rEnd, productMachines);
                             startRowIndex = ( startRowIndex != -1 ) ? startRowIndex+1 : 0;
 
-                            var nextColProduct = $('#table2 tr:nth-child(n+'+productMachines[0]+'):nth-child(-n+'+productMachines[productMachines.length-1]+') td:nth-child('+(startColIndex+1)+') div[product="'+product+'"]');
+                            var colCheck = startColIndex+1;
+                            td_free = $('#table2 tr:nth-child(1) td:nth-child('+colCheck+')');
+                            while ( td_free.hasClass('dark') )
+                            {
+                                if ( colCheck >= rowLastCellIndex){
+                                    expandTable(machineCount, 7);
+                                    rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex + 1;
+                                }
+                                colCheck++;
+                                td_free = $('#table2 tr:nth-child(1) td:nth-child('+colCheck+')');
+                            }
+                            colCheck = ( colCheck == rowLastCellIndex ) ? startColIndex+1 : colCheck;
+                            var nextColProduct = $('#table2 tr:nth-child(n+'+productMachines[0]+'):nth-child(-n+'+productMachines[productMachines.length-1]+') td:nth-child('+colCheck+') div[product="'+product+'"]');
+                            
                             if ( nextColProduct.length == 0 && startRowIndex != 0 )
                             {
                                 startRowIndex = 0;
@@ -1824,7 +1797,7 @@ $( document ).ready(function()
                             while ( true )
                             {   
                                 var changeProduct = false;
-                                for (var col = startColIndex; col < rowLastCellIndex; col++) 
+                                for (var col = startColIndex; col <= rowLastCellIndex; col++) 
                                 {
                                     // free shift skip forward
                                     if ( $( "#table2 tbody tr:nth-child(1) td:nth-child("+col+")").hasClass('dark') ){
@@ -1840,7 +1813,35 @@ $( document ).ready(function()
                                         attrProduct = td_div.attr('product');
                                         if ( attrProduct != product )
                                         {
-                                            var prevColProduct = $('#table2 tr:nth-child(n+'+productMachines[0]+'):nth-child(-n+'+productMachines[productMachines.length-1]+') td:nth-child('+(col-1)+') div[product="'+attrProduct+'"]');
+                                            var colCheck = col-1;
+                                            td_free = $('#table2 tr:nth-child(1) td:nth-child('+colCheck+')');
+                                            while ( td_free.hasClass('dark') )
+                                            {
+                                                colCheck--;
+                                                if ( colCheck == 0) break;
+                                                td_free = $('#table2 tr:nth-child(1) td:nth-child('+colCheck+')');
+                                            }
+                                            colCheck = ( colCheck == 0 ) ? col - 1 : colCheck;
+                                            
+                                            // check if this product is in previous column
+                                            var prevColProduct = false, cellItem = [];
+                                            for (var rowIndex = 0; rowIndex < productMachines.length; rowIndex++) {
+                                                cellItem = $('#table2 tr:nth-child('+productMachines[rowIndex]+') td:nth-child('+colCheck+') div[product="'+attrProduct+'"]');
+                                                if ( cellItem.length != 0 ) {
+                                                    prevColProduct = true;
+                                                    break;
+                                                }
+                                            };
+                                            // check if this product is in current column
+                                            var curColProduct = false;
+                                            for (var rowIndex = 0; rowIndex < row; rowIndex++) {
+                                                cellItem = $('#table2 tr:nth-child('+productMachines[rowIndex]+') td:nth-child('+col+') div[product="'+attrProduct+'"]');
+                                                if ( cellItem.length != 0 ) {
+                                                    curColProduct = true;
+                                                    break;
+                                                }
+                                            };
+                                            
                                             if ( attrProduct === undefined && !td_div.hasClass('ignore') )
                                             {
                                                 td_cell.html(next_cell_html);
@@ -1848,7 +1849,7 @@ $( document ).ready(function()
                                                 changeProduct = true;
                                                 exitLoop = true;
                                             }
-                                            else if ( prevColProduct.length == 0 && !td_div.hasClass('ignore') )
+                                            else if ( !(prevColProduct || curColProduct) && !td_div.hasClass('ignore')  )
                                             {
                                                 original_next_cell_html = next_cell_html;
                                                 next_cell_html = td_cell.html();
@@ -1874,9 +1875,16 @@ $( document ).ready(function()
                                     };
                                     if (changeProduct) break;
                                     startRowIndex = 0;
+
+                                    if ( col >= rowLastCellIndex){
+                                        expandTable(machineCount, 7);
+                                        rowLastCellIndex = $( "#table2 tbody tr:nth-child("+markedProducts[key].rEnd+") td").last()[0].cellIndex + 1;
+                                    }
+
                                 };
                                 if ( exitLoop ) break;
                             }
+
                         }
                     }
                     $('.ignore').removeClass('ignore');
@@ -1887,41 +1895,17 @@ $( document ).ready(function()
                     // new array for new td ids
                     var newProds = {};
                     // get new row and column position for marked products when they are released to be able to move them again
-                    var groupColRight, groupColLeft;
-                    var chackedProducts = {}, 
-                    	rowLastCellIndex = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex;
                     for (var key in markedProducts) {
                         if (markedProducts.hasOwnProperty(key)) 
                         {
-                        	if ( !(markedProducts[key].product in chackedProducts) )
-                        	{
-	                        	groupCol = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child('+(markedProducts[key].c)+') div[product="'+markedProducts[key].product+'"]');
-	                        	if ( groupCol.length == 0 )
-	                        	{
-	                        		groupColLeft = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child(n+1):nth-child(-n+'+(markedProducts[key].c-1)+') div[product="'+markedProducts[key].product+'"][groupid="'+markedProducts[key].groupid+'"]');
-	                            	groupColRight = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child(n+'+(markedProducts[key].c+1)+'):nth-child(-n+'+rowLastCellIndex+') div[product="'+markedProducts[key].product+'"][groupid="'+markedProducts[key].groupid+'"]');
-	                        		if ( groupColLeft.length > 0 && groupColRight.length > 0 )
-	                        		{
-	                        			//groupCol = $('#table2 tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child(n+1):nth-child(-n+'+(markedProducts[key].c-1)+') div[groupid="'+groupColRight.attr('groupid')+'"]');
-
-										new_groupid = Math.random().toString(36).substr(2, 5);
-		                                while ( new_groupid in groupMachines ) {
-		                                    new_groupid = Math.random().toString(36).substr(2, 5);
-		                                }
-		                                markedProducts[key].groupid = new_groupid;
-
-	                        			groupColLeft.attr('groupid', new_groupid).html(new_groupid);
-	                        			console.log('split');
-	                        		}
-	                        	}
-	                        }
-                        	chackedProducts[markedProducts[key].product] = true;
                             markedProducts[key].r = markedProducts[key].rEnd;
                             markedProducts[key].c = markedProducts[key].cEnd;
+                            markedProducts[key].groupid = $( "#table2 tbody tr:nth-child("+markedProducts[key].r+") td:nth-child("+markedProducts[key].c+") div").attr('groupid');
                             newProds[$('#table2 tr:nth-child('+markedProducts[key].r+') td:nth-child('+markedProducts[key].c+')').attr('name')] = markedProducts[key];
                         }
                     }
                     markedProducts = newProds;
+                    updateMachineGroup();
                 }
                 else {
                     // remove marked class from products 
@@ -2381,18 +2365,20 @@ function updateUndo () {
                 undoProducts.shift();
             }
             undoProducts.push( {'header': h, 
-                                'table': t, 'loadedTiles': JSON.parse(JSON.stringify(loadedTiles)),
-                                'marked': markedProducts } );
+                                'table': t,
+                                'marked': markedProducts,
+                                'groups': groupMachines } );
         }
     } 
     else {
-        if ( undoProducts.length > 19 ) {
+        if ( undoProducts.length > 29 ) {
                 undoProducts.shift();
         }
         // JSON is needed to clone the loadedTitles value, becouse otherwise it's passed by ref and this line loses a meaning
         undoProducts.push( {'header': h, 
-                            'table': t, 'loadedTiles': JSON.parse(JSON.stringify(loadedTiles)),
-                            'marked': markedProducts } );
+                            'table': t,
+                            'marked': markedProducts,
+                            'groups': groupMachines } );
     }
     //$('#undo-text').html('Atcelt ('+undoProducts.length+')');
 }
@@ -2455,45 +2441,76 @@ function setProductDiv (name, product, groupId, marked, kg, is_fixed) {
     cls = (marked) ? ' marked' : '';
     is_static = ( is_fixed == 'true' ) ? 'true':'false';
     return '<div id="'+name+'" class="blue'+cls+'" product="'+product+'" kg="'+kg+'" fixed="'+is_static+'"'+ 
-            ' groupId="'+groupId+'" style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+groupId+'</div';
+            ' groupId="'+groupId+'" style="background-color:'+productsColor[product]+'; color:'+generateTextColor(productsColor[product])+'">'+product+'</div';
 }
 
 function getURLParameter(name) {
   return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
 }
 
-function getMachineGroups() {
-    var rowIndex;
-    var allDivs = $('#table2 tbody tr td div');
-    $.each( allDivs, function() {
-        rowIndex = this.parentElement.parentElement.rowIndex+1;
-        if ( groupMachines[$(this).attr('groupid')] !== undefined )
-        {
-            if ( $.inArray(rowIndex, groupMachines[$(this).attr('groupid')]) == -1 )
-            {
-                groupMachines[$(this).attr('groupid')].push(rowIndex);
-            }
+function updateMachineGroup() 
+{
+    var rowLastCellIndex = $( "#table2 tbody tr:nth-child(1) td").last()[0].cellIndex+1;
+    var columns, cell, row, group = 0, productGroups = [], currentColumn = {}, prevColumn = {};
+    groupMachines = {};
+    for (var i = 1; i <= rowLastCellIndex; i++) 
+    {
+        cell = $('#table2 tbody tr:nth-child(1) td:nth-child('+i+')')
+        if ( cell.hasClass('dark') ){
+            continue;
         }
-        else
+        else 
         {
-            groupMachines[$(this).attr('groupid')] = [];
-            groupMachines[$(this).attr('groupid')].push(rowIndex);
+            prevColumn = currentColumn;
+            currentColumn = {};
+            columns = $('#table2 tbody tr:nth-child(n+1):nth-child(-n+'+machineCount+') td:nth-child('+i+') div');
+            $.each( columns, function() {
+                if ( !($(this).attr('product') in prevColumn) && !($(this).attr('product') in currentColumn) )
+                {
+                    group++;
+                    productGroups[$(this).attr('product')] = group;
+                }
+                currentColumn[$(this).attr('product')] = true;
+                $(this).attr('groupid', productGroups[$(this).attr('product')]);
+
+                //$(this).html($(this).attr('groupid'));
+
+                rowIndex = this.parentElement.parentElement.rowIndex+1;
+                if ( groupMachines[$(this).attr('groupid')] !== undefined )
+                {
+                    if ( $.inArray(rowIndex, groupMachines[$(this).attr('groupid')]) == -1 )
+                    {
+                        groupMachines[$(this).attr('groupid')].push(rowIndex);
+                    }
+                }
+                else
+                {
+                    groupMachines[$(this).attr('groupid')] = [];
+                    groupMachines[$(this).attr('groupid')].push(rowIndex);
+                }
+            })
         }
-    })
-    console.log(groupMachines);
-}
-
-function updateMachineGroup(groupid) {
-
+    };
+    console.log(productGroups);
 }
 // checks if Ctrl button is pressed
 var ctrlPressed = false;
 $(window).keydown(function(evt) {
-  if (evt.which == 17) { // ctrl
-    ctrlPressed = true;
-  }
+    if (evt.which == 17) 
+    { // ctrl
+        ctrlPressed = true;
+    }
+    if ( ctrlPressed && evt.which == 90) {
+        var event = jQuery.Event( "click", {
+            which: 1,
+            buttons: 1
+        });
+        $('#undo-gen-prod-bttn').trigger(event);
+    }
 }).keyup(function(evt) {
-  if (evt.which == 17) { // ctrl
+  if (evt.which == 17) 
+  { // ctrl
     ctrlPressed = false;
   }
+
 });
